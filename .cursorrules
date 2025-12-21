@@ -1,0 +1,101 @@
+# 🏰 PROJECT: Portuguese Stonework Database (mttc_project)
+
+
+# ⚙️ STACK: Next.js 14+ (App Router), TypeScript, Drizzle ORM, Supabase (Postgres+PostGIS), Docker
+
+
+# 1. CORE PHILOSOPHY & ARCHITECTURE
+
+
+
+* **Academic Rigor:** This is a scientific database. Data integrity is paramount.
+* **Server First:** Default to React Server Components (RSC). Only use 'use client' for interactive islands (Maps, Forms, Toggles).
+* **Core + Extension Pattern:**
+    * constructions table = Generic data (Location, ID, Status, Slugs).
+    * mills_data table = Specific domain data (Typology, Mechanism) based on the scientific inventory sheet.
+    * Do NOT mix specific columns into the generic table.
+* **Internationalization:** All UI text must be wrapped in next-intl hooks (t('key')). Never hardcode strings.
+
+
+# 2. CODING STANDARDS (STRICT TYPESCRIPT)
+
+
+
+* **Strict Mode:** noImplicitAny is strictly enforced.
+    * ❌ NEVER use any.
+    * ✅ Use unknown with narrowing, or define Zod schemas.
+    * ✅ Create named interfaces in src/types/ for complex data structures.
+* **Exports:** Use Named Exports (export const MillCard = ...) to prevent refactoring errors.
+* **Comments:** Comment complex logic, especially Drizzle queries and GIS calculations.
+
+
+# 3. TECH STACK SPECIFICS
+
+
+## 3.1 Next.js App Router
+
+
+
+* Use app/[locale]/... for all routes.
+* Use loading.tsx and error.tsx for granular UI states.
+* Use Server Actions ('use server') for all data mutations. Do NOT create API routes (pages/api) unless strictly necessary.
+
+
+## 3.2 Drizzle ORM & Database
+
+
+
+* **Querying:** Use the Query Builder syntax (db.query.constructions.findMany(...)) over raw SQL.
+* **Enums:** Use Drizzle Enums for all fixed taxonomies (e.g., typologyEnum, accessEnum, materialEnum).
+* **PostGIS:** When handling coordinates, ensure strictly typed [Lat, Lng] tuples or GeoJSON objects.
+* **Validation:** Every DB insert/update must be validated with Zod schemas matching the Drizzle definitions.
+
+
+## 3.3 UI & Styling
+
+
+
+* **Tailwind:** Use utility classes. Sort them: Layout -> Spacing -> Visuals.
+* **Shadcn/UI:** Use these primitives for all interactive elements.
+* **Icons:** Use lucide-react exclusively.
+* **Maps:** Use react-leaflet.
+    * ❌ NEVER suggest Google Maps.
+    * ✅ Lazy load map components (next/dynamic) to avoid SSR window errors.
+
+
+# 4. DATA & ASSET CONVENTIONS
+
+
+
+* **Images:**
+    * NEVER store binary files in the DB.
+    * Store strings: storage_path pointing to Supabase Storage.
+    * Naming Convention: /{category}/{slug}/{timestamp}.jpg
+* **URLs (SEO):**
+    * Public URLs must use slugs (/mill/azenha-do-rio), NOT UUIDs.
+* **Taxonomy:**
+    * Store "Translation Keys" in the DB (e.g., mat_granite), not raw text ("Granite").
+    * The Frontend handles localization via next-intl.
+
+
+# 5. ERROR HANDLING & LOGGING
+
+
+
+* Wrap Server Actions in 'try/catch' blocks.
+* Return standardized objects: { success: boolean, data?: T, error?: string }.
+* Log errors to console with context: console.error('[ActionName]:', error).
+
+
+# 6. FILE STRUCTURE MAP
+
+
+
+* src/app: Routes and Pages
+* src/components/ui: Shadcn primitives
+* src/components/features: Domain specific components (e.g., MillMap, MillForm)
+* src/db: Drizzle Schema and Connection
+* src/lib: Utilities (Supabase, Auth)
+* src/actions: Server Actions
+* src/types: TypeScript interfaces
+* messages: Translation JSON files (pt.json, en.json)
