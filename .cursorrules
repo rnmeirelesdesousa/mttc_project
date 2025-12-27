@@ -101,7 +101,7 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-## CURRENT CONTEXT (PHASE 2: DATA ARCHITECTURE)
+## OLD CONTEXT (PHASE 2: DATA ARCHITECTURE)
 * **Status:** Phase 1 Complete. Docker & PostGIS are running.
 * **Focus:** Database Modeling & Drizzle ORM Implementation.
 * **Architecture Pattern:** "Core + Extension" (Class Table Inheritance).
@@ -113,3 +113,21 @@
   - Strict TypeScript Enums for taxonomy (e.g., `TypologyEnum`).
   - URLs must be SEO-friendly slugs (not UUIDs).
   - Binary files (images) NEVER go in DB.
+
+
+**CURRENT CONTEXT (PHASE 3: GOVERNANCE & SECURITY)**
+* **Focus:** Authentication & Access Control (RBAC).
+* **Status:** Phase 2 (Data) is Complete. DB is seeded and verified.
+* **Immediate Tasks (Roadmap Section 3):**
+    1.  **Profiles Table:** Create a `profiles` table linked to `auth.users` (Foreign Key) to store custom roles ('admin', 'researcher', 'public').
+    2.  **RLS Policies (Row Level Security):** Enable strict RLS on ALL tables.
+        * *Public Rule:* `constructions` are viewable by `anon` ONLY IF `status = 'published'`.
+        * *Write Rule:* Only users with `profiles.role = 'researcher'` or `'admin'` can INSERT/UPDATE.
+    3.  **Auth Middleware:** Protect `/dashboard/*` routes so only logged-in users can access them.
+* **Critical Constraint:** Never expose the raw `auth.users` table to the frontend. Always query the `profiles` table.
+
+**WORKING NOW CONTEXT (PHASE 3: GOVERNANCE & SECURITY)**
+* **Focus:** Authentication, RBAC, and Row Level Security.
+* **Tasks:** Implement `profiles` table, link to Supabase Auth, and apply RLS/Triggers.
+* **Constraint:** "The Academic Shield" - Public (Read Published), Researcher (Write/Draft), Admin (Publish).
+* **Tech:** Drizzle ORM for Schema, Raw SQL for RLS/Triggers.

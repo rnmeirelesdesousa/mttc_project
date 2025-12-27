@@ -1,5 +1,5 @@
 // src/db/schema.ts
-import { pgEnum, pgTable, uuid, varchar, text, timestamp, boolean, integer, index, customType, primaryKey } from 'drizzle-orm/pg-core';
+import { pgEnum, pgTable, pgSchema, uuid, varchar, text, timestamp, boolean, integer, index, customType, primaryKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 
@@ -88,8 +88,21 @@ export const windApparatusEnum = pgEnum('wind_apparatus', [
   'none',
 ]);
 
+// User Roles Enum (Phase 3: Academic Shield)
+export const userRoleEnum = pgEnum('user_role', ['public', 'researcher', 'admin']);
+
 // ============================================================================
-// STEP 2: PostGIS Geography Point Type
+// STEP 2: Reference to Supabase Auth Schema (Phase 3: Academic Shield)
+// ============================================================================
+
+// Reference to Supabase Auth schema (for foreign keys)
+const authSchema = pgSchema('auth');
+const users = authSchema.table('users', {
+	id: uuid('id').primaryKey(),
+});
+
+// ============================================================================
+// STEP 2.5: PostGIS Geography Point Type
 // ============================================================================
 
 // Custom type for PostGIS geography(POINT)
@@ -113,6 +126,21 @@ const geographyPoint = customType<{ data: [number, number]; driverData: string }
 });
 
 // ============================================================================
+// STEP 2.7: Table `profiles` (Phase 3: Academic Shield)
+// ============================================================================
+
+export const profiles = pgTable('profiles', {
+	id: uuid('id')
+		.primaryKey()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	role: userRoleEnum('role').default('public').notNull(),
+	fullName: varchar('full_name', { length: 255 }),
+	academicAffiliation: varchar('academic_affiliation', { length: 255 }),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ============================================================================
 // STEP 3: Table `constructions` (The Parent)
 // ============================================================================
 
@@ -129,6 +157,8 @@ export const constructions = pgTable(
     address: text('address'),
     drainageBasin: text('drainage_basin'),
     status: statusEnum('status').notNull().default('draft'),
+    // Phase 3: Academic Shield - Audit trail
+    createdBy: uuid('created_by').references(() => profiles.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -218,6 +248,17 @@ export const constructionsRelations = relations(constructions, ({ one, many }) =
     references: [millsData.constructionId],
   }),
   translations: many(constructionTranslations),
+  // Phase 3: Academic Shield - Author relation
+  author: one(profiles, {
+    fields: [constructions.createdBy],
+    references: [profiles.id],
+  }),
+}));
+
+// Phase 3: Academic Shield - Profiles Relations
+export const profilesRelations = relations(profiles, ({ many }) => ({
+  // A researcher can author many constructions
+  constructions: many(constructions),
 }));
 
 export const millsDataRelations = relations(millsData, ({ one }) => ({
@@ -250,8 +291,12 @@ export type NewMillData = InferInsertModel<typeof millsData>;
 export type ConstructionTranslation = InferSelectModel<typeof constructionTranslations>;
 export type NewConstructionTranslation = InferInsertModel<typeof constructionTranslations>;
 
+export type Profile = InferSelectModel<typeof profiles>;
+export type NewProfile = InferInsertModel<typeof profiles>;
+
 export const schema = {
   constructions,
   millsData,
   constructionTranslations,
+  profiles,
 };

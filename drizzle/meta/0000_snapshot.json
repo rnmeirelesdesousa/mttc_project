@@ -1,0 +1,623 @@
+{
+  "id": "e0527db8-7b8b-4e09-9376-aee2c5b66b25",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.construction_translations": {
+      "name": "construction_translations",
+      "schema": "",
+      "columns": {
+        "construction_id": {
+          "name": "construction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lang_code": {
+          "name": "lang_code",
+          "type": "varchar(2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observations_structure": {
+          "name": "observations_structure",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "observations_roof": {
+          "name": "observations_roof",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "construction_translations_construction_id_constructions_id_fk": {
+          "name": "construction_translations_construction_id_constructions_id_fk",
+          "tableFrom": "construction_translations",
+          "tableTo": "constructions",
+          "columnsFrom": [
+            "construction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "construction_translations_construction_id_lang_code_pk": {
+          "name": "construction_translations_construction_id_lang_code_pk",
+          "columns": [
+            "construction_id",
+            "lang_code"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.constructions": {
+      "name": "constructions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_category": {
+          "name": "type_category",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'MILL'"
+        },
+        "geom": {
+          "name": "geom",
+          "type": "geography",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "district": {
+          "name": "district",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "municipality": {
+          "name": "municipality",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parish": {
+          "name": "parish",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drainage_basin": {
+          "name": "drainage_basin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "constructions_slug_idx": {
+          "name": "constructions_slug_idx",
+          "columns": [
+            {
+              "expression": "slug",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "constructions_created_by_profiles_id_fk": {
+          "name": "constructions_created_by_profiles_id_fk",
+          "tableFrom": "constructions",
+          "tableTo": "profiles",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "constructions_slug_unique": {
+          "name": "constructions_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.mills_data": {
+      "name": "mills_data",
+      "schema": "",
+      "columns": {
+        "construction_id": {
+          "name": "construction_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "typology": {
+          "name": "typology",
+          "type": "typology",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "access": {
+          "name": "access",
+          "type": "access",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "legal_protection": {
+          "name": "legal_protection",
+          "type": "legal_protection",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "property_status": {
+          "name": "property_status",
+          "type": "property_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plan_shape": {
+          "name": "plan_shape",
+          "type": "plan_shape",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "construction_technique": {
+          "name": "construction_technique",
+          "type": "construction_technique",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "roof_shape": {
+          "name": "roof_shape",
+          "type": "roof_shape",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "roof_material": {
+          "name": "roof_material",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "water_captation": {
+          "name": "water_captation",
+          "type": "water_captation",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rodizio_qty": {
+          "name": "rodizio_qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "wind_apparatus": {
+          "name": "wind_apparatus",
+          "type": "wind_apparatus",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "millstones_pairs": {
+          "name": "millstones_pairs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rating_structure": {
+          "name": "rating_structure",
+          "type": "conservation_state",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rating_roof": {
+          "name": "rating_roof",
+          "type": "conservation_state",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rating_hydraulic": {
+          "name": "rating_hydraulic",
+          "type": "conservation_state",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rating_mechanism": {
+          "name": "rating_mechanism",
+          "type": "conservation_state",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rating_overall": {
+          "name": "rating_overall",
+          "type": "conservation_state",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_oven": {
+          "name": "has_oven",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "has_miller_house": {
+          "name": "has_miller_house",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "epigraphy_presence": {
+          "name": "epigraphy_presence",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "epoch": {
+          "name": "epoch",
+          "type": "epoch",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_use": {
+          "name": "current_use",
+          "type": "current_use",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "mills_data_construction_id_constructions_id_fk": {
+          "name": "mills_data_construction_id_constructions_id_fk",
+          "tableFrom": "mills_data",
+          "tableTo": "constructions",
+          "columnsFrom": [
+            "construction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.profiles": {
+      "name": "profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'public'"
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "academic_affiliation": {
+          "name": "academic_affiliation",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "profiles_id_users_id_fk": {
+          "name": "profiles_id_users_id_fk",
+          "tableFrom": "profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.access": {
+      "name": "access",
+      "schema": "public",
+      "values": [
+        "pedestrian",
+        "car",
+        "difficult_none"
+      ]
+    },
+    "public.conservation_state": {
+      "name": "conservation_state",
+      "schema": "public",
+      "values": [
+        "very_good",
+        "good",
+        "reasonable",
+        "bad",
+        "very_bad_ruin"
+      ]
+    },
+    "public.construction_technique": {
+      "name": "construction_technique",
+      "schema": "public",
+      "values": [
+        "stone_masonry",
+        "adobe",
+        "mixed",
+        "concrete",
+        "wood"
+      ]
+    },
+    "public.current_use": {
+      "name": "current_use",
+      "schema": "public",
+      "values": [
+        "milling",
+        "housing",
+        "tourism",
+        "ruin",
+        "museum"
+      ]
+    },
+    "public.epoch": {
+      "name": "epoch",
+      "schema": "public",
+      "values": [
+        "18th_c",
+        "19th_c",
+        "20th_c",
+        "pre_18th_c"
+      ]
+    },
+    "public.legal_protection": {
+      "name": "legal_protection",
+      "schema": "public",
+      "values": [
+        "inexistent",
+        "under_study",
+        "classified"
+      ]
+    },
+    "public.plan_shape": {
+      "name": "plan_shape",
+      "schema": "public",
+      "values": [
+        "circular",
+        "rectangular",
+        "square",
+        "polygonal",
+        "irregular"
+      ]
+    },
+    "public.property_status": {
+      "name": "property_status",
+      "schema": "public",
+      "values": [
+        "private",
+        "public",
+        "unknown"
+      ]
+    },
+    "public.roof_shape": {
+      "name": "roof_shape",
+      "schema": "public",
+      "values": [
+        "conical",
+        "pyramidal",
+        "domed",
+        "flat",
+        "gabled",
+        "none"
+      ]
+    },
+    "public.status": {
+      "name": "status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "review",
+        "published"
+      ]
+    },
+    "public.typology": {
+      "name": "typology",
+      "schema": "public",
+      "values": [
+        "azenha",
+        "rodizio",
+        "mare",
+        "torre_fixa",
+        "giratorio",
+        "velas",
+        "armacao"
+      ]
+    },
+    "public.user_role": {
+      "name": "user_role",
+      "schema": "public",
+      "values": [
+        "public",
+        "researcher",
+        "admin"
+      ]
+    },
+    "public.water_captation": {
+      "name": "water_captation",
+      "schema": "public",
+      "values": [
+        "direct",
+        "channel",
+        "reservoir",
+        "aqueduct",
+        "none"
+      ]
+    },
+    "public.wind_apparatus": {
+      "name": "wind_apparatus",
+      "schema": "public",
+      "values": [
+        "fixed",
+        "rotating",
+        "adjustable",
+        "none"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
