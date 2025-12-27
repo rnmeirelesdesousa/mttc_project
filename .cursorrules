@@ -99,3 +99,17 @@
 * src/actions: Server Actions
 * src/types: TypeScript interfaces
 * messages: Translation JSON files (pt.json, en.json)
+
+
+## CURRENT CONTEXT (PHASE 2: DATA ARCHITECTURE)
+* **Status:** Phase 1 Complete. Docker & PostGIS are running.
+* **Focus:** Database Modeling & Drizzle ORM Implementation.
+* **Architecture Pattern:** "Core + Extension" (Class Table Inheritance).
+  - `constructions` (Parent): UUID, Slug, Geometry (PostGIS Point).
+  - `mills_data` (Child): 1:1 relation, specific attributes (typology, mechanism).
+  - `construction_translations` (i18n): Text content in rows, not columns.
+* **Tech Constraints:**
+  - Use `drizzle-orm/postgres-js`.
+  - Strict TypeScript Enums for taxonomy (e.g., `TypologyEnum`).
+  - URLs must be SEO-friendly slugs (not UUIDs).
+  - Binary files (images) NEVER go in DB.
