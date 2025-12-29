@@ -126,8 +126,22 @@
     3.  **Auth Middleware:** Protect `/dashboard/*` routes so only logged-in users can access them.
 * **Critical Constraint:** Never expose the raw `auth.users` table to the frontend. Always query the `profiles` table.
 
-**WORKING NOW CONTEXT (PHASE 3: GOVERNANCE & SECURITY)**
-* **Focus:** Authentication, RBAC, and Row Level Security.
-* **Tasks:** Implement `profiles` table, link to Supabase Auth, and apply RLS/Triggers.
-* **Constraint:** "The Academic Shield" - Public (Read Published), Researcher (Write/Draft), Admin (Publish).
-* **Tech:** Drizzle ORM for Schema, Raw SQL for RLS/Triggers.
+**WORKING NOW CONTEXT (PHASE 3.3: PURE MOCK ADMIN DASHBOARD)**
+* **Infrastructure:** Local Docker ONLY (mttc_db). 
+* **Critical Constraint:** There is NO Supabase Auth API (GoTrue). 
+* **Forbidden:** - ❌ Do NOT use `@supabase/ssr`. 
+    - ❌ Do NOT use `supabase.auth.signInWithPassword`, `getUser`, or `setSession`.
+    - ❌ Do NOT attempt to use `admin.createSession`.
+* **The "Pure Mock" Protocol:**
+    1. **DB Access:** Use `src/lib/db.ts` (Drizzle) for ALL database operations.
+    2. **Authentication:** Query `auth.users` directly via SQL to verify passwords using `pgcrypto.crypt()`.
+    3. **Session:** On successful login, manually set a `httpOnly` cookie named `mock-session` containing the user's UUID.
+    4. **Authorization:** Middleware and Server Actions must read the `mock-session` cookie and query `public.profiles` to verify the 'admin' role.
+* **Database State:** - `auth.users` and `public.profiles` are linked via `fk_profiles_user`.
+    - Admin ID: `00000000-0000-0000-0000-000000000000`
+    - Researcher ID: `11111111-1111-1111-1111-111111111111`
+* **Immediate Tasks:**
+    - Implement `src/actions/auth.ts` (Pure Mock Login).
+    - Implement `src/middleware.ts` (Pure Mock Guard).
+    - Implement `src/actions/admin.ts` (Review Logic).
+    - Build `/dashboard/review` UI.
