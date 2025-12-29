@@ -12,6 +12,15 @@ interface PublishButtonProps {
   currentStatus: 'draft' | 'review' | 'published';
 }
 
+/**
+ * PublishButton Component
+ * 
+ * Handles the transition from draft/review to published status.
+ * - Shows loading state during the update
+ * - Displays success feedback after publishing
+ * - Triggers page refresh to remove published items from the review queue
+ * - The item will disappear from the list since the query filters for draft/review only
+ */
 export const PublishButton = ({ constructionId, currentStatus }: PublishButtonProps) => {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
@@ -24,22 +33,27 @@ export const PublishButton = ({ constructionId, currentStatus }: PublishButtonPr
       
       if (result.success) {
         setIsSuccess(true);
-        // Revalidate the page to reflect changes
+        // Trigger page refresh to re-fetch data and remove published item from list
+        // The query filters for draft/review, so published items won't appear
         router.refresh();
-        // Reset success state after a moment
-        setTimeout(() => setIsSuccess(false), 2000);
+        // Keep success state visible briefly, then it will disappear when item is removed
+        setTimeout(() => {
+          setIsSuccess(false);
+        }, 1500);
       } else {
-        // Handle error (could show toast notification)
+        // Handle error
         console.error('[PublishButton]:', result.error);
+        alert(result.error || t('review.publishError'));
       }
     });
   };
 
-  // Don't show button if already published
+  // Don't show button if already published (shouldn't happen in review queue, but safety check)
   if (currentStatus === 'published') {
     return (
-      <span className="text-sm text-muted-foreground">
-        {t('common.publish')}
+      <span className="inline-flex items-center text-sm text-muted-foreground">
+        <CheckCircle2 className="mr-1 h-3 w-3" />
+        {t('common.published')}
       </span>
     );
   }
@@ -50,6 +64,7 @@ export const PublishButton = ({ constructionId, currentStatus }: PublishButtonPr
       disabled={isPending || isSuccess}
       size="sm"
       variant="default"
+      className={isSuccess ? 'bg-green-600 hover:bg-green-700' : ''}
     >
       {isPending ? (
         <>

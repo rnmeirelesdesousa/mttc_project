@@ -8,6 +8,7 @@
     "publish": "Publish",
     "review": "Review",
     "draft": "Draft",
+    "published": "Published",
     "loading": "Loading...",
     "error": "Error",
     "noItems": "No items found"
@@ -20,9 +21,99 @@
   "review": {
     "title": "Review Queue",
     "description": "Review and approve constructions for publication",
-    "publishSuccess": "Construction published successfully",
+    "publishSuccess": "Published",
     "publishError": "Failed to publish construction",
     "unauthorized": "Unauthorized: Admin access required"
+  },
+  "login": {
+    "title": "Sign In",
+    "description": "Enter your credentials to access the dashboard",
+    "email": "Email",
+    "emailPlaceholder": "your.email@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "submit": "Sign In",
+    "error": "An error occurred during login"
+  },
+  "taxonomy": {
+    "typology": {
+      "azenha": "Azenha (Vertical Water Wheel)",
+      "rodizio": "Rodízio (Horizontal Water Wheel)",
+      "mare": "Mare (Tide Mill)",
+      "torre_fixa": "Fixed Tower (Windmill)",
+      "giratorio": "Rotating Tower (Windmill)",
+      "velas": "Sails (Windmill)",
+      "armacao": "Armação (Windmill Frame)"
+    },
+    "conservation": {
+      "very_good": "Very Good (MB)",
+      "good": "Good (B)",
+      "reasonable": "Reasonable (R)",
+      "bad": "Bad (M)",
+      "very_bad_ruin": "Very Bad / Ruin (MM)"
+    },
+    "access": {
+      "pedestrian": "Pedestrian",
+      "car": "Car Access",
+      "difficult_none": "Difficult / None"
+    },
+    "legalProtection": {
+      "inexistent": "Inexistent",
+      "under_study": "Under Study",
+      "classified": "Classified"
+    },
+    "propertyStatus": {
+      "private": "Private",
+      "public": "Public",
+      "unknown": "Unknown"
+    },
+    "epoch": {
+      "pre_18th_c": "Pre-18th Century",
+      "18th_c": "18th Century",
+      "19th_c": "19th Century",
+      "20th_c": "20th Century"
+    },
+    "currentUse": {
+      "milling": "Milling",
+      "housing": "Housing",
+      "tourism": "Tourism",
+      "ruin": "Ruin",
+      "museum": "Museum"
+    },
+    "planShape": {
+      "circular": "Circular",
+      "rectangular": "Rectangular",
+      "square": "Square",
+      "polygonal": "Polygonal",
+      "irregular": "Irregular"
+    },
+    "constructionTechnique": {
+      "stone_masonry": "Stone Masonry",
+      "adobe": "Adobe",
+      "mixed": "Mixed",
+      "concrete": "Concrete",
+      "wood": "Wood"
+    },
+    "roofShape": {
+      "conical": "Conical",
+      "pyramidal": "Pyramidal",
+      "domed": "Domed",
+      "flat": "Flat",
+      "gabled": "Gabled",
+      "none": "None"
+    },
+    "waterCaptation": {
+      "direct": "Direct",
+      "channel": "Channel",
+      "reservoir": "Reservoir",
+      "aqueduct": "Aqueduct",
+      "none": "None"
+    },
+    "windApparatus": {
+      "fixed": "Fixed",
+      "rotating": "Rotating",
+      "adjustable": "Adjustable",
+      "none": "None"
+    }
   }
 }
-

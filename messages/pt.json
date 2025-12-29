@@ -8,6 +8,7 @@
     "publish": "Publicar",
     "review": "Revisão",
     "draft": "Rascunho",
+    "published": "Publicado",
     "loading": "Carregando...",
     "error": "Erro",
     "noItems": "Nenhum item encontrado"
@@ -20,9 +21,99 @@
   "review": {
     "title": "Fila de Revisão",
     "description": "Revisar e aprovar construções para publicação",
-    "publishSuccess": "Construção publicada com sucesso",
+    "publishSuccess": "Publicado",
     "publishError": "Falha ao publicar construção",
     "unauthorized": "Não autorizado: Acesso de administrador necessário"
+  },
+  "login": {
+    "title": "Iniciar Sessão",
+    "description": "Introduza as suas credenciais para aceder ao painel",
+    "email": "Email",
+    "emailPlaceholder": "seu.email@exemplo.com",
+    "password": "Palavra-passe",
+    "passwordPlaceholder": "Introduza a sua palavra-passe",
+    "submit": "Iniciar Sessão",
+    "error": "Ocorreu um erro durante o início de sessão"
+  },
+  "taxonomy": {
+    "typology": {
+      "azenha": "Azenha (Roda de Água Vertical)",
+      "rodizio": "Rodízio (Roda de Água Horizontal)",
+      "mare": "Moinho de Maré",
+      "torre_fixa": "Torre Fixa (Moinho de Vento)",
+      "giratorio": "Torre Giratória (Moinho de Vento)",
+      "velas": "Velas (Moinho de Vento)",
+      "armacao": "Armação (Moinho de Vento)"
+    },
+    "conservation": {
+      "very_good": "Muito Bom (MB)",
+      "good": "Bom (B)",
+      "reasonable": "Razoável (R)",
+      "bad": "Mau (M)",
+      "very_bad_ruin": "Muito Mau / Ruína (MM)"
+    },
+    "access": {
+      "pedestrian": "Pedestre",
+      "car": "Acesso por Carro",
+      "difficult_none": "Difícil / Nenhum"
+    },
+    "legalProtection": {
+      "inexistent": "Inexistente",
+      "under_study": "Em Estudo",
+      "classified": "Classificado"
+    },
+    "propertyStatus": {
+      "private": "Privado",
+      "public": "Público",
+      "unknown": "Desconhecido"
+    },
+    "epoch": {
+      "pre_18th_c": "Pré-Século XVIII",
+      "18th_c": "Século XVIII",
+      "19th_c": "Século XIX",
+      "20th_c": "Século XX"
+    },
+    "currentUse": {
+      "milling": "Moagem",
+      "housing": "Habitação",
+      "tourism": "Turismo",
+      "ruin": "Ruína",
+      "museum": "Museu"
+    },
+    "planShape": {
+      "circular": "Circular",
+      "rectangular": "Rectangular",
+      "square": "Quadrado",
+      "polygonal": "Poligonal",
+      "irregular": "Irregular"
+    },
+    "constructionTechnique": {
+      "stone_masonry": "Alvenaria de Pedra",
+      "adobe": "Adobe",
+      "mixed": "Misto",
+      "concrete": "Betão",
+      "wood": "Madeira"
+    },
+    "roofShape": {
+      "conical": "Cónico",
+      "pyramidal": "Piramidal",
+      "domed": "Abobadado",
+      "flat": "Plano",
+      "gabled": "Duas Águas",
+      "none": "Nenhum"
+    },
+    "waterCaptation": {
+      "direct": "Direta",
+      "channel": "Canal",
+      "reservoir": "Reservatório",
+      "aqueduct": "Aqueduto",
+      "none": "Nenhum"
+    },
+    "windApparatus": {
+      "fixed": "Fixo",
+      "rotating": "Rotativo",
+      "adjustable": "Ajustável",
+      "none": "Nenhum"
+    }
   }
 }
-

@@ -1,32 +1,48 @@
+import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { routing } from '@/i18n/routing';
 
 /**
- * Pure Mock Security Middleware
+ * Integrated Middleware: next-intl + Security
  * 
- * Guards /dashboard/* routes by:
- * 1. Checking for mock-session cookie (authentication)
- * 2. Redirecting unauthenticated users to /login
- * 3. Allowing public routes and login page to pass through
+ * 1. First, next-intl middleware handles locale detection and redirection
+ * 2. Then, security middleware guards /dashboard/* routes:
+ *    - Checks for mock-session cookie (authentication)
+ *    - Redirects unauthenticated users to /login
+ *    - Allows public routes and login page to pass through
  * 
  * Note: RBAC (Role-Based Access Control) for /dashboard/review is enforced
  * at the Layout/Page level using Server Components, as Edge Runtime
  * doesn't support database drivers.
  */
+
+// Create the next-intl middleware
+const intlMiddleware = createMiddleware(routing);
+
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  // First, let next-intl handle locale detection and redirection
+  const response = intlMiddleware(request);
+  
+  // If next-intl returned a redirect, handle it first
+  if (response.status === 307 || response.status === 308) {
+    // Let the locale redirect complete, then apply security on the next request
+    return response;
+  }
+  
+  // Extract pathname (after locale processing)
+  const pathname = request.nextUrl.pathname;
 
   // Allow public routes and login page to pass through
-  const publicRoutes = ['/', '/login'];
-  const isPublicRoute = publicRoutes.some((route) => pathname === route);
+  const isLoginRoute = /^\/[a-z]{2}\/login/.test(pathname) || pathname === '/login';
+  const isRootRoute = /^\/[a-z]{2}$/.test(pathname) || pathname === '/';
   
-  if (isPublicRoute) {
-    return NextResponse.next();
+  if (isLoginRoute || isRootRoute) {
+    return response;
   }
 
-  // Check if accessing dashboard routes (with or without locale prefix)
-  const isDashboardRoute = pathname.startsWith('/dashboard') || 
-    /^\/[a-z]{2}\/dashboard/.test(pathname);
+  // Check if accessing dashboard routes (with locale prefix)
+  const isDashboardRoute = /^\/[a-z]{2}\/dashboard/.test(pathname);
   
   if (isDashboardRoute) {
     // Extract mock-session cookie
@@ -34,19 +50,22 @@ export function middleware(request: NextRequest) {
     
     // If no session cookie, redirect to login
     if (!sessionCookie || !sessionCookie.value) {
-      const loginUrl = new URL('/login', request.url);
+      // Extract locale from pathname
+      const localeMatch = pathname.match(/^\/([a-z]{2})\//);
+      const locale = localeMatch ? localeMatch[1] : 'en';
+      const loginUrl = new URL(`/${locale}/login`, request.url);
       // Preserve the intended destination for redirect after login
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
     
-    // Session exists - allow through
+    // Session exists - allow through (return the intl response)
     // RBAC (admin check for /dashboard/review) is handled in Server Components
-    return NextResponse.next();
+    return response;
   }
 
-  // Allow all other routes to pass through
-  return NextResponse.next();
+  // Allow all other routes to pass through (return the intl response)
+  return response;
 }
 
 // Configure which routes the middleware should run on
