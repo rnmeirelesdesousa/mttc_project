@@ -24,8 +24,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check if accessing dashboard routes
-  const isDashboardRoute = pathname.startsWith('/dashboard');
+  // Check if accessing dashboard routes (with or without locale prefix)
+  const isDashboardRoute = pathname.startsWith('/dashboard') || 
+    /^\/[a-z]{2}\/dashboard/.test(pathname);
   
   if (isDashboardRoute) {
     // Extract mock-session cookie

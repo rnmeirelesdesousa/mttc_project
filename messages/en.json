@@ -1,0 +1,28 @@
+{
+  "common": {
+    "title": "Title",
+    "type": "Type",
+    "status": "Status",
+    "updatedAt": "Last Updated",
+    "actions": "Actions",
+    "publish": "Publish",
+    "review": "Review",
+    "draft": "Draft",
+    "loading": "Loading...",
+    "error": "Error",
+    "noItems": "No items found"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "reviewQueue": "Review Queue",
+    "reviewQueueDescription": "Review and publish constructions"
+  },
+  "review": {
+    "title": "Review Queue",
+    "description": "Review and approve constructions for publication",
+    "publishSuccess": "Construction published successfully",
+    "publishError": "Failed to publish construction",
+    "unauthorized": "Unauthorized: Admin access required"
+  }
+}
+

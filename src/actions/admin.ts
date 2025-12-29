@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { constructions } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { isAdmin } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Admin Server Actions
@@ -56,6 +57,13 @@ export async function updateConstructionStatus(
     if (!result || result.length === 0) {
       return { success: false, error: 'Construction not found' };
     }
+
+    // Revalidate the review page to reflect changes
+    // Revalidate all locale variants of the dashboard routes
+    revalidatePath('/en/dashboard/review');
+    revalidatePath('/pt/dashboard/review');
+    revalidatePath('/en/dashboard');
+    revalidatePath('/pt/dashboard');
 
     return { success: true, data: result[0]! };
   } catch (error) {

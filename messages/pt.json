@@ -1,0 +1,28 @@
+{
+  "common": {
+    "title": "Título",
+    "type": "Tipo",
+    "status": "Estado",
+    "updatedAt": "Última Atualização",
+    "actions": "Ações",
+    "publish": "Publicar",
+    "review": "Revisão",
+    "draft": "Rascunho",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "noItems": "Nenhum item encontrado"
+  },
+  "dashboard": {
+    "title": "Painel",
+    "reviewQueue": "Fila de Revisão",
+    "reviewQueueDescription": "Revisar e publicar construções"
+  },
+  "review": {
+    "title": "Fila de Revisão",
+    "description": "Revisar e aprovar construções para publicação",
+    "publishSuccess": "Construção publicada com sucesso",
+    "publishError": "Falha ao publicar construção",
+    "unauthorized": "Não autorizado: Acesso de administrador necessário"
+  }
+}
+
