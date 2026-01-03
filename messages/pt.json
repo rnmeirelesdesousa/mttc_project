@@ -35,6 +35,10 @@
     "submit": "Iniciar Sessão",
     "error": "Ocorreu um erro durante o início de sessão"
   },
+  "map": {
+    "title": "Mapa de Moinhos",
+    "viewDetails": "Ver Detalhes"
+  },
   "taxonomy": {
     "typology": {
       "azenha": "Azenha (Roda de Água Vertical)",

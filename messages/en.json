@@ -35,6 +35,10 @@
     "submit": "Sign In",
     "error": "An error occurred during login"
   },
+  "map": {
+    "title": "Mill Map",
+    "viewDetails": "View Details"
+  },
   "taxonomy": {
     "typology": {
       "azenha": "Azenha (Vertical Water Wheel)",
