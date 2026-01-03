@@ -101,24 +101,19 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 4: PUBLIC CATALOG & SEARCH)**
-* **Infrastructure:** Local Docker (mttc_db) with PostGIS.
-* **Security:** `mock-session` cookie handles admin/researcher state; public routes remain open.
-* **Technical Mandate:**
-    1. **Dynamic Routing:** Implement `src/app/[locale]/(public)/mill/[slug]/page.tsx` using Drizzle to fetch data by slug, not UUID.
-    2. **Map Component:** Build a Client Component `MillMap` using Leaflet/OpenStreetMap. No Google Maps.
-    3. **Search Logic:** Write Server Actions for filtering mills based on the `mills_data` taxonomy.
-    4. **i18n:** Every string must use `next-intl`. No hardcoded Portuguese or English in the JSX.
-    5. **GIS:** Utilize PostGIS via Drizzle for any coordinate-based sorting or display.
+**CURRENT CONTEXT (PHASE 4: DISCOVERY COMPLETE & VERIFIED)**
+* **Audit Results:** Security Shield (404 for drafts), i18n Handshake, and GIS Consistency are all SUCCESSFUL.
+* **Bug Fix:** Sidebar filter toggling (URL Search Params) is now repaired.
+* **Navigation:** Slug-based routing (/mill/[slug]) is the primary discovery method.
 
-**CURRENT CONTEXT (PHASE 4: STABILIZATION & DIAGNOSTICS)**
-* **Tech Debt Alert:** Resolved 'next-intl' import errors. Server Components MUST use 'next-intl/server'.
-* **Routing:** Default locale root (`/[locale]`) now redirects to `/[locale]/map`.
-* **Security:** Public-facing queries strictly enforce `where(eq(constructions.status, 'published'))`.
-* **GIS:** PostGIS coordinates extracted via `ST_X/ST_Y`.
-
-**WORKING NOW CONTEXT (PHASE 4.5: VISUALS & TESTING)**
-* **Goal:** Verify the Map, Sidebar, and Detail pages are working perfectly.
-* **Technical Mandate:** 1. Implement `src/lib/storage.ts` for Supabase Storage CDN URLs.
-    2. Add `main_image` column to the `constructions` table if missing.
-    3. Ensure no hardcoded strings exist in the Map Sidebar or Detail View.
+**WORKING NOW CONTEXT (PHASE 4.5: THE IMAGE GALLERY)**
+* **Focus:** Visual Assets & Supabase Storage.
+* **Technical Mandate:** 1. **Schema Migration:** Add `main_image` (text) and `gallery_images` (text array) columns to the `constructions` table.
+    2. **Storage Helper:** Create `src/lib/storage.ts` to generate Public URLs for assets stored in the 'constructions' bucket.
+    3. **UI Integration:** Display the `main_image` in the Map Popups and as a Hero section in the Detail Page.
+    4. **Optimization:** Use `next/image` for all rendering. Binary files are NEVER in the DB.
+* **Infrastructure:** Local Docker (DB) + Supabase Storage (Visuals). 
+* **Schema:** `constructions` table needs a `main_image` column (text).
+* **Task:** Implement `src/lib/storage.ts` to handle CDN URL generation from the 'constructions' bucket.
+* **Task:** Integrate images into `MillMap` popups and the `mill/[slug]` detail page.
+* **Rule:** Use `next/image` for all rendering. Never store binary data in the database.
