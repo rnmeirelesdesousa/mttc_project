@@ -102,9 +102,19 @@
 
 
 **CURRENT CONTEXT (PHASE 4: PUBLIC CATALOG & SEARCH)**
-* **Infrastructure:** Local Docker (mttc_db) with PostGIS and pgcrypto active.
-* **Security:** Middleware guards `/dashboard`. `mock-session` cookie is the session provider.
-* **Technical Mandate:** 1. Implement the Public Gallery (`/catalog`) using Drizzle for filtering.
-    2. Implement the Interactive Map using `react-leaflet`.
-    3. Ensure no private data (emails/UUIDs) is exposed in public queries.
-* **Constraint:** No Google Maps. Use OpenStreetMap (OSM) providers only.
+* **Infrastructure:** Local Docker (mttc_db) with PostGIS.
+* **Security:** `mock-session` cookie handles admin/researcher state; public routes remain open.
+* **Technical Mandate:**
+    1. **Dynamic Routing:** Implement `src/app/[locale]/(public)/mill/[slug]/page.tsx` using Drizzle to fetch data by slug, not UUID.
+    2. **Map Component:** Build a Client Component `MillMap` using Leaflet/OpenStreetMap. No Google Maps.
+    3. **Search Logic:** Write Server Actions for filtering mills based on the `mills_data` taxonomy.
+    4. **i18n:** Every string must use `next-intl`. No hardcoded Portuguese or English in the JSX.
+    5. **GIS:** Utilize PostGIS via Drizzle for any coordinate-based sorting or display.
+
+WORKING NOW CONTEXT (PHASE 4: PUBLIC CATALOG & SEARCH)
+
+Focus: Frontend Implementation & GIS logic.
+
+Technical Mandate: > 1. Dynamic Routing: Implement src/app/[locale]/(public)/mill/[slug]/page.tsx. Use Drizzle to fetch data where slug matches the param. 2. Leaflet Integration: Build a Client Component MillMap in src/components/features/. Use react-leaflet or vanilla Leaflet. Strictly No Google Maps. 3. Server Actions: Create getFilteredMills in src/actions/public.ts to handle taxonomy-based search (PostGIS ST_AsText or ST_X/Y for coordinate extraction). 4. i18n: Every label must use next-intl keys from messages/*.json.
+
+Infrastructure: Maintain use of mttc_db via Docker. Do not attempt to call Supabase Auth APIs; continue using the mock-session cookie logic.
