@@ -40,7 +40,36 @@
     "viewDetails": "View Details",
     "filters": "Filters",
     "district": "District",
-    "allDistricts": "All Districts"
+    "allDistricts": "All Districts",
+    "backToMap": "Back to Map"
+  },
+  "mill": {
+    "detail": {
+      "title": "Mill Detail",
+      "location": "Location",
+      "coordinates": "Coordinates",
+      "description": "Description",
+      "characterization": "Characterization",
+      "mechanism": "Mechanism",
+      "materiality": "Materiality",
+      "conservation": "Conservation",
+      "overallRating": "Overall Rating",
+      "typology": "Typology",
+      "epoch": "Epoch",
+      "currentUse": "Current Use",
+      "millstonesPairs": "Millstones (Pairs)",
+      "wheelType": "Wheel Type",
+      "wheel": "wheel",
+      "wheels": "wheels",
+      "roofMaterial": "Roof Material",
+      "roofShape": "Roof Shape",
+      "constructionTechnique": "Construction Technique",
+      "waterCaptation": "Water Captation",
+      "structure": "Structure",
+      "roof": "Roof",
+      "mechanismRating": "Mechanism",
+      "notAvailable": "Not available"
+    }
   },
   "taxonomy": {
     "typology": {

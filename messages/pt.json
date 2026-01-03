@@ -40,7 +40,36 @@
     "viewDetails": "Ver Detalhes",
     "filters": "Filtros",
     "district": "Distrito",
-    "allDistricts": "Todos os Distritos"
+    "allDistricts": "Todos os Distritos",
+    "backToMap": "Voltar ao Mapa"
+  },
+  "mill": {
+    "detail": {
+      "title": "Detalhe do Moinho",
+      "location": "Localização",
+      "coordinates": "Coordenadas",
+      "description": "Descrição",
+      "characterization": "Caracterização",
+      "mechanism": "Mecanismo",
+      "materiality": "Materialidade",
+      "conservation": "Conservação",
+      "overallRating": "Classificação Geral",
+      "typology": "Tipologia",
+      "epoch": "Época",
+      "currentUse": "Uso Atual",
+      "millstonesPairs": "Mós (Pares)",
+      "wheelType": "Tipo de Roda",
+      "wheel": "roda",
+      "wheels": "rodas",
+      "roofMaterial": "Material do Telhado",
+      "roofShape": "Forma do Telhado",
+      "constructionTechnique": "Técnica de Construção",
+      "waterCaptation": "Captação de Água",
+      "structure": "Estrutura",
+      "roof": "Telhado",
+      "mechanismRating": "Mecanismo",
+      "notAvailable": "Não disponível"
+    }
   },
   "taxonomy": {
     "typology": {
