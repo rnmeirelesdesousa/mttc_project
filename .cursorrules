@@ -111,10 +111,14 @@
     4. **i18n:** Every string must use `next-intl`. No hardcoded Portuguese or English in the JSX.
     5. **GIS:** Utilize PostGIS via Drizzle for any coordinate-based sorting or display.
 
-WORKING NOW CONTEXT (PHASE 4: PUBLIC CATALOG & SEARCH)
+**CURRENT CONTEXT (PHASE 4: STABILIZATION & DIAGNOSTICS)**
+* **Tech Debt Alert:** Resolved 'next-intl' import errors. Server Components MUST use 'next-intl/server'.
+* **Routing:** Default locale root (`/[locale]`) now redirects to `/[locale]/map`.
+* **Security:** Public-facing queries strictly enforce `where(eq(constructions.status, 'published'))`.
+* **GIS:** PostGIS coordinates extracted via `ST_X/ST_Y`.
 
-Focus: Frontend Implementation & GIS logic.
-
-Technical Mandate: > 1. Dynamic Routing: Implement src/app/[locale]/(public)/mill/[slug]/page.tsx. Use Drizzle to fetch data where slug matches the param. 2. Leaflet Integration: Build a Client Component MillMap in src/components/features/. Use react-leaflet or vanilla Leaflet. Strictly No Google Maps. 3. Server Actions: Create getFilteredMills in src/actions/public.ts to handle taxonomy-based search (PostGIS ST_AsText or ST_X/Y for coordinate extraction). 4. i18n: Every label must use next-intl keys from messages/*.json.
-
-Infrastructure: Maintain use of mttc_db via Docker. Do not attempt to call Supabase Auth APIs; continue using the mock-session cookie logic.
+**WORKING NOW CONTEXT (PHASE 4.5: VISUALS & TESTING)**
+* **Goal:** Verify the Map, Sidebar, and Detail pages are working perfectly.
+* **Technical Mandate:** 1. Implement `src/lib/storage.ts` for Supabase Storage CDN URLs.
+    2. Add `main_image` column to the `constructions` table if missing.
+    3. Ensure no hardcoded strings exist in the Map Sidebar or Detail View.

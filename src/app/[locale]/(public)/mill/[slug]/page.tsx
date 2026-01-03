@@ -1,5 +1,5 @@
 import { getMillBySlug } from '@/actions/public';
-import { getTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';

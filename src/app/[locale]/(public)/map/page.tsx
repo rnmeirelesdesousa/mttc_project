@@ -1,5 +1,5 @@
 import { getPublishedMills, getUniqueDistricts, type MillFilters } from '@/actions/public';
-import { getTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import dynamic from 'next/dynamic';
 import { MapSidebar } from '@/components/features/MapSidebar';
 

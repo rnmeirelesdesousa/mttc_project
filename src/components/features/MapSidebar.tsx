@@ -41,15 +41,23 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
 
     if (isArray) {
       // Handle array params (typology)
+      // value should never be null for array params - always pass the typology string
+      if (!value) {
+        return; // Safety check: should not happen
+      }
+
       const currentValues = params.getAll(key);
-      if (value && !currentValues.includes(value)) {
-        params.append(key, value);
-      } else if (value) {
-        // Remove if already present
+      
+      // Check if value already exists in the array
+      if (currentValues.includes(value)) {
+        // Remove it: delete all occurrences, then re-add the filtered list
         params.delete(key);
         currentValues
           .filter((v) => v !== value)
           .forEach((v) => params.append(key, v));
+      } else {
+        // Add it: append the new value
+        params.append(key, value);
       }
     } else {
       // Handle single value params (district)
@@ -66,10 +74,11 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
 
   /**
    * Toggles a typology checkbox
+   * Always passes the typology string (never null) to updateFilters
    */
   const handleTypologyToggle = (typology: 'azenha' | 'rodizio' | 'mare') => {
-    const isChecked = typologyParams.includes(typology);
-    updateFilters('typology', isChecked ? null : typology, true);
+    // Always pass the typology string - updateFilters will check if it exists and toggle accordingly
+    updateFilters('typology', typology, true);
   };
 
   /**
