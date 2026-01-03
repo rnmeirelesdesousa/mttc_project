@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { constructions, millsData, constructionTranslations } from '@/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray, or } from 'drizzle-orm';
 
 /**
  * Public Server Actions
@@ -35,6 +35,14 @@ export interface PublishedMill {
 }
 
 /**
+ * Filter options for published mills
+ */
+export interface MillFilters {
+  typology?: string[];
+  district?: string;
+}
+
+/**
  * Fetches all published mills with their related data
  * 
  * Security: Only returns constructions with status = 'published'
@@ -42,10 +50,12 @@ export interface PublishedMill {
  * Localization: Fetches translation matching the provided locale
  * 
  * @param locale - Language code ('pt' | 'en')
+ * @param filters - Optional filters for typology and district
  * @returns Standardized response with array of published mills
  */
 export async function getPublishedMills(
-  locale: string
+  locale: string,
+  filters?: MillFilters
 ): Promise<
   | { success: true; data: PublishedMill[] }
   | { success: false; error: string }
@@ -54,6 +64,19 @@ export async function getPublishedMills(
     // Validate locale
     if (!locale || (locale !== 'pt' && locale !== 'en')) {
       return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
+    }
+
+    // Build where conditions
+    const whereConditions = [eq(constructions.status, 'published')];
+
+    // Apply typology filter (if provided)
+    if (filters?.typology && filters.typology.length > 0) {
+      whereConditions.push(inArray(millsData.typology, filters.typology));
+    }
+
+    // Apply district filter (if provided)
+    if (filters?.district) {
+      whereConditions.push(eq(constructions.district, filters.district));
     }
 
     // Query published mills with joins and PostGIS coordinate extraction
@@ -89,7 +112,7 @@ export async function getPublishedMills(
           eq(constructionTranslations.langCode, locale)
         )
       )
-      .where(eq(constructions.status, 'published'));
+      .where(and(...whereConditions));
 
     // Transform results to ensure lat/lng are numbers
     const mills: PublishedMill[] = results.map((row) => ({
@@ -116,6 +139,44 @@ export async function getPublishedMills(
     return {
       success: false,
       error: 'An error occurred while fetching published mills',
+    };
+  }
+}
+
+/**
+ * Gets unique districts from published mills
+ * 
+ * @returns Array of unique district names (sorted)
+ */
+export async function getUniqueDistricts(): Promise<
+  | { success: true; data: string[] }
+  | { success: false; error: string }
+> {
+  try {
+    const results = await db
+      .select({
+        district: constructions.district,
+      })
+      .from(constructions)
+      .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
+      .where(eq(constructions.status, 'published'));
+
+    // Extract districts, filter out nulls, get unique values, and sort
+    const districtsSet = new Set<string>();
+    results.forEach((row) => {
+      if (row.district && row.district.trim() !== '') {
+        districtsSet.add(row.district);
+      }
+    });
+
+    const districts = Array.from(districtsSet).sort();
+
+    return { success: true, data: districts };
+  } catch (error) {
+    console.error('[getUniqueDistricts]:', error);
+    return {
+      success: false,
+      error: 'An error occurred while fetching districts',
     };
   }
 }

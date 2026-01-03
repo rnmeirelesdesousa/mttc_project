@@ -37,10 +37,14 @@
   },
   "map": {
     "title": "Mapa de Moinhos",
-    "viewDetails": "Ver Detalhes"
+    "viewDetails": "Ver Detalhes",
+    "filters": "Filtros",
+    "district": "Distrito",
+    "allDistricts": "Todos os Distritos"
   },
   "taxonomy": {
     "typology": {
+      "label": "Tipologia",
       "azenha": "Azenha (Roda de Água Vertical)",
       "rodizio": "Rodízio (Roda de Água Horizontal)",
       "mare": "Moinho de Maré",
