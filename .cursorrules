@@ -101,47 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-## OLD CONTEXT (PHASE 2: DATA ARCHITECTURE)
-* **Status:** Phase 1 Complete. Docker & PostGIS are running.
-* **Focus:** Database Modeling & Drizzle ORM Implementation.
-* **Architecture Pattern:** "Core + Extension" (Class Table Inheritance).
-  - `constructions` (Parent): UUID, Slug, Geometry (PostGIS Point).
-  - `mills_data` (Child): 1:1 relation, specific attributes (typology, mechanism).
-  - `construction_translations` (i18n): Text content in rows, not columns.
-* **Tech Constraints:**
-  - Use `drizzle-orm/postgres-js`.
-  - Strict TypeScript Enums for taxonomy (e.g., `TypologyEnum`).
-  - URLs must be SEO-friendly slugs (not UUIDs).
-  - Binary files (images) NEVER go in DB.
-
-
-**CURRENT CONTEXT (PHASE 3: GOVERNANCE & SECURITY)**
-* **Focus:** Authentication & Access Control (RBAC).
-* **Status:** Phase 2 (Data) is Complete. DB is seeded and verified.
-* **Immediate Tasks (Roadmap Section 3):**
-    1.  **Profiles Table:** Create a `profiles` table linked to `auth.users` (Foreign Key) to store custom roles ('admin', 'researcher', 'public').
-    2.  **RLS Policies (Row Level Security):** Enable strict RLS on ALL tables.
-        * *Public Rule:* `constructions` are viewable by `anon` ONLY IF `status = 'published'`.
-        * *Write Rule:* Only users with `profiles.role = 'researcher'` or `'admin'` can INSERT/UPDATE.
-    3.  **Auth Middleware:** Protect `/dashboard/*` routes so only logged-in users can access them.
-* **Critical Constraint:** Never expose the raw `auth.users` table to the frontend. Always query the `profiles` table.
-
-**WORKING NOW CONTEXT (PHASE 3.3: PURE MOCK ADMIN DASHBOARD)**
-* **Infrastructure:** Local Docker ONLY (mttc_db). 
-* **Critical Constraint:** There is NO Supabase Auth API (GoTrue). 
-* **Forbidden:** - ❌ Do NOT use `@supabase/ssr`. 
-    - ❌ Do NOT use `supabase.auth.signInWithPassword`, `getUser`, or `setSession`.
-    - ❌ Do NOT attempt to use `admin.createSession`.
-* **The "Pure Mock" Protocol:**
-    1. **DB Access:** Use `src/lib/db.ts` (Drizzle) for ALL database operations.
-    2. **Authentication:** Query `auth.users` directly via SQL to verify passwords using `pgcrypto.crypt()`.
-    3. **Session:** On successful login, manually set a `httpOnly` cookie named `mock-session` containing the user's UUID.
-    4. **Authorization:** Middleware and Server Actions must read the `mock-session` cookie and query `public.profiles` to verify the 'admin' role.
-* **Database State:** - `auth.users` and `public.profiles` are linked via `fk_profiles_user`.
-    - Admin ID: `00000000-0000-0000-0000-000000000000`
-    - Researcher ID: `11111111-1111-1111-1111-111111111111`
-* **Immediate Tasks:**
-    - Implement `src/actions/auth.ts` (Pure Mock Login).
-    - Implement `src/middleware.ts` (Pure Mock Guard).
-    - Implement `src/actions/admin.ts` (Review Logic).
-    - Build `/dashboard/review` UI.
+**CURRENT CONTEXT (PHASE 4: PUBLIC CATALOG & SEARCH)**
+* **Infrastructure:** Local Docker (mttc_db) with PostGIS and pgcrypto active.
+* **Security:** Middleware guards `/dashboard`. `mock-session` cookie is the session provider.
+* **Technical Mandate:** 1. Implement the Public Gallery (`/catalog`) using Drizzle for filtering.
+    2. Implement the Interactive Map using `react-leaflet`.
+    3. Ensure no private data (emails/UUIDs) is exposed in public queries.
+* **Constraint:** No Google Maps. Use OpenStreetMap (OSM) providers only.
