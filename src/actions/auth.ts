@@ -1,106 +1,100 @@
 'use server';
 
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase';
 import { db } from '@/lib/db';
 import { profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import postgres from 'postgres';
+import { redirect } from 'next/navigation';
 
-// Access the raw postgres client for querying auth.users
-// (since Drizzle schema only references id for foreign key)
-// The postgres library handles connection pooling automatically
-function getRawClient(): postgres.Sql {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL environment variable is not set');
+/**
+ * Sign in with Magic Link
+ * 
+ * Sends a magic link email to the user for passwordless authentication.
+ * The user will receive an email with a link that authenticates them.
+ * 
+ * @param email - User's email address
+ * @returns Standardized response: { success: true } or { success: false, error: string }
+ */
+export async function signInWithMagicLink(
+  email: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    // Validate input
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return { success: false, error: 'Valid email is required' };
+    }
+
+    const supabase = await createClient();
+
+    // Get the site URL for redirect (must be absolute)
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    
+    // Send magic link email
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        // Redirect URL after email confirmation (root-level callback handles locale)
+        emailRedirectTo: `${siteUrl}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      console.error('[signInWithMagicLink]:', error);
+      return { success: false, error: error.message || 'Failed to send magic link' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('[signInWithMagicLink]:', error);
+    return { success: false, error: 'An error occurred while sending magic link' };
   }
-  // Create a client for raw SQL queries (pooling handled by postgres library)
-  return postgres(process.env.DATABASE_URL);
 }
 
 /**
- * Pure Mock Login Action
+ * Sign out the current user
  * 
- * Authenticates a user by:
- * 1. Querying auth.users for email match
- * 2. Verifying password using pgcrypto.crypt()
- * 3. Retrieving role from public.profiles
- * 4. Setting mock-session cookie with user UUID
- * 
- * @param formData - FormData containing 'email' and 'password' fields
- * @returns Standardized response: { success: true, role: string } or { success: false, error: string }
+ * Clears the Supabase session and redirects to the login page.
  */
-export async function loginUser(
-  formData: FormData
-): Promise<{ success: true; role: string } | { success: false; error: string }> {
+export async function signOut(): Promise<void> {
   try {
-    // Extract email and password from FormData
-    const email = formData.get('email');
-    const password = formData.get('password');
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect('/login');
+  } catch (error) {
+    console.error('[signOut]:', error);
+    redirect('/login');
+  }
+}
 
-    // Validate input
-    if (!email || typeof email !== 'string') {
-      return { success: false, error: 'Email is required' };
-    }
-    if (!password || typeof password !== 'string') {
-      return { success: false, error: 'Password is required' };
-    }
+/**
+ * Get the current authenticated user's role
+ * 
+ * @returns User role ('admin' | 'researcher' | 'public') or null if not authenticated
+ */
+export async function getCurrentUserRole(): Promise<'admin' | 'researcher' | 'public' | null> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
-    // Query auth.users using raw SQL (since schema only has id reference)
-    // Verify password using pgcrypto.crypt() in the WHERE clause
-    const rawClient = getRawClient();
-    
-    type UserRow = {
-      id: string;
-      email: string;
-      encrypted_password: string;
-    };
-    
-    const userResult = await rawClient<UserRow[]>`
-      SELECT id, email, encrypted_password
-      FROM auth.users
-      WHERE email = ${email}
-        AND encrypted_password = crypt(${password}, encrypted_password)
-      LIMIT 1
-    `;
-
-    // Check if user exists and password is valid
-    if (!userResult || userResult.length === 0) {
-      return { success: false, error: 'Invalid email or password' };
+    if (error || !user) {
+      return null;
     }
 
-    const user = userResult[0];
-    if (!user) {
-      return { success: false, error: 'Invalid email or password' };
-    }
-
-    // Retrieve user's role from public.profiles using Drizzle select
+    // Retrieve user's role from public.profiles
     const profileResult = await db
       .select({ role: profiles.role })
       .from(profiles)
       .where(eq(profiles.id, user.id))
       .limit(1);
-    
+
     const profile = profileResult[0];
-
-    if (!profile) {
-      return { success: false, error: 'User profile not found' };
-    }
-
-    // Set the mock-session cookie with user's UUID
-    const cookieStore = await cookies();
-    cookieStore.set('mock-session', user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    });
-
-    // Return success with role
-    return { success: true, role: profile.role };
+    return profile?.role ?? null;
   } catch (error) {
-    console.error('[loginUser]:', error);
-    return { success: false, error: 'An error occurred during login' };
+    console.error('[getCurrentUserRole]:', error);
+    return null;
   }
 }
 

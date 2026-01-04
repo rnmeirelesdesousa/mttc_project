@@ -2,13 +2,14 @@ import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { routing } from '@/i18n/routing';
+import { createServerClient } from '@supabase/ssr';
 
 /**
  * Integrated Middleware: next-intl + Security
  * 
  * 1. First, next-intl middleware handles locale detection and redirection
  * 2. Then, security middleware guards /dashboard/* routes:
- *    - Checks for mock-session cookie (authentication)
+ *    - Checks for Supabase session (authentication)
  *    - Redirects unauthenticated users to /login
  *    - Allows public routes and login page to pass through
  * 
@@ -20,7 +21,7 @@ import { routing } from '@/i18n/routing';
 // Create the next-intl middleware
 const intlMiddleware = createMiddleware(routing);
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // First, let next-intl handle locale detection and redirection
   const response = intlMiddleware(request);
   
@@ -36,8 +37,9 @@ export function middleware(request: NextRequest) {
   // Allow public routes and login page to pass through
   const isLoginRoute = /^\/[a-z]{2}\/login/.test(pathname) || pathname === '/login';
   const isRootRoute = /^\/[a-z]{2}$/.test(pathname) || pathname === '/';
+  const isAuthCallback = /^\/[a-z]{2}\/auth\/callback/.test(pathname) || pathname === '/auth/callback';
   
-  if (isLoginRoute || isRootRoute) {
+  if (isLoginRoute || isRootRoute || isAuthCallback) {
     return response;
   }
 
@@ -45,11 +47,33 @@ export function middleware(request: NextRequest) {
   const isDashboardRoute = /^\/[a-z]{2}\/dashboard/.test(pathname);
   
   if (isDashboardRoute) {
-    // Extract mock-session cookie
-    const sessionCookie = request.cookies.get('mock-session');
-    
-    // If no session cookie, redirect to login
-    if (!sessionCookie || !sessionCookie.value) {
+    // Create Supabase client to check session
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              request.cookies.set(name, value);
+              response.cookies.set(name, value, options);
+            });
+          },
+        },
+      }
+    );
+
+    // Check for authenticated session
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    // If no session exists, redirect to login
+    if (error || !user) {
       // Extract locale from pathname
       const localeMatch = pathname.match(/^\/([a-z]{2})\//);
       const locale = localeMatch ? localeMatch[1] : 'en';

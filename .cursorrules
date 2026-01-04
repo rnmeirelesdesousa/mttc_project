@@ -101,13 +101,13 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 4.5: EMERGENCY SYNC)**
-* **Status:** The application is CRASHING (Postgres Error 42703) because the DB is out of sync with schema.ts.
-* **Audit Failure:** `gallery_images` column is missing from the schema.
-
-**WORKING NOW: DATABASE SYNC & SCHEMA FIX**
-1.  **Fix Schema:** In `src/db/schema.ts`, add `galleryImages: text('gallery_images').array()` to the `constructions` table immediately following `mainImage`.
-2.  **Generate Migration:** Run `npx drizzle-kit generate` to create the SQL migration file for both `main_image` and `gallery_images`.
-3.  **Apply Migration:** Run `npx drizzle-kit push` (or `migrate`) to update the local Docker database.
-4.  **Verify Action Mapping:** Ensure the `PublishedMill` and `MillDetail` interfaces in `src/actions/public.ts` include both `mainImage` and `galleryImages`.
-5.  **Restart:** Verify that the map at `/[locale]/map` loads without the "column does not exist" error.
+**CURRENT CONTEXT (PHASE 5: THE RESEARCHER'S DASHBOARD)**
+* **Mission:** Establish the live environment and secure scientific data entry.
+* **Security Architecture:** - Auth: Deprecate Mock Auth. Implement Supabase Auth (Magic Link).
+  - Access Control: Enforce `profiles` table roles (researcher/admin).
+  - Visibility: Public users see ONLY `status = 'published'`.
+* **Technical State:** - local Docker DB structure is finalized in `schema.ts`.
+  - Supabase Project is ready (PostGIS enabled, 'constructions' bucket created).
+* **Immediate Priorities:** 1. Synchronize schema to live Supabase DB.
+  2. Implement Production Auth Handshake.
+  3. Secure Dashboard routes via Middleware.
