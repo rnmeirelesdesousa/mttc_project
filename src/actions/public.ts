@@ -22,6 +22,8 @@ export interface PublishedMill {
   parish: string | null;
   address: string | null;
   drainageBasin: string | null;
+  mainImage: string | null;
+  galleryImages: string[] | null;
   lat: number;
   lng: number;
   // Mills data
@@ -90,6 +92,8 @@ export async function getPublishedMills(
         parish: constructions.parish,
         address: constructions.address,
         drainageBasin: constructions.drainageBasin,
+        mainImage: constructions.mainImage,
+        galleryImages: constructions.galleryImages,
         // PostGIS coordinate extraction: ST_X returns longitude, ST_Y returns latitude
         // Cast geography to geometry for ST_X/ST_Y functions
         lng: sql<number>`ST_X(${constructions.geom}::geometry)`,
@@ -123,6 +127,8 @@ export async function getPublishedMills(
       parish: row.parish,
       address: row.address,
       drainageBasin: row.drainageBasin,
+      mainImage: row.mainImage,
+      galleryImages: row.galleryImages,
       lat: Number(row.lat),
       lng: Number(row.lng),
       typology: row.typology,
@@ -199,6 +205,8 @@ export async function getMillBySlug(
         parish: constructions.parish,
         address: constructions.address,
         drainageBasin: constructions.drainageBasin,
+        mainImage: constructions.mainImage,
+        galleryImages: constructions.galleryImages,
         // PostGIS coordinate extraction
         lng: sql<number>`ST_X(${constructions.geom}::geometry)`,
         lat: sql<number>`ST_Y(${constructions.geom}::geometry)`,
@@ -256,6 +264,8 @@ export async function getMillBySlug(
       parish: row.parish,
       address: row.address,
       drainageBasin: row.drainageBasin,
+      mainImage: row.mainImage,
+      galleryImages: row.galleryImages,
       lat: Number(row.lat),
       lng: Number(row.lng),
       typology: row.typology,

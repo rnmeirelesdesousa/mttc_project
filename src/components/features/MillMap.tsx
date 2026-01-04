@@ -3,10 +3,12 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { PublishedMill } from '@/actions/public';
+import { getPublicUrl } from '@/lib/storage';
 
 // Fix Leaflet icon issue in Next.js/Webpack
 // Leaflet's default icon paths don't work correctly with Webpack bundling
@@ -65,17 +67,38 @@ export const MillMap = ({ mills, locale }: MillMapProps) => {
         const position: LatLngExpression = [mill.lat, mill.lng];
         const millTitle = mill.title || mill.slug; // Fallback to slug if title is null
 
+        const imageUrl = getPublicUrl(mill.mainImage);
+
         return (
           <Marker key={mill.id} position={position}>
             <Popup>
               <div className="p-2">
-                <h3 className="font-semibold text-sm mb-2">{millTitle}</h3>
-                {mill.municipality && (
-                  <p className="text-xs text-gray-600 mb-2">
-                    {mill.municipality}
-                    {mill.district && `, ${mill.district}`}
-                  </p>
-                )}
+                <div className="flex items-start gap-2 mb-2">
+                  {imageUrl ? (
+                    <div className="flex-shrink-0">
+                      <Image
+                        src={imageUrl}
+                        alt={millTitle}
+                        width={40}
+                        height={40}
+                        className="rounded object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                      <span className="text-gray-400 text-xs">—</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm mb-1">{millTitle}</h3>
+                    {mill.municipality && (
+                      <p className="text-xs text-gray-600 mb-2">
+                        {mill.municipality}
+                        {mill.district && `, ${mill.district}`}
+                      </p>
+                    )}
+                  </div>
+                </div>
                 <Link
                   href={`/${locale}/mill/${mill.slug}`}
                   className="text-xs text-blue-600 hover:text-blue-800 underline"

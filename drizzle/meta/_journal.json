@@ -8,6 +8,13 @@
       "when": 1766875329661,
       "tag": "0000_acoustic_queen_noir",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1767529854734,
+      "tag": "0001_faithful_sabra",
+      "breakpoints": true
     }
   ]
 }

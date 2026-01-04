@@ -68,7 +68,8 @@
       "structure": "Estrutura",
       "roof": "Telhado",
       "mechanismRating": "Mecanismo",
-      "notAvailable": "Não disponível"
+      "notAvailable": "Não disponível",
+      "noImage": "Sem imagem disponível"
     }
   },
   "taxonomy": {

@@ -68,7 +68,8 @@
       "structure": "Structure",
       "roof": "Roof",
       "mechanismRating": "Mechanism",
-      "notAvailable": "Not available"
+      "notAvailable": "Not available",
+      "noImage": "No image available"
     }
   },
   "taxonomy": {

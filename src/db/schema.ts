@@ -156,6 +156,8 @@ export const constructions = pgTable(
     parish: text('parish'),
     address: text('address'),
     drainageBasin: text('drainage_basin'),
+    mainImage: text('main_image'),
+    galleryImages: text('gallery_images').array(),
     status: statusEnum('status').notNull().default('draft'),
     // Phase 3: Academic Shield - Audit trail
     createdBy: uuid('created_by').references(() => profiles.id),

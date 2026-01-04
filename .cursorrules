@@ -101,19 +101,13 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 4: DISCOVERY COMPLETE & VERIFIED)**
-* **Audit Results:** Security Shield (404 for drafts), i18n Handshake, and GIS Consistency are all SUCCESSFUL.
-* **Bug Fix:** Sidebar filter toggling (URL Search Params) is now repaired.
-* **Navigation:** Slug-based routing (/mill/[slug]) is the primary discovery method.
+**CURRENT CONTEXT (PHASE 4.5: EMERGENCY SYNC)**
+* **Status:** The application is CRASHING (Postgres Error 42703) because the DB is out of sync with schema.ts.
+* **Audit Failure:** `gallery_images` column is missing from the schema.
 
-**WORKING NOW CONTEXT (PHASE 4.5: THE IMAGE GALLERY)**
-* **Focus:** Visual Assets & Supabase Storage.
-* **Technical Mandate:** 1. **Schema Migration:** Add `main_image` (text) and `gallery_images` (text array) columns to the `constructions` table.
-    2. **Storage Helper:** Create `src/lib/storage.ts` to generate Public URLs for assets stored in the 'constructions' bucket.
-    3. **UI Integration:** Display the `main_image` in the Map Popups and as a Hero section in the Detail Page.
-    4. **Optimization:** Use `next/image` for all rendering. Binary files are NEVER in the DB.
-* **Infrastructure:** Local Docker (DB) + Supabase Storage (Visuals). 
-* **Schema:** `constructions` table needs a `main_image` column (text).
-* **Task:** Implement `src/lib/storage.ts` to handle CDN URL generation from the 'constructions' bucket.
-* **Task:** Integrate images into `MillMap` popups and the `mill/[slug]` detail page.
-* **Rule:** Use `next/image` for all rendering. Never store binary data in the database.
+**WORKING NOW: DATABASE SYNC & SCHEMA FIX**
+1.  **Fix Schema:** In `src/db/schema.ts`, add `galleryImages: text('gallery_images').array()` to the `constructions` table immediately following `mainImage`.
+2.  **Generate Migration:** Run `npx drizzle-kit generate` to create the SQL migration file for both `main_image` and `gallery_images`.
+3.  **Apply Migration:** Run `npx drizzle-kit push` (or `migrate`) to update the local Docker database.
+4.  **Verify Action Mapping:** Ensure the `PublishedMill` and `MillDetail` interfaces in `src/actions/public.ts` include both `mainImage` and `galleryImages`.
+5.  **Restart:** Verify that the map at `/[locale]/map` loads without the "column does not exist" error.

@@ -3,6 +3,8 @@ import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
+import { getPublicUrl } from '@/lib/storage';
 
 interface PageProps {
   params: {
@@ -63,6 +65,9 @@ export default async function MillDetailPage({ params }: PageProps) {
     }
   };
 
+  // Get image URL from storage helper
+  const imageUrl = getPublicUrl(mill.mainImage);
+
   return (
     <div className="container mx-auto p-8 max-w-4xl">
       {/* Breadcrumbs */}
@@ -73,6 +78,24 @@ export default async function MillDetailPage({ params }: PageProps) {
         <ArrowLeft className="mr-2 h-4 w-4" />
         {t('map.backToMap')}
       </Link>
+
+      {/* Hero Image Section */}
+      {imageUrl ? (
+        <div className="mb-8 rounded-lg overflow-hidden bg-gray-100">
+          <Image
+            src={imageUrl}
+            alt={mill.title || mill.slug}
+            width={1200}
+            height={600}
+            className="w-full h-auto object-cover"
+            priority
+          />
+        </div>
+      ) : (
+        <div className="mb-8 rounded-lg overflow-hidden bg-gray-200 h-64 flex items-center justify-center">
+          <p className="text-gray-500 text-sm">{t('mill.detail.noImage')}</p>
+        </div>
+      )}
 
       {/* Header */}
       <div className="mb-8">
