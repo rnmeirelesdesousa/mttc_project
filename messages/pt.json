@@ -27,13 +27,15 @@
   },
   "login": {
     "title": "Iniciar Sessão",
-    "description": "Introduza as suas credenciais para aceder ao painel",
+    "description": "Introduza o seu email e palavra-passe para iniciar sessão",
     "email": "Email",
     "emailPlaceholder": "seu.email@exemplo.com",
+    "emailRequired": "Email é obrigatório",
     "password": "Palavra-passe",
     "passwordPlaceholder": "Introduza a sua palavra-passe",
+    "passwordRequired": "Palavra-passe é obrigatória",
     "submit": "Iniciar Sessão",
-    "error": "Ocorreu um erro durante o início de sessão"
+    "error": "Ocorreu um erro durante a autenticação"
   },
   "map": {
     "title": "Mapa de Moinhos",

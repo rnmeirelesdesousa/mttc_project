@@ -27,13 +27,15 @@
   },
   "login": {
     "title": "Sign In",
-    "description": "Enter your credentials to access the dashboard",
+    "description": "Enter your email and password to sign in",
     "email": "Email",
     "emailPlaceholder": "your.email@example.com",
+    "emailRequired": "Email is required",
     "password": "Password",
     "passwordPlaceholder": "Enter your password",
+    "passwordRequired": "Password is required",
     "submit": "Sign In",
-    "error": "An error occurred during login"
+    "error": "An error occurred during authentication"
   },
   "map": {
     "title": "Mill Map",

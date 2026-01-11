@@ -16,7 +16,7 @@ export default async function DashboardPage({ params }: PageProps) {
       <h1 className="text-3xl font-bold mb-4">{t('dashboard.title')}</h1>
       <div className="space-y-4">
         <p className="text-muted-foreground">
-          Welcome to the dashboard. Your role: <strong>{role ?? 'Not authenticated'}</strong>
+          Welcome to the dashboard. Your role: <strong>{role}</strong>
         </p>
         {role === 'admin' && (
           <div className="p-4 border rounded-lg bg-muted/50">

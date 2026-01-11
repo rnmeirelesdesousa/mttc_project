@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { signInWithMagicLink } from '@/actions/auth';
+import { signInWithPassword } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 interface LoginFormProps {
   locale: string;
@@ -17,36 +17,41 @@ interface LoginFormProps {
 /**
  * LoginForm Component
  * 
- * Handles user authentication via Magic Link:
+ * Handles user authentication via Email/Password:
  * - Form submission via Server Action
- * - Sends magic link email to user
+ * - Email and password input fields
  * - Success/error display
+ * - Redirects to dashboard on successful login
  */
 export const LoginForm = ({ locale }: LoginFormProps) => {
   const t = useTranslations();
-  const searchParams = useSearchParams();
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [emailSent, setEmailSent] = useState<string | null>(null);
 
   const handleSubmit = async (formData: FormData) => {
     setError(null);
-    setSuccess(false);
     
     const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
     
     if (!email || typeof email !== 'string') {
       setError(t('login.emailRequired') || 'Email is required');
       return;
     }
     
+    if (!password || typeof password !== 'string') {
+      setError(t('login.passwordRequired') || 'Password is required');
+      return;
+    }
+    
     startTransition(async () => {
-      const result = await signInWithMagicLink(email);
+      const result = await signInWithPassword(email, password);
       
       if (result.success) {
-        setSuccess(true);
-        setEmailSent(email);
+        // Redirect to dashboard on successful login
+        router.push(`/${locale}/dashboard`);
+        router.refresh();
       } else {
         setError(result.error || t('login.error'));
       }
@@ -57,67 +62,58 @@ export const LoginForm = ({ locale }: LoginFormProps) => {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>{t('login.title')}</CardTitle>
-        <CardDescription>{t('login.description') || 'Enter your email to receive a magic link'}</CardDescription>
+        <CardDescription>{t('login.description')}</CardDescription>
       </CardHeader>
       <CardContent>
-        {success && emailSent ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 rounded-md bg-green-50 dark:bg-green-950 p-3 text-sm text-green-800 dark:text-green-200">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>
-                {t('login.magicLinkSent') || `Magic link sent to ${emailSent}. Please check your email.`}
-              </span>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setSuccess(false);
-                setEmailSent(null);
-              }}
-            >
-              {t('login.sendAnother') || 'Send another link'}
-            </Button>
-          </div>
-        ) : (
-          <form action={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('login.email')}</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder={t('login.emailPlaceholder')}
-                required
-                disabled={isPending}
-                autoComplete="email"
-              />
-            </div>
-
-            {error && (
-              <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                <AlertCircle className="h-4 w-4" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full"
+        <form action={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">{t('login.email')}</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder={t('login.emailPlaceholder')}
+              required
               disabled={isPending}
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('common.loading')}
-                </>
-              ) : (
-                t('login.submit') || 'Send Magic Link'
-              )}
-            </Button>
-          </form>
-        )}
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">{t('login.password')}</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder={t('login.passwordPlaceholder')}
+              required
+              disabled={isPending}
+              autoComplete="current-password"
+            />
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isPending}
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t('common.loading')}
+              </>
+            ) : (
+              t('login.submit')
+            )}
+          </Button>
+        </form>
       </CardContent>
     </Card>
   );

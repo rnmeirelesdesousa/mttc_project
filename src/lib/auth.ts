@@ -24,13 +24,20 @@ export async function getCurrentUser() {
       error,
     } = await supabase.auth.getUser();
 
-    if (error || !user) {
+    if (error) {
+      console.error('[getCurrentUser]: Auth error:', error.message);
       return null;
     }
 
+    if (!user) {
+      console.log('[getCurrentUser]: No user found in session');
+      return null;
+    }
+
+    console.log('[getCurrentUser]: User found:', user.id);
     return user;
   } catch (error) {
-    console.error('[getCurrentUser]:', error);
+    console.error('[getCurrentUser]: Exception:', error);
     return null;
   }
 }
@@ -51,14 +58,23 @@ export async function getSessionUserId(): Promise<string | null> {
 
 /**
  * Gets the current user's role from public.profiles
- * @returns User role ('admin' | 'researcher' | 'public') or null if not found
+ * 
+ * Security: If a user is authenticated in Supabase but missing a profiles entry,
+ * they are treated as having "No Access" (returns 'public').
+ * This is a closed system - only users with pre-provisioned profiles can access.
+ * 
+ * @returns User role ('admin' | 'researcher' | 'public'). 
+ * Returns 'public' (No Access) if user is not authenticated, profile not found, or on error.
  */
-export async function getCurrentUserRole(): Promise<'admin' | 'researcher' | 'public' | null> {
+export async function getCurrentUserRole(): Promise<'admin' | 'researcher' | 'public'> {
   try {
     const userId = await getSessionUserId();
     if (!userId) {
-      return null;
+      console.log('[getCurrentUserRole]: No user ID found, returning public (No Access)');
+      return 'public';
     }
+
+    console.log('[getCurrentUserRole]: Querying profile for user ID:', userId);
 
     const profileResult = await db
       .select({ role: profiles.role })
@@ -67,10 +83,18 @@ export async function getCurrentUserRole(): Promise<'admin' | 'researcher' | 'pu
       .limit(1);
 
     const profile = profileResult[0];
-    return profile?.role ?? null;
+    
+    if (!profile) {
+      // User is authenticated but has no profile - treat as "No Access"
+      console.warn(`[getCurrentUserRole]: User ${userId} authenticated but missing profile - returning public (No Access)`);
+      return 'public';
+    }
+
+    console.log('[getCurrentUserRole]: Found role:', profile.role);
+    return profile.role;
   } catch (error) {
-    console.error('[getCurrentUserRole]:', error);
-    return null;
+    console.error('[getCurrentUserRole]: Exception:', error, '- returning public (No Access)');
+    return 'public';
   }
 }
 

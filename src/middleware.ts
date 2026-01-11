@@ -37,9 +37,8 @@ export async function middleware(request: NextRequest) {
   // Allow public routes and login page to pass through
   const isLoginRoute = /^\/[a-z]{2}\/login/.test(pathname) || pathname === '/login';
   const isRootRoute = /^\/[a-z]{2}$/.test(pathname) || pathname === '/';
-  const isAuthCallback = /^\/[a-z]{2}\/auth\/callback/.test(pathname) || pathname === '/auth/callback';
   
-  if (isLoginRoute || isRootRoute || isAuthCallback) {
+  if (isLoginRoute || isRootRoute) {
     return response;
   }
 

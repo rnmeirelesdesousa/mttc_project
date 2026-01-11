@@ -5,48 +5,86 @@ import { db } from '@/lib/db';
 import { profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
+import { z } from 'zod';
 
 /**
- * Sign in with Magic Link
+ * Zod schema for login form validation
+ */
+const loginSchema = z.object({
+  email: z.string().email('Valid email is required'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+/**
+ * Sign in with Email/Password
  * 
- * Sends a magic link email to the user for passwordless authentication.
- * The user will receive an email with a link that authenticates them.
+ * Authenticates a user with email and password.
+ * Only users with existing profiles (researcher or admin role) can sign in.
+ * This is a closed system - no public sign-ups allowed.
  * 
  * @param email - User's email address
+ * @param password - User's password
  * @returns Standardized response: { success: true } or { success: false, error: string }
  */
-export async function signInWithMagicLink(
-  email: string
+export async function signInWithPassword(
+  email: string,
+  password: string
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    // Validate input
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return { success: false, error: 'Valid email is required' };
+    // Validate input with Zod
+    const validationResult = loginSchema.safeParse({ email, password });
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      return { success: false, error: firstError?.message || 'Invalid input' };
     }
 
     const supabase = await createClient();
 
-    // Get the site URL for redirect (must be absolute)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    
-    // Send magic link email
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        // Redirect URL after email confirmation (root-level callback handles locale)
-        emailRedirectTo: `${siteUrl}/auth/callback`,
-      },
+    // Attempt to sign in with password
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: validationResult.data.email,
+      password: validationResult.data.password,
     });
 
-    if (error) {
-      console.error('[signInWithMagicLink]:', error);
-      return { success: false, error: error.message || 'Failed to send magic link' };
+    if (authError) {
+      console.error('[signInWithPassword]: Auth error:', authError);
+      // Return generic error message for security (don't reveal if email exists)
+      return { success: false, error: 'Invalid email or password' };
     }
 
+    if (!authData.user) {
+      return { success: false, error: 'Authentication failed' };
+    }
+
+    // Verify user has a profile with researcher or admin role
+    // This is a closed system - profiles must be pre-provisioned by admin
+    const profileResult = await db
+      .select({ role: profiles.role })
+      .from(profiles)
+      .where(eq(profiles.id, authData.user.id))
+      .limit(1);
+
+    const profile = profileResult[0];
+
+    if (!profile) {
+      // User authenticated but has no profile - sign them out and deny access
+      console.warn(`[signInWithPassword]: User ${authData.user.id} authenticated but has no profile - denying access`);
+      await supabase.auth.signOut();
+      return { success: false, error: 'Access denied. Please contact an administrator.' };
+    }
+
+    if (profile.role !== 'researcher' && profile.role !== 'admin') {
+      // User has profile but wrong role - sign them out and deny access
+      console.warn(`[signInWithPassword]: User ${authData.user.id} has role ${profile.role} - denying access`);
+      await supabase.auth.signOut();
+      return { success: false, error: 'Access denied. Insufficient permissions.' };
+    }
+
+    // Success - user is authenticated and has valid role
     return { success: true };
   } catch (error) {
-    console.error('[signInWithMagicLink]:', error);
-    return { success: false, error: 'An error occurred while sending magic link' };
+    console.error('[signInWithPassword]:', error);
+    return { success: false, error: 'An error occurred during authentication' };
   }
 }
 
@@ -69,9 +107,9 @@ export async function signOut(): Promise<void> {
 /**
  * Get the current authenticated user's role
  * 
- * @returns User role ('admin' | 'researcher' | 'public') or null if not authenticated
+ * @returns User role ('admin' | 'researcher' | 'public'). Returns 'public' as fallback if not authenticated or profile not found.
  */
-export async function getCurrentUserRole(): Promise<'admin' | 'researcher' | 'public' | null> {
+export async function getCurrentUserRole(): Promise<'admin' | 'researcher' | 'public'> {
   try {
     const supabase = await createClient();
     const {
@@ -80,7 +118,7 @@ export async function getCurrentUserRole(): Promise<'admin' | 'researcher' | 'pu
     } = await supabase.auth.getUser();
 
     if (error || !user) {
-      return null;
+      return 'public';
     }
 
     // Retrieve user's role from public.profiles
@@ -91,10 +129,10 @@ export async function getCurrentUserRole(): Promise<'admin' | 'researcher' | 'pu
       .limit(1);
 
     const profile = profileResult[0];
-    return profile?.role ?? null;
+    return profile?.role ?? 'public';
   } catch (error) {
     console.error('[getCurrentUserRole]:', error);
-    return null;
+    return 'public';
   }
 }
 
