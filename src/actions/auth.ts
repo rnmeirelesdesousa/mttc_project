@@ -34,8 +34,8 @@ export async function signInWithPassword(
     // Validate input with Zod
     const validationResult = loginSchema.safeParse({ email, password });
     if (!validationResult.success) {
-      const firstError = validationResult.error.errors[0];
-      return { success: false, error: firstError?.message || 'Invalid input' };
+      // Return translation key for invalid input
+      return { success: false, error: 'errors.auth.invalidInput' };
     }
 
     const supabase = await createClient();
@@ -48,12 +48,12 @@ export async function signInWithPassword(
 
     if (authError) {
       console.error('[signInWithPassword]: Auth error:', authError);
-      // Return generic error message for security (don't reveal if email exists)
-      return { success: false, error: 'Invalid email or password' };
+      // Return translation key for generic error (don't reveal if email exists)
+      return { success: false, error: 'errors.auth.invalidEmailOrPassword' };
     }
 
     if (!authData.user) {
-      return { success: false, error: 'Authentication failed' };
+      return { success: false, error: 'errors.auth.authenticationFailed' };
     }
 
     // Verify user has a profile with researcher or admin role
@@ -70,21 +70,21 @@ export async function signInWithPassword(
       // User authenticated but has no profile - sign them out and deny access
       console.warn(`[signInWithPassword]: User ${authData.user.id} authenticated but has no profile - denying access`);
       await supabase.auth.signOut();
-      return { success: false, error: 'Access denied. Please contact an administrator.' };
+      return { success: false, error: 'errors.auth.accessDenied' };
     }
 
     if (profile.role !== 'researcher' && profile.role !== 'admin') {
       // User has profile but wrong role - sign them out and deny access
       console.warn(`[signInWithPassword]: User ${authData.user.id} has role ${profile.role} - denying access`);
       await supabase.auth.signOut();
-      return { success: false, error: 'Access denied. Insufficient permissions.' };
+      return { success: false, error: 'errors.auth.insufficientPermissions' };
     }
 
     // Success - user is authenticated and has valid role
     return { success: true };
   } catch (error) {
     console.error('[signInWithPassword]:', error);
-    return { success: false, error: 'An error occurred during authentication' };
+    return { success: false, error: 'errors.auth.genericError' };
   }
 }
 

@@ -4,6 +4,7 @@
     "type": "Tipo",
     "status": "Estado",
     "updatedAt": "Última Atualização",
+    "createdAt": "Criado Em",
     "actions": "Ações",
     "publish": "Publicar",
     "review": "Revisão",
@@ -15,8 +16,24 @@
   },
   "dashboard": {
     "title": "Painel",
+    "welcome": "Bem-vindo ao painel. O seu papel:",
+    "roleLabel": "Papel",
+    "notAuthenticated": "Não autenticado",
+    "adminInstructions": "Como administrador, pode aceder à",
+    "adminInstructionsLink": "Fila de Revisão",
+    "adminInstructionsSuffix": "para aprovar construções para publicação.",
     "reviewQueue": "Fila de Revisão",
     "reviewQueueDescription": "Revisar e publicar construções"
+  },
+  "errors": {
+    "auth": {
+      "invalidInput": "Entrada inválida",
+      "invalidEmailOrPassword": "Email ou palavra-passe inválidos",
+      "authenticationFailed": "Falha na autenticação",
+      "accessDenied": "Acesso negado. Por favor, contacte um administrador.",
+      "insufficientPermissions": "Acesso negado. Permissões insuficientes.",
+      "genericError": "Ocorreu um erro durante a autenticação"
+    }
   },
   "review": {
     "title": "Fila de Revisão",
@@ -75,6 +92,11 @@
     }
   },
   "taxonomy": {
+    "role": {
+      "admin": "Administrador",
+      "researcher": "Investigador",
+      "public": "Público"
+    },
     "typology": {
       "label": "Tipologia",
       "azenha": "Azenha (Roda de Água Vertical)",

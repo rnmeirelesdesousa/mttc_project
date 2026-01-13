@@ -4,6 +4,7 @@
     "type": "Type",
     "status": "Status",
     "updatedAt": "Last Updated",
+    "createdAt": "Created At",
     "actions": "Actions",
     "publish": "Publish",
     "review": "Review",
@@ -15,8 +16,24 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "welcome": "Welcome to the dashboard. Your role:",
+    "roleLabel": "Role",
+    "notAuthenticated": "Not authenticated",
+    "adminInstructions": "As an admin, you can access the",
+    "adminInstructionsLink": "Review Queue",
+    "adminInstructionsSuffix": "to approve constructions for publication.",
     "reviewQueue": "Review Queue",
     "reviewQueueDescription": "Review and publish constructions"
+  },
+  "errors": {
+    "auth": {
+      "invalidInput": "Invalid input",
+      "invalidEmailOrPassword": "Invalid email or password",
+      "authenticationFailed": "Authentication failed",
+      "accessDenied": "Access denied. Please contact an administrator.",
+      "insufficientPermissions": "Access denied. Insufficient permissions.",
+      "genericError": "An error occurred during authentication"
+    }
   },
   "review": {
     "title": "Review Queue",
@@ -75,6 +92,11 @@
     }
   },
   "taxonomy": {
+    "role": {
+      "admin": "Admin",
+      "researcher": "Researcher",
+      "public": "Public"
+    },
     "typology": {
       "label": "Typology",
       "azenha": "Azenha (Vertical Water Wheel)",

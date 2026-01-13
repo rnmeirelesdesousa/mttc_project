@@ -1,9 +1,6 @@
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { isAdmin } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { constructions, constructionTranslations } from '@/db/schema';
-import { eq, or, and, desc } from 'drizzle-orm';
+import { getReviewQueue } from '@/actions/admin';
 import {
   Table,
   TableBody,
@@ -13,6 +10,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { PublishButton } from '@/components/features/PublishButton';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Eye } from 'lucide-react';
 
 interface PageProps {
   params: {
@@ -24,8 +24,8 @@ interface PageProps {
  * Admin Review Page
  * 
  * Security: Verifies admin role before rendering
- * Data: Fetches constructions with draft or review status
- * UI: Displays constructions in a table with publish action
+ * Data: Fetches constructions with draft status using getReviewQueue action
+ * UI: Displays constructions in a table with review and publish actions
  */
 export default async function ReviewPage({ params }: PageProps) {
   const t = await getTranslations();
@@ -33,36 +33,29 @@ export default async function ReviewPage({ params }: PageProps) {
   // Security: Verify admin role
   const hasAdminAccess = await isAdmin();
   if (!hasAdminAccess) {
-    redirect(`/${params.locale}/dashboard`);
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center py-12">
+          <p className="text-lg text-destructive">{t('review.unauthorized')}</p>
+        </div>
+      </div>
+    );
   }
 
-  // Fetch constructions with draft or review status
-  // Include translations for display
-  const pendingConstructions = await db
-    .select({
-      id: constructions.id,
-      slug: constructions.slug,
-      typeCategory: constructions.typeCategory,
-      status: constructions.status,
-      updatedAt: constructions.updatedAt,
-      // Get English translation (fallback to first available)
-      title: constructionTranslations.title,
-    })
-    .from(constructions)
-    .leftJoin(
-      constructionTranslations,
-      and(
-        eq(constructionTranslations.constructionId, constructions.id),
-        eq(constructionTranslations.langCode, 'en')
-      )
-    )
-    .where(
-      or(
-        eq(constructions.status, 'draft'),
-        eq(constructions.status, 'review')
-      )
-    )
-    .orderBy(desc(constructions.updatedAt));
+  // Fetch constructions with draft status using server action
+  const result = await getReviewQueue(params.locale);
+  
+  if (!result.success) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center py-12">
+          <p className="text-lg text-destructive">{result.error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const drafts = result.data;
 
   return (
     <div className="container mx-auto py-8">
@@ -73,7 +66,7 @@ export default async function ReviewPage({ params }: PageProps) {
         </p>
       </div>
 
-      {pendingConstructions.length === 0 ? (
+      {drafts.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           {t('common.noItems')}
         </div>
@@ -84,33 +77,39 @@ export default async function ReviewPage({ params }: PageProps) {
               <TableRow>
                 <TableHead>{t('common.title')}</TableHead>
                 <TableHead>{t('common.type')}</TableHead>
-                <TableHead>{t('common.status')}</TableHead>
-                <TableHead>{t('common.updatedAt')}</TableHead>
+                <TableHead>{t('common.createdAt')}</TableHead>
                 <TableHead>{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pendingConstructions.map((construction) => (
-                <TableRow key={construction.id}>
+              {drafts.map((draft) => (
+                <TableRow key={draft.id}>
                   <TableCell className="font-medium">
-                    {construction.title || construction.slug}
+                    {draft.title || draft.slug}
                   </TableCell>
-                  <TableCell>{construction.typeCategory}</TableCell>
+                  <TableCell>{draft.typeCategory}</TableCell>
                   <TableCell>
-                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800">
-                      {t(`common.${construction.status}`)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {construction.updatedAt
-                      ? new Date(construction.updatedAt).toLocaleDateString()
+                    {draft.createdAt
+                      ? new Date(draft.createdAt).toLocaleDateString(params.locale)
                       : '-'}
                   </TableCell>
                   <TableCell>
-                    <PublishButton
-                      constructionId={construction.id}
-                      currentStatus={construction.status as 'draft' | 'review' | 'published'}
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Link href={`/${params.locale}/dashboard/review/${draft.slug}`}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          {t('common.review')}
+                        </Link>
+                      </Button>
+                      <PublishButton
+                        constructionId={draft.id}
+                        currentStatus="draft"
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

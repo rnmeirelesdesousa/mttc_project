@@ -101,15 +101,16 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5: THE RESEARCHER'S DASHBOARD - AUTH REVISION)**
-* **Mission:** Establish a strictly controlled management environment for researchers.
-* **New Auth Model:** Manual Email/Password via Supabase (@supabase/ssr).
-* **Governance:** Admin-only provisioning. No public sign-ups. No Magic Links.
-* **Security:** Access is granted only if `auth.users.id` matches a row in `public.profiles` where `role` is 'researcher' or 'admin'.
+**CURRENT CONTEXT (PHASE 5: DATA ENTRY & SCIENTIFIC INVENTORY)**
+* **Mission:** Build the "Add New Stonework" wizard.
+* **Architecture:** Class Table Inheritance. One submission creates a row in `constructions` (Core) + multiple rows in `construction_translations` + one row in `mills_data` (Extension).
+* **Validation:** Use Zod for multi-step form validation.
+* **Storage:** Image uploads must use Supabase Storage. Store only the path in the DB.
 
-**WORKING NOW: MANUAL AUTH IMPLEMENTATION**
-1. **Action Rewrite:** Overhaul `src/actions/auth.ts`. Replace `signInWithOtp` with `signInWithPassword`. Remove any "auto-create profile" logic—assume the profile already exists.
-2. **UI Update:** Modify `src/components/features/LoginForm.tsx`. Add a Password field. Ensure it uses Server Actions for the login flow.
-3. **Route Cleanup:** Delete or disable any Magic Link callback routes (e.g., `auth/callback`) that are no longer required for password-based auth.
-4. **Role Enforcement:** Ensure `src/lib/auth.ts` (or the equivalent session check) fetches the `role` from the `profiles` table using the authenticated UUID.
-5. **Validation:** Implement strict Zod validation for the email/password input.
+**WORKING NOW: MULTI-STEP CONSTRUCTION FORM**
+1. **Schema Check:** Ensure Drizzle schemas for `constructions` and `mills_data` are fully aligned with the `mills_data_spec.md`.
+2. **Action:** Create `createConstruction` server action. It must handle the transaction: insert Core, insert Translations, then insert Mill details.
+3. **UI:** Build a multi-tab or multi-step form in `src/app/[locale]/dashboard/add/page.tsx`.
+   - Step 1: Basic Info (Title, Description, Status=Draft).
+   - Step 2: Location (Coordinates, Address).
+   - Step 3: Mill Specifics (Typology, Mechanism, State).

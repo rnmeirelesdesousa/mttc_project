@@ -53,7 +53,12 @@ export const LoginForm = ({ locale }: LoginFormProps) => {
         router.push(`/${locale}/dashboard`);
         router.refresh();
       } else {
-        setError(result.error || t('login.error'));
+        // Server action returns translation keys (e.g., 'errors.auth.invalidInput')
+        // Translate the error key; if translation returns the same key (not found), use fallback
+        const errorKey = result.error || 'login.error';
+        const translatedError = t(errorKey as any);
+        // If translation didn't find the key, it returns the key itself - use fallback
+        setError(translatedError === errorKey ? t('login.error') : translatedError);
       }
     });
   };
