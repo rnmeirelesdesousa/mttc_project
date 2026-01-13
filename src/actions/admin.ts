@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { constructions, constructionTranslations, millsData } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { isAdmin, isResearcherOrAdmin, getSessionUserId } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -71,6 +71,333 @@ export async function updateConstructionStatus(
   } catch (error) {
     console.error('[updateConstructionStatus]:', error);
     return { success: false, error: 'An error occurred while updating construction status' };
+  }
+}
+
+/**
+ * Fetches construction statistics for the current user
+ * 
+ * Security: Verifies that the performing user is authenticated
+ * 
+ * @returns Standardized response with counts grouped by status (draft, published)
+ */
+export async function getUserConstructionStats(): Promise<
+  | {
+      success: true;
+      data: {
+        draft: number;
+        published: number;
+      };
+    }
+  | { success: false; error: string }
+> {
+  try {
+    // Get current user ID
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Query constructions created by the user, grouped by status
+    const stats = await db
+      .select({
+        status: constructions.status,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(constructions)
+      .where(eq(constructions.createdBy, userId))
+      .groupBy(constructions.status);
+
+    // Initialize counts
+    let draftCount = 0;
+    let publishedCount = 0;
+
+    // Aggregate counts from query results
+    for (const stat of stats) {
+      if (stat.status === 'draft') {
+        draftCount = stat.count;
+      } else if (stat.status === 'published') {
+        publishedCount = stat.count;
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        draft: draftCount,
+        published: publishedCount,
+      },
+    };
+  } catch (error) {
+    console.error('[getUserConstructionStats]:', error);
+    return { success: false, error: 'An error occurred while fetching statistics' };
+  }
+}
+
+/**
+ * Fetches a construction by slug for admin review
+ * 
+ * Security: Verifies that the performing user has 'admin' role
+ * 
+ * @param slug - Construction slug identifier
+ * @param locale - Current locale code ('en' | 'pt')
+ * @returns Standardized response with full construction data including all scientific fields
+ */
+export async function getConstructionForReview(
+  slug: string,
+  locale: string
+): Promise<
+  | {
+      success: true;
+      data: {
+        id: string;
+        slug: string;
+        status: string;
+        legacyId: string | null;
+        district: string | null;
+        municipality: string | null;
+        parish: string | null;
+        address: string | null;
+        drainageBasin: string | null;
+        mainImage: string | null;
+        galleryImages: string[] | null;
+        lat: number;
+        lng: number;
+        title: string | null;
+        description: string | null;
+        // Mills data fields
+        typology: string;
+        epoch: string | null;
+        setting: string | null;
+        currentUse: string | null;
+        access: string | null;
+        legalProtection: string | null;
+        propertyStatus: string | null;
+        planShape: string | null;
+        volumetry: string | null;
+        constructionTechnique: string | null;
+        exteriorFinish: string | null;
+        roofShape: string | null;
+        roofMaterial: string | null;
+        captationType: string | null;
+        conductionType: string | null;
+        conductionState: string | null;
+        admissionRodizio: string | null;
+        admissionAzenha: string | null;
+        wheelTypeRodizio: string | null;
+        wheelTypeAzenha: string | null;
+        rodizioQty: number | null;
+        azenhaQty: number | null;
+        motiveApparatus: string | null;
+        millstoneQuantity: number | null;
+        millstoneDiameter: string | null;
+        millstoneState: string | null;
+        hasTremonha: boolean;
+        hasQuelha: boolean;
+        hasUrreiro: boolean;
+        hasAliviadouro: boolean;
+        hasFarinaleiro: boolean;
+        epigraphyPresence: boolean;
+        epigraphyLocation: string | null;
+        epigraphyType: string | null;
+        epigraphyDescription: string | null;
+        ratingStructure: string | null;
+        ratingRoof: string | null;
+        ratingHydraulic: string | null;
+        ratingMechanism: string | null;
+        ratingOverall: string | null;
+        observationsStructure: string | null;
+        observationsRoof: string | null;
+        observationsHydraulic: string | null;
+        observationsMechanism: string | null;
+        observationsGeneral: string | null;
+        hasOven: boolean;
+        hasMillerHouse: boolean;
+        hasStable: boolean;
+        hasFullingMill: boolean;
+      };
+    }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify admin role
+    const hasAdminRole = await isAdmin();
+    if (!hasAdminRole) {
+      return { success: false, error: 'Unauthorized: Admin role required' };
+    }
+
+    // Validate inputs
+    if (!slug || typeof slug !== 'string') {
+      return { success: false, error: 'Slug is required' };
+    }
+
+    if (!locale || typeof locale !== 'string') {
+      return { success: false, error: 'Locale is required' };
+    }
+
+    // Query construction with all related data
+    const results = await db
+      .select({
+        // Construction fields
+        id: constructions.id,
+        slug: constructions.slug,
+        status: constructions.status,
+        legacyId: constructions.legacyId,
+        district: constructions.district,
+        municipality: constructions.municipality,
+        parish: constructions.parish,
+        address: constructions.address,
+        drainageBasin: constructions.drainageBasin,
+        mainImage: constructions.mainImage,
+        galleryImages: constructions.galleryImages,
+        // PostGIS coordinate extraction
+        lng: sql<number>`ST_X(${constructions.geom}::geometry)`,
+        lat: sql<number>`ST_Y(${constructions.geom}::geometry)`,
+        // Mills data fields
+        typology: millsData.typology,
+        epoch: millsData.epoch,
+        setting: millsData.setting,
+        currentUse: millsData.currentUse,
+        access: millsData.access,
+        legalProtection: millsData.legalProtection,
+        propertyStatus: millsData.propertyStatus,
+        planShape: millsData.planShape,
+        volumetry: millsData.volumetry,
+        constructionTechnique: millsData.constructionTechnique,
+        exteriorFinish: millsData.exteriorFinish,
+        roofShape: millsData.roofShape,
+        roofMaterial: millsData.roofMaterial,
+        captationType: millsData.captationType,
+        conductionType: millsData.conductionType,
+        conductionState: millsData.conductionState,
+        admissionRodizio: millsData.admissionRodizio,
+        admissionAzenha: millsData.admissionAzenha,
+        wheelTypeRodizio: millsData.wheelTypeRodizio,
+        wheelTypeAzenha: millsData.wheelTypeAzenha,
+        rodizioQty: millsData.rodizioQty,
+        azenhaQty: millsData.azenhaQty,
+        motiveApparatus: millsData.motiveApparatus,
+        millstoneQuantity: millsData.millstoneQuantity,
+        millstoneDiameter: millsData.millstoneDiameter,
+        millstoneState: millsData.millstoneState,
+        hasTremonha: millsData.hasTremonha,
+        hasQuelha: millsData.hasQuelha,
+        hasUrreiro: millsData.hasUrreiro,
+        hasAliviadouro: millsData.hasAliviadouro,
+        hasFarinaleiro: millsData.hasFarinaleiro,
+        epigraphyPresence: millsData.epigraphyPresence,
+        epigraphyLocation: millsData.epigraphyLocation,
+        epigraphyType: millsData.epigraphyType,
+        epigraphyDescription: millsData.epigraphyDescription,
+        ratingStructure: millsData.ratingStructure,
+        ratingRoof: millsData.ratingRoof,
+        ratingHydraulic: millsData.ratingHydraulic,
+        ratingMechanism: millsData.ratingMechanism,
+        ratingOverall: millsData.ratingOverall,
+        // Translation fields
+        title: constructionTranslations.title,
+        description: constructionTranslations.description,
+        observationsStructure: constructionTranslations.observationsStructure,
+        observationsRoof: constructionTranslations.observationsRoof,
+        observationsHydraulic: constructionTranslations.observationsHydraulic,
+        observationsMechanism: constructionTranslations.observationsMechanism,
+        observationsGeneral: constructionTranslations.observationsGeneral,
+        // Annexes
+        hasOven: millsData.hasOven,
+        hasMillerHouse: millsData.hasMillerHouse,
+        hasStable: millsData.hasStable,
+        hasFullingMill: millsData.hasFullingMill,
+      })
+      .from(constructions)
+      .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
+      .leftJoin(
+        constructionTranslations,
+        and(
+          eq(constructionTranslations.constructionId, constructions.id),
+          eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .where(eq(constructions.slug, slug))
+      .limit(1);
+
+    if (results.length === 0) {
+      return { success: false, error: 'Construction not found' };
+    }
+
+    const row = results[0]!;
+
+    return {
+      success: true,
+      data: {
+        id: row.id,
+        slug: row.slug,
+        status: row.status,
+        legacyId: row.legacyId,
+        district: row.district,
+        municipality: row.municipality,
+        parish: row.parish,
+        address: row.address,
+        drainageBasin: row.drainageBasin,
+        mainImage: row.mainImage,
+        galleryImages: row.galleryImages,
+        lat: Number(row.lat),
+        lng: Number(row.lng),
+        title: row.title,
+        description: row.description,
+        typology: row.typology,
+        epoch: row.epoch,
+        setting: row.setting,
+        currentUse: row.currentUse,
+        access: row.access,
+        legalProtection: row.legalProtection,
+        propertyStatus: row.propertyStatus,
+        planShape: row.planShape,
+        volumetry: row.volumetry,
+        constructionTechnique: row.constructionTechnique,
+        exteriorFinish: row.exteriorFinish,
+        roofShape: row.roofShape,
+        roofMaterial: row.roofMaterial,
+        captationType: row.captationType,
+        conductionType: row.conductionType,
+        conductionState: row.conductionState,
+        admissionRodizio: row.admissionRodizio,
+        admissionAzenha: row.admissionAzenha,
+        wheelTypeRodizio: row.wheelTypeRodizio,
+        wheelTypeAzenha: row.wheelTypeAzenha,
+        rodizioQty: row.rodizioQty,
+        azenhaQty: row.azenhaQty,
+        motiveApparatus: row.motiveApparatus,
+        millstoneQuantity: row.millstoneQuantity,
+        millstoneDiameter: row.millstoneDiameter,
+        millstoneState: row.millstoneState,
+        hasTremonha: row.hasTremonha,
+        hasQuelha: row.hasQuelha,
+        hasUrreiro: row.hasUrreiro,
+        hasAliviadouro: row.hasAliviadouro,
+        hasFarinaleiro: row.hasFarinaleiro,
+        epigraphyPresence: row.epigraphyPresence,
+        epigraphyLocation: row.epigraphyLocation,
+        epigraphyType: row.epigraphyType,
+        epigraphyDescription: row.epigraphyDescription,
+        ratingStructure: row.ratingStructure,
+        ratingRoof: row.ratingRoof,
+        ratingHydraulic: row.ratingHydraulic,
+        ratingMechanism: row.ratingMechanism,
+        ratingOverall: row.ratingOverall,
+        observationsStructure: row.observationsStructure,
+        observationsRoof: row.observationsRoof,
+        observationsHydraulic: row.observationsHydraulic,
+        observationsMechanism: row.observationsMechanism,
+        observationsGeneral: row.observationsGeneral,
+        hasOven: row.hasOven,
+        hasMillerHouse: row.hasMillerHouse,
+        hasStable: row.hasStable,
+        hasFullingMill: row.hasFullingMill,
+      },
+    };
+  } catch (error) {
+    console.error('[getConstructionForReview]:', error);
+    return { success: false, error: 'An error occurred while fetching construction data' };
   }
 }
 
@@ -235,6 +562,10 @@ const createMillConstructionSchema = z.object({
   hasMillerHouse: z.boolean().optional(),
   hasStable: z.boolean().optional(),
   hasFullingMill: z.boolean().optional(),
+  
+  // Images
+  mainImage: z.string().optional(),
+  galleryImages: z.array(z.string()).optional(),
 });
 
 /**
@@ -308,6 +639,10 @@ export async function createMillConstruction(
           parish: validated.parish || null,
           address: validated.address || null,
           drainageBasin: validated.drainageBasin || null,
+          mainImage: validated.mainImage || null,
+          galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
+            ? validated.galleryImages 
+            : null,
           status: 'draft', // Always start as draft
           createdBy: userId,
         })

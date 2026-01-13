@@ -8,6 +8,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { createMillConstruction } from '@/actions/admin';
+import { uploadStoneworkImage } from '@/actions/storage';
+import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import LocationPickerMap to avoid SSR issues with Leaflet
+const DynamicLocationPickerMap = dynamic(
+  () => import('@/components/features/LocationPickerMap').then((mod) => ({ default: mod.LocationPickerMap })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-md border border-input">
+        <p className="text-gray-600">Loading map...</p>
+      </div>
+    ),
+  }
+);
 
 /**
  * Add New Mill Construction Page
@@ -106,6 +122,96 @@ export default function AddMillPage() {
   const [hasStable, setHasStable] = useState(false);
   const [hasFullingMill, setHasFullingMill] = useState(false);
 
+  // Images
+  const [mainImage, setMainImage] = useState<string | null>(null);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [uploadingMain, setUploadingMain] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+
+  // Generate slug from title for image organization
+  const getSlugForImages = (): string => {
+    if (title.trim()) {
+      return title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+    return 'untitled';
+  };
+
+  const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingMain(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('slug', getSlugForImages());
+      formData.append('prefix', 'main');
+
+      const result = await uploadStoneworkImage(formData);
+      if (result.success) {
+        setMainImage(result.data.path);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      console.error('[handleMainImageUpload]:', err);
+      setError('Failed to upload main image');
+    } finally {
+      setUploadingMain(false);
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingGallery(true);
+    try {
+      const slug = getSlugForImages();
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('slug', slug);
+
+        const result = await uploadStoneworkImage(formData);
+        if (result.success) {
+          return result.data.path;
+        }
+        return null;
+      });
+
+      const paths = await Promise.all(uploadPromises);
+      const validPaths = paths.filter((path): path is string => path !== null);
+      setGalleryImages((prev) => [...prev, ...validPaths]);
+    } catch (err) {
+      console.error('[handleGalleryUpload]:', err);
+      setError('Failed to upload gallery images');
+    } finally {
+      setUploadingGallery(false);
+    }
+  };
+
+  const removeMainImage = () => {
+    setMainImage(null);
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Generate public URL for image preview (client-side)
+  const getImageUrl = (path: string): string => {
+    if (!path) return '';
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const baseUrl = supabaseUrl.replace(/\/$/, '');
+    return `${baseUrl}/storage/v1/object/public/stonework/${path}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -157,6 +263,8 @@ export default function AddMillPage() {
         description: description.trim() || undefined,
         legacyId: legacyId.trim() || undefined,
         locale,
+        mainImage: mainImage || undefined,
+        galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
         latitude: latNum,
         longitude: lngNum,
         district: district.trim() || undefined,
@@ -252,12 +360,13 @@ export default function AddMillPage() {
 
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="general">{t('add.tabs.general')}</TabsTrigger>
             <TabsTrigger value="location">{t('add.tabs.location')}</TabsTrigger>
             <TabsTrigger value="technical">{t('add.tabs.technical')}</TabsTrigger>
             <TabsTrigger value="mechanism">{t('add.tabs.mechanism')}</TabsTrigger>
             <TabsTrigger value="conservation">{t('add.tabs.conservation')}</TabsTrigger>
+            <TabsTrigger value="images">{t('add.tabs.images')}</TabsTrigger>
           </TabsList>
 
           {/* General Info Tab */}
@@ -300,6 +409,23 @@ export default function AddMillPage() {
 
           {/* Location Tab */}
           <TabsContent value="location" className="space-y-6 mt-6">
+            {/* Interactive Map Picker */}
+            <div className="space-y-2">
+              <Label>{t('add.form.location.mapPicker')}</Label>
+              <p className="text-sm text-muted-foreground">
+                {t('add.form.location.mapPickerDescription')}
+              </p>
+              <DynamicLocationPickerMap
+                latitude={latitude ? parseFloat(latitude) : null}
+                longitude={longitude ? parseFloat(longitude) : null}
+                onLocationSelect={(lat, lng) => {
+                  setLatitude(lat.toString());
+                  setLongitude(lng.toString());
+                }}
+              />
+            </div>
+
+            {/* Manual Coordinate Input */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="latitude">{t('add.form.location.latitude')}</Label>
@@ -1124,6 +1250,118 @@ export default function AddMillPage() {
                     className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     rows={3}
                   />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Images Tab */}
+          <TabsContent value="images" className="space-y-6 mt-6">
+            <div className="space-y-6">
+              {/* Main Image Upload */}
+              <div className="space-y-4">
+                <div>
+                  <Label>{t('add.form.images.mainImage')}</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t('add.form.images.mainImageDescription')}
+                  </p>
+                </div>
+
+                {mainImage ? (
+                  <div className="relative inline-block">
+                    <img
+                      src={getImageUrl(mainImage)}
+                      alt="Main image preview"
+                      className="max-w-md h-auto rounded-md border border-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeMainImage}
+                      className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
+                      aria-label="Remove main image"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-input rounded-lg p-8 text-center">
+                    <Input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={handleMainImageUpload}
+                      disabled={uploadingMain}
+                      className="hidden"
+                      id="main-image-upload"
+                    />
+                    <label
+                      htmlFor="main-image-upload"
+                      className="cursor-pointer flex flex-col items-center gap-2"
+                    >
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        {uploadingMain
+                          ? t('add.form.images.uploading')
+                          : t('add.form.images.selectMainImage')}
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Gallery Images Upload */}
+              <div className="space-y-4">
+                <div>
+                  <Label>{t('add.form.images.gallery')}</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t('add.form.images.galleryDescription')}
+                  </p>
+                </div>
+
+                {/* Gallery Preview Grid */}
+                {galleryImages.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {galleryImages.map((path, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={getImageUrl(path)}
+                          alt={`Gallery image ${index + 1}`}
+                          className="w-full h-48 object-cover rounded-md border border-input"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(index)}
+                          className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label={`Remove gallery image ${index + 1}`}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Gallery Upload Button */}
+                <div className="border-2 border-dashed border-input rounded-lg p-6 text-center">
+                  <Input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png"
+                    onChange={handleGalleryUpload}
+                    disabled={uploadingGallery}
+                    multiple
+                    className="hidden"
+                    id="gallery-upload"
+                  />
+                  <label
+                    htmlFor="gallery-upload"
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {uploadingGallery
+                        ? t('add.form.images.uploading')
+                        : t('add.form.images.selectGalleryImages')}
+                    </span>
+                  </label>
                 </div>
               </div>
             </div>

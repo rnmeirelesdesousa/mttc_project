@@ -23,7 +23,13 @@
     "adminInstructionsLink": "Fila de Revisão",
     "adminInstructionsSuffix": "para aprovar construções para publicação.",
     "reviewQueue": "Fila de Revisão",
-    "reviewQueueDescription": "Revisar e publicar construções"
+    "reviewQueueDescription": "Revisar e publicar construções",
+    "stats": {
+      "draft": "Rascunhos",
+      "draftDescription": "Construções em rascunho",
+      "published": "Publicadas",
+      "publishedDescription": "Construções publicadas"
+    }
   },
   "errors": {
     "auth": {
@@ -40,7 +46,11 @@
     "description": "Revisar e aprovar construções para publicação",
     "publishSuccess": "Publicado",
     "publishError": "Falha ao publicar construção",
-    "unauthorized": "Não autorizado: Acesso de administrador necessário"
+    "unauthorized": "Não autorizado: Acesso de administrador necessário",
+    "backToQueue": "Voltar à Fila",
+    "detail": {
+      "subtitle": "Revisão de Construção"
+    }
   },
   "login": {
     "title": "Iniciar Sessão",
@@ -257,7 +267,8 @@
       "location": "Localização",
       "technical": "Especificações Técnicas",
       "mechanism": "Mecanismo",
-      "conservation": "Conservação"
+      "conservation": "Conservação",
+      "images": "Imagens"
     },
     "form": {
       "general": {
@@ -285,7 +296,10 @@
         "address": "Endereço",
         "addressPlaceholder": "Ex: Rua do Moinho, 123",
         "drainageBasin": "Bacia Hidrográfica",
-        "drainageBasinPlaceholder": "Ex: Rio Douro"
+        "drainageBasinPlaceholder": "Ex: Rio Douro",
+        "mapPicker": "Seletor de Localização no Mapa",
+        "mapPickerDescription": "Clique no mapa para selecionar as coordenadas. Pode também inserir manualmente abaixo.",
+        "mapLoading": "A carregar mapa..."
       },
       "technical": {
         "typology": "Tipologia",
@@ -382,6 +396,15 @@
         "observationsMechanism": "Observações/Patologias - Mecanismo",
         "observationsGeneral": "Observações/Patologias - Estado Geral",
         "observationsPlaceholder": "Descreva as observações e patologias..."
+      },
+      "images": {
+        "mainImage": "Imagem Principal",
+        "mainImageDescription": "Selecione uma imagem principal para o moinho (JPEG ou PNG, máx. 5MB)",
+        "gallery": "Galeria de Imagens",
+        "galleryDescription": "Adicione múltiplas imagens à galeria (JPEG ou PNG, máx. 5MB cada)",
+        "selectMainImage": "Clique para selecionar a imagem principal",
+        "selectGalleryImages": "Clique para selecionar imagens da galeria",
+        "uploading": "A carregar..."
       },
       "submit": "Criar Moinho",
       "submitting": "A criar...",

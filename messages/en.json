@@ -23,7 +23,13 @@
     "adminInstructionsLink": "Review Queue",
     "adminInstructionsSuffix": "to approve constructions for publication.",
     "reviewQueue": "Review Queue",
-    "reviewQueueDescription": "Review and publish constructions"
+    "reviewQueueDescription": "Review and publish constructions",
+    "stats": {
+      "draft": "Drafts",
+      "draftDescription": "Draft constructions",
+      "published": "Published",
+      "publishedDescription": "Published constructions"
+    }
   },
   "errors": {
     "auth": {
@@ -40,7 +46,11 @@
     "description": "Review and approve constructions for publication",
     "publishSuccess": "Published",
     "publishError": "Failed to publish construction",
-    "unauthorized": "Unauthorized: Admin access required"
+    "unauthorized": "Unauthorized: Admin access required",
+    "backToQueue": "Back to Queue",
+    "detail": {
+      "subtitle": "Construction Review"
+    }
   },
   "login": {
     "title": "Sign In",
@@ -257,7 +267,8 @@
       "location": "Location",
       "technical": "Technical Specs",
       "mechanism": "Mechanism",
-      "conservation": "Conservation"
+      "conservation": "Conservation",
+      "images": "Images"
     },
     "form": {
       "general": {
@@ -285,7 +296,10 @@
         "address": "Address",
         "addressPlaceholder": "E.g.: Rua do Moinho, 123",
         "drainageBasin": "Drainage Basin",
-        "drainageBasinPlaceholder": "E.g.: Rio Douro"
+        "drainageBasinPlaceholder": "E.g.: Rio Douro",
+        "mapPicker": "Location Map Picker",
+        "mapPickerDescription": "Click on the map to select coordinates. You can also enter them manually below.",
+        "mapLoading": "Loading map..."
       },
       "technical": {
         "typology": "Typology",
@@ -382,6 +396,15 @@
         "observationsMechanism": "Observations/Pathologies - Mechanism",
         "observationsGeneral": "Observations/Pathologies - General State",
         "observationsPlaceholder": "Describe observations and pathologies..."
+      },
+      "images": {
+        "mainImage": "Main Image",
+        "mainImageDescription": "Select a main image for the mill (JPEG or PNG, max. 5MB)",
+        "gallery": "Image Gallery",
+        "galleryDescription": "Add multiple images to the gallery (JPEG or PNG, max. 5MB each)",
+        "selectMainImage": "Click to select main image",
+        "selectGalleryImages": "Click to select gallery images",
+        "uploading": "Uploading..."
       },
       "submit": "Create Mill",
       "submitting": "Creating...",

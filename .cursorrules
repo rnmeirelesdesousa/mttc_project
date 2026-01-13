@@ -101,16 +101,18 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5: SCIENTIFIC DATA DEPTH)**
-* **Mission:** Expand the "Add New" flow to support the full Molinological Inventory.
-* **Architecture:** Core + Extension. Parent: `constructions`. Child: `mills_data`.
-* **Constraint:** Do not simplify the scientific spec. Every field in `mills_data_spec.md` must be representable in the DB and the Form.
+**CURRENT CONTEXT (PHASE 5.5: IMAGE GALLERY & STORAGE)**
+* **Status:** Database Schema is VERIFIED and synchronized in Supabase.
+* **Mission:** Implement a robust image management system for researchers.
+* **Security:** Manual Email/Password auth is the standard.
+* **Storage Rule:** Use the 'stonework' bucket in Supabase. Binary files NEVER touch the DB; store relative paths only.
 
-**WORKING NOW: SCIENTIFIC FIELD EXPANSION**
-1. **Schema Sync:** Review `src/db/schema.ts` and add missing columns for Motive Systems, Architecture, Grinding Mechanism, and Conservation Ratings (Structure, Roof, Mechanism, etc.).
-2. **Action Update:** Expand the `createMillConstructionSchema` Zod object and the `createMillConstruction` transaction to include these new fields.
-3. **UI Expansion:** Add new Tabs to the form in `src/app/[locale]/dashboard/add/page.tsx`:
-   - "Architecture" (Shapes, Materials, Finishes).
-   - "Mechanism" (Motive systems, Grinding stones).
-   - "Condition" (Granular ratings VG through VB).
-4. **Taxonomy:** Update `messages/*.json` with the full technical taxonomy from the spec.
+**WORKING NOW: PHASE 5.9 - RESEARCHER UX & MAP INTEGRATION**
+* **Mission:** Refine the data entry experience and link the dashboard to the public map.
+* **Objective:** Implement a "Location Picker" for the 'Add New' form.
+* **UX Rule:** Researchers should click a map to set coordinates, rather than typing Lat/Long manually.
+
+**TASKS:**
+1.  **Component:** Create a `LocationPickerMap.tsx` component using Leaflet. 
+2.  **Integration:** Replace the raw Latitude/Longitude inputs in `src/app/[locale]/dashboard/add/page.tsx` with this interactive map. 
+3.  **Dashboard Home:** Update the main Dashboard index (`src/app/[locale]/dashboard/page.tsx`) to show a "Status Summary" (Number of Drafts vs. Published entries by the user).

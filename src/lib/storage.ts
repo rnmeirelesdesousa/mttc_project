@@ -2,19 +2,19 @@
  * Storage Utility
  * 
  * Provides helper functions for generating Supabase Storage CDN URLs.
- * Images are stored in the 'constructions' bucket in Supabase Storage.
+ * Images are stored in the 'stonework' bucket in Supabase Storage.
  * Only relative paths (strings) are stored in Postgres; binary data stays in Supabase.
  */
 
 /**
  * Gets the public CDN URL for an image stored in Supabase Storage
  * 
- * @param path - Relative path to the image in the 'constructions' bucket (e.g., "mill/azenha-do-rio/1234567890.jpg")
+ * @param path - Relative path to the image in the 'stonework' bucket (e.g., "mills/azenha-do-rio/1234567890.jpg")
  * @returns Full public CDN URL or null if path is null/empty
  * 
  * @example
- * getPublicUrl("mill/azenha-do-rio/1234567890.jpg")
- * // Returns: "https://[project-id].supabase.co/storage/v1/object/public/constructions/mill/azenha-do-rio/1234567890.jpg"
+ * getPublicUrl("mills/azenha-do-rio/1234567890.jpg")
+ * // Returns: "https://[project-id].supabase.co/storage/v1/object/public/stonework/mills/azenha-do-rio/1234567890.jpg"
  */
 export function getPublicUrl(path: string | null | undefined): string | null {
   // Handle null/empty paths gracefully
@@ -35,7 +35,7 @@ export function getPublicUrl(path: string | null | undefined): string | null {
   
   // Construct the public storage URL
   // Pattern: https://[project-id].supabase.co/storage/v1/object/public/[bucket]/[path]
-  const publicUrl = `${baseUrl}/storage/v1/object/public/constructions/${path}`;
+  const publicUrl = `${baseUrl}/storage/v1/object/public/stonework/${path}`;
   
   return publicUrl;
 }
