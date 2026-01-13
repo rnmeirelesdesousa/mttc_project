@@ -151,11 +151,13 @@ export async function getReviewQueue(
 
 /**
  * Zod schema for mill construction creation
+ * Based on mills_data_spec.md - Academic rigor required
  */
 const createMillConstructionSchema = z.object({
   // General Info
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
+  legacyId: z.string().optional(), // Original paper inventory code or external reference
   locale: z.enum(['pt', 'en']),
   
   // Location
@@ -167,13 +169,72 @@ const createMillConstructionSchema = z.object({
   address: z.string().optional(),
   drainageBasin: z.string().optional(),
   
-  // Technical Specs (Mills)
+  // Characterization (Section II)
   typology: z.enum(['azenha', 'rodizio', 'mare', 'torre_fixa', 'giratorio', 'velas', 'armacao']),
+  epoch: z.enum(['18th_c', '19th_c', '20th_c', 'pre_18th_c']).optional(),
+  setting: z.enum(['rural', 'urban', 'isolated', 'milling_cluster']).optional(),
+  currentUse: z.enum(['milling', 'housing', 'tourism', 'ruin', 'museum']).optional(),
+  
+  // Access & Legal
   access: z.enum(['pedestrian', 'car', 'difficult_none']).optional(),
   legalProtection: z.enum(['inexistent', 'under_study', 'classified']).optional(),
   propertyStatus: z.enum(['private', 'public', 'unknown']).optional(),
-  epoch: z.enum(['18th_c', '19th_c', '20th_c', 'pre_18th_c']).optional(),
-  currentUse: z.enum(['milling', 'housing', 'tourism', 'ruin', 'museum']).optional(),
+  
+  // Architecture (Section III)
+  planShape: z.enum(['circular_tower', 'quadrangular', 'rectangular', 'irregular']).optional(),
+  volumetry: z.enum(['cylindrical', 'conical', 'prismatic_sq_rec']).optional(),
+  constructionTechnique: z.enum(['dry_stone', 'mortared_stone', 'mixed_other']).optional(),
+  exteriorFinish: z.enum(['exposed', 'plastered', 'whitewashed']).optional(),
+  roofShape: z.enum(['conical', 'gable', 'lean_to', 'inexistent']).optional(),
+  roofMaterial: z.enum(['tile', 'zinc', 'thatch', 'slate']).optional(),
+  
+  // Motive Systems - Hydraulic (Section IV)
+  captationType: z.enum(['weir', 'pool', 'direct']).optional(),
+  conductionType: z.enum(['levada', 'modern_pipe']).optional(),
+  conductionState: z.enum(['operational_clean', 'clogged', 'damaged_broken']).optional(),
+  admissionRodizio: z.enum(['cubo', 'calha']).optional(),
+  admissionAzenha: z.enum(['calha_superior', 'canal_inferior']).optional(),
+  wheelTypeRodizio: z.enum(['penas', 'colheres']).optional(),
+  wheelTypeAzenha: z.enum(['copeira', 'dezio_palas']).optional(),
+  rodizioQty: z.number().int().min(0).optional(),
+  azenhaQty: z.number().int().min(0).optional(),
+  
+  // Motive Systems - Wind
+  motiveApparatus: z.enum(['sails', 'shells', 'tail', 'cap']).optional(),
+  
+  // Grinding Mechanism
+  millstoneQuantity: z.number().int().min(0).optional(),
+  millstoneDiameter: z.string().optional(), // Float as string for precision
+  millstoneState: z.enum(['complete', 'disassembled', 'fragmented', 'missing']).optional(),
+  hasTremonha: z.boolean().optional(),
+  hasQuelha: z.boolean().optional(),
+  hasUrreiro: z.boolean().optional(),
+  hasAliviadouro: z.boolean().optional(),
+  hasFarinaleiro: z.boolean().optional(),
+  
+  // Epigraphy (Section V)
+  epigraphyPresence: z.boolean().optional(),
+  epigraphyLocation: z.enum(['door_jambs', 'interior_walls', 'millstones', 'other']).optional(),
+  epigraphyType: z.enum(['dates', 'initials', 'religious_symbols', 'counting_marks']).optional(),
+  epigraphyDescription: z.string().optional(),
+  
+  // Conservation Ratings (Section VI)
+  ratingStructure: z.enum(['very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin']).optional(),
+  ratingRoof: z.enum(['very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin']).optional(),
+  ratingHydraulic: z.enum(['very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin']).optional(),
+  ratingMechanism: z.enum(['very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin']).optional(),
+  ratingOverall: z.enum(['very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin']).optional(),
+  observationsStructure: z.string().optional(),
+  observationsRoof: z.string().optional(),
+  observationsHydraulic: z.string().optional(),
+  observationsMechanism: z.string().optional(),
+  observationsGeneral: z.string().optional(),
+  
+  // Annexes
+  hasOven: z.boolean().optional(),
+  hasMillerHouse: z.boolean().optional(),
+  hasStable: z.boolean().optional(),
+  hasFullingMill: z.boolean().optional(),
 });
 
 /**
@@ -239,6 +300,7 @@ export async function createMillConstruction(
         .insert(constructions)
         .values({
           slug: uniqueSlug,
+          legacyId: validated.legacyId || null,
           typeCategory: 'MILL',
           geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
           district: validated.district || null,
@@ -255,23 +317,75 @@ export async function createMillConstruction(
         throw new Error('Failed to create construction');
       }
 
-      // Step 2: Insert into construction_translations (i18n)
+      // Step 2: Insert into construction_translations (i18n + conservation observations)
       await tx.insert(constructionTranslations).values({
         constructionId: newConstruction.id,
         langCode: validated.locale,
         title: validated.title,
         description: validated.description || null,
+        observationsStructure: validated.observationsStructure || null,
+        observationsRoof: validated.observationsRoof || null,
+        observationsHydraulic: validated.observationsHydraulic || null,
+        observationsMechanism: validated.observationsMechanism || null,
+        observationsGeneral: validated.observationsGeneral || null,
       });
 
-      // Step 3: Insert into mills_data (scientific/technical details)
+      // Step 3: Insert into mills_data (scientific/technical details - all sections)
       await tx.insert(millsData).values({
         constructionId: newConstruction.id,
         typology: validated.typology,
+        // Characterization
+        epoch: validated.epoch || null,
+        setting: validated.setting || null,
+        currentUse: validated.currentUse || null,
+        // Access & Legal
         access: validated.access || null,
         legalProtection: validated.legalProtection || null,
         propertyStatus: validated.propertyStatus || null,
-        epoch: validated.epoch || null,
-        currentUse: validated.currentUse || null,
+        // Architecture (Section III)
+        planShape: validated.planShape || null,
+        volumetry: validated.volumetry || null,
+        constructionTechnique: validated.constructionTechnique || null,
+        exteriorFinish: validated.exteriorFinish || null,
+        roofShape: validated.roofShape || null,
+        roofMaterial: validated.roofMaterial || null,
+        // Motive Systems - Hydraulic (Section IV)
+        captationType: validated.captationType || null,
+        conductionType: validated.conductionType || null,
+        conductionState: validated.conductionState || null,
+        admissionRodizio: validated.admissionRodizio || null,
+        admissionAzenha: validated.admissionAzenha || null,
+        wheelTypeRodizio: validated.wheelTypeRodizio || null,
+        wheelTypeAzenha: validated.wheelTypeAzenha || null,
+        rodizioQty: validated.rodizioQty || null,
+        azenhaQty: validated.azenhaQty || null,
+        // Motive Systems - Wind
+        motiveApparatus: validated.motiveApparatus || null,
+        // Grinding Mechanism
+        millstoneQuantity: validated.millstoneQuantity || null,
+        millstoneDiameter: validated.millstoneDiameter || null,
+        millstoneState: validated.millstoneState || null,
+        hasTremonha: validated.hasTremonha || false,
+        hasQuelha: validated.hasQuelha || false,
+        hasUrreiro: validated.hasUrreiro || false,
+        hasAliviadouro: validated.hasAliviadouro || false,
+        hasFarinaleiro: validated.hasFarinaleiro || false,
+        // Epigraphy (Section V)
+        epigraphyPresence: validated.epigraphyPresence || false,
+        epigraphyLocation: validated.epigraphyLocation || null,
+        epigraphyType: validated.epigraphyType || null,
+        epigraphyDescription: validated.epigraphyDescription || null,
+        // Conservation Ratings (Section VI)
+        ratingStructure: validated.ratingStructure || null,
+        ratingRoof: validated.ratingRoof || null,
+        ratingHydraulic: validated.ratingHydraulic || null,
+        ratingMechanism: validated.ratingMechanism || null,
+        ratingOverall: validated.ratingOverall || null,
+        // Annexes
+        hasOven: validated.hasOven || false,
+        hasMillerHouse: validated.hasMillerHouse || false,
+        hasStable: validated.hasStable || false,
+        hasFullingMill: validated.hasFullingMill || false,
       });
 
       return newConstruction;

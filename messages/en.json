@@ -143,39 +143,110 @@
       "museum": "Museum"
     },
     "planShape": {
-      "circular": "Circular",
+      "circular_tower": "Circular Tower",
+      "quadrangular": "Quadrangular",
       "rectangular": "Rectangular",
-      "square": "Square",
-      "polygonal": "Polygonal",
       "irregular": "Irregular"
     },
+    "volumetry": {
+      "cylindrical": "Cylindrical",
+      "conical": "Conical",
+      "prismatic_sq_rec": "Prismatic (Square/Rectangular)"
+    },
     "constructionTechnique": {
-      "stone_masonry": "Stone Masonry",
-      "adobe": "Adobe",
-      "mixed": "Mixed",
-      "concrete": "Concrete",
-      "wood": "Wood"
+      "dry_stone": "Dry Stone",
+      "mortared_stone": "Mortared Stone",
+      "mixed_other": "Mixed/Other"
+    },
+    "exteriorFinish": {
+      "exposed": "Exposed Stone (Visible Masonry)",
+      "plastered": "Plastered (Cement/Lime)",
+      "whitewashed": "Whitewashed (Painted with White Lime)"
     },
     "roofShape": {
       "conical": "Conical",
-      "pyramidal": "Pyramidal",
-      "domed": "Domed",
-      "flat": "Flat",
-      "gabled": "Gabled",
-      "none": "None"
+      "gable": "Gable (Two Slopes)",
+      "lean_to": "Lean-to (One Slope)",
+      "inexistent": "Inexistent"
     },
-    "waterCaptation": {
-      "direct": "Direct",
-      "channel": "Channel",
-      "reservoir": "Reservoir",
-      "aqueduct": "Aqueduct",
-      "none": "None"
+    "roofMaterial": {
+      "tile": "Tile",
+      "zinc": "Zinc",
+      "thatch": "Thatch/Straw",
+      "slate": "Slate/Shale"
     },
-    "windApparatus": {
-      "fixed": "Fixed",
-      "rotating": "Rotating",
-      "adjustable": "Adjustable",
-      "none": "None"
+    "setting": {
+      "rural": "Rural",
+      "urban": "Urban",
+      "isolated": "Isolated",
+      "milling_cluster": "Milling Cluster"
+    },
+    "captationType": {
+      "weir": "Weir (River Dam)",
+      "pool": "Pool (Reservoir)",
+      "direct": "Direct Captation (No Weir)"
+    },
+    "conductionType": {
+      "levada": "Levada (Earth/Stone Channel)",
+      "modern_pipe": "Modern Pipe"
+    },
+    "conductionState": {
+      "operational_clean": "Operational/Clean",
+      "clogged": "Clogged (Vegetation/Earth)",
+      "damaged_broken": "Damaged/Broken"
+    },
+    "admissionRodizio": {
+      "cubo": "Cubo (Closed Stone Tower - Pressure)",
+      "calha": "Calha (Open Inclined Channel - Fall)"
+    },
+    "admissionAzenha": {
+      "calha_superior": "Upper Channel (Carries Water to Top of Wheel)",
+      "canal_inferior": "Lower Channel (Water Passes Underneath)"
+    },
+    "wheelTypeRodizio": {
+      "penas": "Penas (Wood)",
+      "colheres": "Colheres (Metal/Wood)"
+    },
+    "wheelTypeAzenha": {
+      "copeira": "Copeira (Overflow)",
+      "dezio_palas": "Dezio/Palas (Underflow)"
+    },
+    "motiveApparatus": {
+      "sails": "Mast and Sails (Canvas)",
+      "shells": "Frame/Shells",
+      "tail": "Tail (Orientation)",
+      "cap": "Cap"
+    },
+    "millstoneState": {
+      "complete": "Complete",
+      "disassembled": "Disassembled",
+      "fragmented": "Fragmented",
+      "missing": "Missing"
+    },
+    "grindingComponent": {
+      "tremonha": "Tremonha (Hopper)",
+      "quelha": "Quelha",
+      "urreiro": "Urreiro",
+      "aliviadouro": "Aliviadouro",
+      "farinaleiro": "Farinaleiro"
+    },
+    "epigraphyLocation": {
+      "door_jambs": "Door Jambs",
+      "interior_walls": "Interior Walls",
+      "millstones": "Millstones",
+      "other": "Other"
+    },
+    "epigraphyType": {
+      "dates": "Dates",
+      "initials": "Initials/Names",
+      "religious_symbols": "Religious Symbols (Crosses)",
+      "counting_marks": "Flour Counting Marks"
+    },
+    "annex": {
+      "miller_house": "Miller's House",
+      "oven": "Oven",
+      "stable": "Stable",
+      "fulling_mill": "Fulling Mill"
     }
   },
   "add": {
@@ -184,13 +255,17 @@
     "tabs": {
       "general": "General Info",
       "location": "Location",
-      "technical": "Technical Specs"
+      "technical": "Technical Specs",
+      "mechanism": "Mechanism",
+      "conservation": "Conservation"
     },
     "form": {
       "general": {
         "title": "Title",
         "titlePlaceholder": "E.g.: Azenha do Rio Douro",
         "titleRequired": "Title is required",
+        "legacyId": "Legacy ID/Code",
+        "legacyIdPlaceholder": "E.g.: INV-001 or original inventory code",
         "description": "Description",
         "descriptionPlaceholder": "Detailed description of the mill..."
       },
@@ -225,7 +300,88 @@
         "epoch": "Epoch",
         "epochPlaceholder": "Select epoch",
         "currentUse": "Current Use",
-        "currentUsePlaceholder": "Select current use"
+        "currentUsePlaceholder": "Select current use",
+        "setting": "Setting",
+        "settingPlaceholder": "Select setting",
+        "architecture": {
+          "title": "Architecture",
+          "planShape": "Plan Shape",
+          "planShapePlaceholder": "Select shape",
+          "volumetry": "Volumetry",
+          "volumetryPlaceholder": "Select volumetry",
+          "constructionTechnique": "Construction Technique",
+          "constructionTechniquePlaceholder": "Select technique",
+          "exteriorFinish": "Exterior Finish",
+          "exteriorFinishPlaceholder": "Select finish",
+          "roofShape": "Roof Shape",
+          "roofShapePlaceholder": "Select shape",
+          "roofMaterial": "Roof Material",
+          "roofMaterialPlaceholder": "Select material",
+          "annexes": "Annexes"
+        },
+        "epigraphy": {
+          "title": "Epigraphy",
+          "presence": "Presence of Graffiti/Inscriptions",
+          "location": "Location",
+          "locationPlaceholder": "Select location",
+          "type": "Type",
+          "typePlaceholder": "Select type",
+          "description": "Description",
+          "descriptionPlaceholder": "Describe the inscriptions..."
+        }
+      },
+      "mechanism": {
+        "hydraulic": {
+          "title": "Hydraulic System",
+          "captationType": "Captation Type",
+          "captationTypePlaceholder": "Select type",
+          "conductionType": "Conduction Type",
+          "conductionTypePlaceholder": "Select type",
+          "conductionState": "Conduction State",
+          "conductionStatePlaceholder": "Select state",
+          "admissionRodizio": "Admission (Rodízio)",
+          "admissionRodizioPlaceholder": "Select type",
+          "admissionAzenha": "Admission (Azenha)",
+          "admissionAzenhaPlaceholder": "Select type",
+          "wheelTypeRodizio": "Wheel Type (Rodízio)",
+          "wheelTypeRodizioPlaceholder": "Select type",
+          "wheelTypeAzenha": "Wheel Type (Azenha)",
+          "wheelTypeAzenhaPlaceholder": "Select type",
+          "rodizioQty": "Rodízio Quantity",
+          "rodizioQtyPlaceholder": "E.g.: 1",
+          "azenhaQty": "Azenha Quantity",
+          "azenhaQtyPlaceholder": "E.g.: 1"
+        },
+        "wind": {
+          "title": "Wind System",
+          "motiveApparatus": "Motive Apparatus",
+          "motiveApparatusPlaceholder": "Select apparatus"
+        },
+        "grinding": {
+          "title": "Grinding Mechanism",
+          "millstoneQuantity": "Millstone Pairs Quantity",
+          "millstoneQuantityPlaceholder": "E.g.: 1",
+          "millstoneDiameter": "Millstone Diameter (cm)",
+          "millstoneDiameterPlaceholder": "E.g.: 120",
+          "millstoneState": "Millstone State",
+          "millstoneStatePlaceholder": "Select state",
+          "components": "Components"
+        }
+      },
+      "conservation": {
+        "title": "Conservation",
+        "ratingStructure": "Rating - Structure (Walls)",
+        "ratingRoof": "Rating - Roof",
+        "ratingHydraulic": "Rating - Hydraulic System",
+        "ratingMechanism": "Rating - Mechanism",
+        "ratingOverall": "Rating - General State",
+        "ratingPlaceholder": "Select rating",
+        "observationsStructure": "Observations/Pathologies - Structure",
+        "observationsRoof": "Observations/Pathologies - Roof",
+        "observationsHydraulic": "Observations/Pathologies - Hydraulic System",
+        "observationsMechanism": "Observations/Pathologies - Mechanism",
+        "observationsGeneral": "Observations/Pathologies - General State",
+        "observationsPlaceholder": "Describe observations and pathologies..."
       },
       "submit": "Create Mill",
       "submitting": "Creating...",

@@ -30,6 +30,7 @@ export default function AddMillPage() {
   // General Info
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [legacyId, setLegacyId] = useState('');
 
   // Location
   const [latitude, setLatitude] = useState('');
@@ -40,13 +41,70 @@ export default function AddMillPage() {
   const [address, setAddress] = useState('');
   const [drainageBasin, setDrainageBasin] = useState('');
 
-  // Technical Specs
+  // Technical Specs / Characterization
   const [typology, setTypology] = useState<string>('');
   const [access, setAccess] = useState<string>('');
   const [legalProtection, setLegalProtection] = useState<string>('');
   const [propertyStatus, setPropertyStatus] = useState<string>('');
   const [epoch, setEpoch] = useState<string>('');
+  const [setting, setSetting] = useState<string>('');
   const [currentUse, setCurrentUse] = useState<string>('');
+
+  // Architecture
+  const [planShape, setPlanShape] = useState<string>('');
+  const [volumetry, setVolumetry] = useState<string>('');
+  const [constructionTechnique, setConstructionTechnique] = useState<string>('');
+  const [exteriorFinish, setExteriorFinish] = useState<string>('');
+  const [roofShape, setRoofShape] = useState<string>('');
+  const [roofMaterial, setRoofMaterial] = useState<string>('');
+
+  // Mechanism - Hydraulic
+  const [captationType, setCaptationType] = useState<string>('');
+  const [conductionType, setConductionType] = useState<string>('');
+  const [conductionState, setConductionState] = useState<string>('');
+  const [admissionRodizio, setAdmissionRodizio] = useState<string>('');
+  const [admissionAzenha, setAdmissionAzenha] = useState<string>('');
+  const [wheelTypeRodizio, setWheelTypeRodizio] = useState<string>('');
+  const [wheelTypeAzenha, setWheelTypeAzenha] = useState<string>('');
+  const [rodizioQty, setRodizioQty] = useState<string>('');
+  const [azenhaQty, setAzenhaQty] = useState<string>('');
+
+  // Mechanism - Wind
+  const [motiveApparatus, setMotiveApparatus] = useState<string>('');
+
+  // Mechanism - Grinding
+  const [millstoneQuantity, setMillstoneQuantity] = useState<string>('');
+  const [millstoneDiameter, setMillstoneDiameter] = useState<string>('');
+  const [millstoneState, setMillstoneState] = useState<string>('');
+  const [hasTremonha, setHasTremonha] = useState(false);
+  const [hasQuelha, setHasQuelha] = useState(false);
+  const [hasUrreiro, setHasUrreiro] = useState(false);
+  const [hasAliviadouro, setHasAliviadouro] = useState(false);
+  const [hasFarinaleiro, setHasFarinaleiro] = useState(false);
+
+  // Epigraphy
+  const [epigraphyPresence, setEpigraphyPresence] = useState(false);
+  const [epigraphyLocation, setEpigraphyLocation] = useState<string>('');
+  const [epigraphyType, setEpigraphyType] = useState<string>('');
+  const [epigraphyDescription, setEpigraphyDescription] = useState('');
+
+  // Conservation
+  const [ratingStructure, setRatingStructure] = useState<string>('');
+  const [ratingRoof, setRatingRoof] = useState<string>('');
+  const [ratingHydraulic, setRatingHydraulic] = useState<string>('');
+  const [ratingMechanism, setRatingMechanism] = useState<string>('');
+  const [ratingOverall, setRatingOverall] = useState<string>('');
+  const [observationsStructure, setObservationsStructure] = useState('');
+  const [observationsRoof, setObservationsRoof] = useState('');
+  const [observationsHydraulic, setObservationsHydraulic] = useState('');
+  const [observationsMechanism, setObservationsMechanism] = useState('');
+  const [observationsGeneral, setObservationsGeneral] = useState('');
+
+  // Annexes
+  const [hasOven, setHasOven] = useState(false);
+  const [hasMillerHouse, setHasMillerHouse] = useState(false);
+  const [hasStable, setHasStable] = useState(false);
+  const [hasFullingMill, setHasFullingMill] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,10 +151,11 @@ export default function AddMillPage() {
         return;
       }
 
-      // Call server action
+      // Call server action with all fields
       const result = await createMillConstruction({
         title: title.trim(),
         description: description.trim() || undefined,
+        legacyId: legacyId.trim() || undefined,
         locale,
         latitude: latNum,
         longitude: lngNum,
@@ -105,12 +164,64 @@ export default function AddMillPage() {
         parish: parish.trim() || undefined,
         address: address.trim() || undefined,
         drainageBasin: drainageBasin.trim() || undefined,
+        // Characterization
         typology: typology as 'azenha' | 'rodizio' | 'mare' | 'torre_fixa' | 'giratorio' | 'velas' | 'armacao',
+        epoch: epoch || undefined,
+        setting: setting || undefined,
+        currentUse: currentUse || undefined,
+        // Access & Legal
         access: access || undefined,
         legalProtection: legalProtection || undefined,
         propertyStatus: propertyStatus || undefined,
-        epoch: epoch || undefined,
-        currentUse: currentUse || undefined,
+        // Architecture
+        planShape: planShape || undefined,
+        volumetry: volumetry || undefined,
+        constructionTechnique: constructionTechnique || undefined,
+        exteriorFinish: exteriorFinish || undefined,
+        roofShape: roofShape || undefined,
+        roofMaterial: roofMaterial || undefined,
+        // Mechanism - Hydraulic
+        captationType: captationType || undefined,
+        conductionType: conductionType || undefined,
+        conductionState: conductionState || undefined,
+        admissionRodizio: admissionRodizio || undefined,
+        admissionAzenha: admissionAzenha || undefined,
+        wheelTypeRodizio: wheelTypeRodizio || undefined,
+        wheelTypeAzenha: wheelTypeAzenha || undefined,
+        rodizioQty: rodizioQty ? parseInt(rodizioQty, 10) : undefined,
+        azenhaQty: azenhaQty ? parseInt(azenhaQty, 10) : undefined,
+        // Mechanism - Wind
+        motiveApparatus: motiveApparatus || undefined,
+        // Mechanism - Grinding
+        millstoneQuantity: millstoneQuantity ? parseInt(millstoneQuantity, 10) : undefined,
+        millstoneDiameter: millstoneDiameter || undefined,
+        millstoneState: millstoneState || undefined,
+        hasTremonha,
+        hasQuelha,
+        hasUrreiro,
+        hasAliviadouro,
+        hasFarinaleiro,
+        // Epigraphy
+        epigraphyPresence,
+        epigraphyLocation: epigraphyLocation || undefined,
+        epigraphyType: epigraphyType || undefined,
+        epigraphyDescription: epigraphyDescription.trim() || undefined,
+        // Conservation
+        ratingStructure: ratingStructure || undefined,
+        ratingRoof: ratingRoof || undefined,
+        ratingHydraulic: ratingHydraulic || undefined,
+        ratingMechanism: ratingMechanism || undefined,
+        ratingOverall: ratingOverall || undefined,
+        observationsStructure: observationsStructure.trim() || undefined,
+        observationsRoof: observationsRoof.trim() || undefined,
+        observationsHydraulic: observationsHydraulic.trim() || undefined,
+        observationsMechanism: observationsMechanism.trim() || undefined,
+        observationsGeneral: observationsGeneral.trim() || undefined,
+        // Annexes
+        hasOven,
+        hasMillerHouse,
+        hasStable,
+        hasFullingMill,
       });
 
       if (result.success) {
@@ -141,10 +252,12 @@ export default function AddMillPage() {
 
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="general">{t('add.tabs.general')}</TabsTrigger>
             <TabsTrigger value="location">{t('add.tabs.location')}</TabsTrigger>
             <TabsTrigger value="technical">{t('add.tabs.technical')}</TabsTrigger>
+            <TabsTrigger value="mechanism">{t('add.tabs.mechanism')}</TabsTrigger>
+            <TabsTrigger value="conservation">{t('add.tabs.conservation')}</TabsTrigger>
           </TabsList>
 
           {/* General Info Tab */}
@@ -158,6 +271,17 @@ export default function AddMillPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={t('add.form.general.titlePlaceholder')}
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="legacyId">{t('add.form.general.legacyId')}</Label>
+              <Input
+                id="legacyId"
+                type="text"
+                value={legacyId}
+                onChange={(e) => setLegacyId(e.target.value)}
+                placeholder={t('add.form.general.legacyIdPlaceholder')}
               />
             </div>
 
@@ -358,6 +482,650 @@ export default function AddMillPage() {
                 <option value="ruin">{t('taxonomy.currentUse.ruin')}</option>
                 <option value="museum">{t('taxonomy.currentUse.museum')}</option>
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="setting">{t('add.form.technical.setting')}</Label>
+              <select
+                id="setting"
+                value={setting}
+                onChange={(e) => setSetting(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">{t('add.form.technical.settingPlaceholder')}</option>
+                <option value="rural">{t('taxonomy.setting.rural')}</option>
+                <option value="urban">{t('taxonomy.setting.urban')}</option>
+                <option value="isolated">{t('taxonomy.setting.isolated')}</option>
+                <option value="milling_cluster">{t('taxonomy.setting.milling_cluster')}</option>
+              </select>
+            </div>
+
+            <div className="pt-4 border-t space-y-4">
+              <h3 className="text-lg font-semibold">{t('add.form.technical.architecture.title')}</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="planShape">{t('add.form.technical.architecture.planShape')}</Label>
+                  <select
+                    id="planShape"
+                    value={planShape}
+                    onChange={(e) => setPlanShape(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.technical.architecture.planShapePlaceholder')}</option>
+                    <option value="circular_tower">{t('taxonomy.planShape.circular_tower')}</option>
+                    <option value="quadrangular">{t('taxonomy.planShape.quadrangular')}</option>
+                    <option value="rectangular">{t('taxonomy.planShape.rectangular')}</option>
+                    <option value="irregular">{t('taxonomy.planShape.irregular')}</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="volumetry">{t('add.form.technical.architecture.volumetry')}</Label>
+                  <select
+                    id="volumetry"
+                    value={volumetry}
+                    onChange={(e) => setVolumetry(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.technical.architecture.volumetryPlaceholder')}</option>
+                    <option value="cylindrical">{t('taxonomy.volumetry.cylindrical')}</option>
+                    <option value="conical">{t('taxonomy.volumetry.conical')}</option>
+                    <option value="prismatic_sq_rec">{t('taxonomy.volumetry.prismatic_sq_rec')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="constructionTechnique">{t('add.form.technical.architecture.constructionTechnique')}</Label>
+                  <select
+                    id="constructionTechnique"
+                    value={constructionTechnique}
+                    onChange={(e) => setConstructionTechnique(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.technical.architecture.constructionTechniquePlaceholder')}</option>
+                    <option value="dry_stone">{t('taxonomy.constructionTechnique.dry_stone')}</option>
+                    <option value="mortared_stone">{t('taxonomy.constructionTechnique.mortared_stone')}</option>
+                    <option value="mixed_other">{t('taxonomy.constructionTechnique.mixed_other')}</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="exteriorFinish">{t('add.form.technical.architecture.exteriorFinish')}</Label>
+                  <select
+                    id="exteriorFinish"
+                    value={exteriorFinish}
+                    onChange={(e) => setExteriorFinish(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.technical.architecture.exteriorFinishPlaceholder')}</option>
+                    <option value="exposed">{t('taxonomy.exteriorFinish.exposed')}</option>
+                    <option value="plastered">{t('taxonomy.exteriorFinish.plastered')}</option>
+                    <option value="whitewashed">{t('taxonomy.exteriorFinish.whitewashed')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="roofShape">{t('add.form.technical.architecture.roofShape')}</Label>
+                  <select
+                    id="roofShape"
+                    value={roofShape}
+                    onChange={(e) => setRoofShape(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.technical.architecture.roofShapePlaceholder')}</option>
+                    <option value="conical">{t('taxonomy.roofShape.conical')}</option>
+                    <option value="gable">{t('taxonomy.roofShape.gable')}</option>
+                    <option value="lean_to">{t('taxonomy.roofShape.lean_to')}</option>
+                    <option value="inexistent">{t('taxonomy.roofShape.inexistent')}</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="roofMaterial">{t('add.form.technical.architecture.roofMaterial')}</Label>
+                  <select
+                    id="roofMaterial"
+                    value={roofMaterial}
+                    onChange={(e) => setRoofMaterial(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.technical.architecture.roofMaterialPlaceholder')}</option>
+                    <option value="tile">{t('taxonomy.roofMaterial.tile')}</option>
+                    <option value="zinc">{t('taxonomy.roofMaterial.zinc')}</option>
+                    <option value="thatch">{t('taxonomy.roofMaterial.thatch')}</option>
+                    <option value="slate">{t('taxonomy.roofMaterial.slate')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('add.form.technical.architecture.annexes')}</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasMillerHouse}
+                      onChange={(e) => setHasMillerHouse(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.annex.miller_house')}</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasOven}
+                      onChange={(e) => setHasOven(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.annex.oven')}</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasStable}
+                      onChange={(e) => setHasStable(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.annex.stable')}</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasFullingMill}
+                      onChange={(e) => setHasFullingMill(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.annex.fulling_mill')}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t space-y-4">
+              <h3 className="text-lg font-semibold">{t('add.form.technical.epigraphy.title')}</h3>
+              
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={epigraphyPresence}
+                    onChange={(e) => setEpigraphyPresence(e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  <span>{t('add.form.technical.epigraphy.presence')}</span>
+                </label>
+              </div>
+
+              {epigraphyPresence && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="epigraphyLocation">{t('add.form.technical.epigraphy.location')}</Label>
+                      <select
+                        id="epigraphyLocation"
+                        value={epigraphyLocation}
+                        onChange={(e) => setEpigraphyLocation(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="">{t('add.form.technical.epigraphy.locationPlaceholder')}</option>
+                        <option value="door_jambs">{t('taxonomy.epigraphyLocation.door_jambs')}</option>
+                        <option value="interior_walls">{t('taxonomy.epigraphyLocation.interior_walls')}</option>
+                        <option value="millstones">{t('taxonomy.epigraphyLocation.millstones')}</option>
+                        <option value="other">{t('taxonomy.epigraphyLocation.other')}</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="epigraphyType">{t('add.form.technical.epigraphy.type')}</Label>
+                      <select
+                        id="epigraphyType"
+                        value={epigraphyType}
+                        onChange={(e) => setEpigraphyType(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="">{t('add.form.technical.epigraphy.typePlaceholder')}</option>
+                        <option value="dates">{t('taxonomy.epigraphyType.dates')}</option>
+                        <option value="initials">{t('taxonomy.epigraphyType.initials')}</option>
+                        <option value="religious_symbols">{t('taxonomy.epigraphyType.religious_symbols')}</option>
+                        <option value="counting_marks">{t('taxonomy.epigraphyType.counting_marks')}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="epigraphyDescription">{t('add.form.technical.epigraphy.description')}</Label>
+                    <textarea
+                      id="epigraphyDescription"
+                      value={epigraphyDescription}
+                      onChange={(e) => setEpigraphyDescription(e.target.value)}
+                      placeholder={t('add.form.technical.epigraphy.descriptionPlaceholder')}
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      rows={3}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Mechanism Tab */}
+          <TabsContent value="mechanism" className="space-y-6 mt-6">
+            {/* Hydraulic fields - only show for hydraulic typologies */}
+            {['azenha', 'rodizio', 'mare'].includes(typology) && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">{t('add.form.mechanism.hydraulic.title')}</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="captationType">{t('add.form.mechanism.hydraulic.captationType')}</Label>
+                <select
+                  id="captationType"
+                  value={captationType}
+                  onChange={(e) => setCaptationType(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">{t('add.form.mechanism.hydraulic.captationTypePlaceholder')}</option>
+                  <option value="weir">{t('taxonomy.captationType.weir')}</option>
+                  <option value="pool">{t('taxonomy.captationType.pool')}</option>
+                  <option value="direct">{t('taxonomy.captationType.direct')}</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="conductionType">{t('add.form.mechanism.hydraulic.conductionType')}</Label>
+                <select
+                  id="conductionType"
+                  value={conductionType}
+                  onChange={(e) => setConductionType(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">{t('add.form.mechanism.hydraulic.conductionTypePlaceholder')}</option>
+                  <option value="levada">{t('taxonomy.conductionType.levada')}</option>
+                  <option value="modern_pipe">{t('taxonomy.conductionType.modern_pipe')}</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="conductionState">{t('add.form.mechanism.hydraulic.conductionState')}</Label>
+                <select
+                  id="conductionState"
+                  value={conductionState}
+                  onChange={(e) => setConductionState(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">{t('add.form.mechanism.hydraulic.conductionStatePlaceholder')}</option>
+                  <option value="operational_clean">{t('taxonomy.conductionState.operational_clean')}</option>
+                  <option value="clogged">{t('taxonomy.conductionState.clogged')}</option>
+                  <option value="damaged_broken">{t('taxonomy.conductionState.damaged_broken')}</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admissionRodizio">{t('add.form.mechanism.hydraulic.admissionRodizio')}</Label>
+                  <select
+                    id="admissionRodizio"
+                    value={admissionRodizio}
+                    onChange={(e) => setAdmissionRodizio(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.mechanism.hydraulic.admissionRodizioPlaceholder')}</option>
+                    <option value="cubo">{t('taxonomy.admissionRodizio.cubo')}</option>
+                    <option value="calha">{t('taxonomy.admissionRodizio.calha')}</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="admissionAzenha">{t('add.form.mechanism.hydraulic.admissionAzenha')}</Label>
+                  <select
+                    id="admissionAzenha"
+                    value={admissionAzenha}
+                    onChange={(e) => setAdmissionAzenha(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.mechanism.hydraulic.admissionAzenhaPlaceholder')}</option>
+                    <option value="calha_superior">{t('taxonomy.admissionAzenha.calha_superior')}</option>
+                    <option value="canal_inferior">{t('taxonomy.admissionAzenha.canal_inferior')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="wheelTypeRodizio">{t('add.form.mechanism.hydraulic.wheelTypeRodizio')}</Label>
+                  <select
+                    id="wheelTypeRodizio"
+                    value={wheelTypeRodizio}
+                    onChange={(e) => setWheelTypeRodizio(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.mechanism.hydraulic.wheelTypeRodizioPlaceholder')}</option>
+                    <option value="penas">{t('taxonomy.wheelTypeRodizio.penas')}</option>
+                    <option value="colheres">{t('taxonomy.wheelTypeRodizio.colheres')}</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="wheelTypeAzenha">{t('add.form.mechanism.hydraulic.wheelTypeAzenha')}</Label>
+                  <select
+                    id="wheelTypeAzenha"
+                    value={wheelTypeAzenha}
+                    onChange={(e) => setWheelTypeAzenha(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.mechanism.hydraulic.wheelTypeAzenhaPlaceholder')}</option>
+                    <option value="copeira">{t('taxonomy.wheelTypeAzenha.copeira')}</option>
+                    <option value="dezio_palas">{t('taxonomy.wheelTypeAzenha.dezio_palas')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="rodizioQty">{t('add.form.mechanism.hydraulic.rodizioQty')}</Label>
+                  <Input
+                    id="rodizioQty"
+                    type="number"
+                    min="0"
+                    value={rodizioQty}
+                    onChange={(e) => setRodizioQty(e.target.value)}
+                    placeholder={t('add.form.mechanism.hydraulic.rodizioQtyPlaceholder')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="azenhaQty">{t('add.form.mechanism.hydraulic.azenhaQty')}</Label>
+                  <Input
+                    id="azenhaQty"
+                    type="number"
+                    min="0"
+                    value={azenhaQty}
+                    onChange={(e) => setAzenhaQty(e.target.value)}
+                    placeholder={t('add.form.mechanism.hydraulic.azenhaQtyPlaceholder')}
+                  />
+                </div>
+              </div>
+            </div>
+            )}
+
+            {/* Wind fields - only show for wind typologies */}
+            {['torre_fixa', 'giratorio', 'velas', 'armacao'].includes(typology) && (
+              <div className="space-y-4 pt-4 border-t">
+                <h3 className="text-lg font-semibold">{t('add.form.mechanism.wind.title')}</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="motiveApparatus">{t('add.form.mechanism.wind.motiveApparatus')}</Label>
+                <select
+                  id="motiveApparatus"
+                  value={motiveApparatus}
+                  onChange={(e) => setMotiveApparatus(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">{t('add.form.mechanism.wind.motiveApparatusPlaceholder')}</option>
+                  <option value="sails">{t('taxonomy.motiveApparatus.sails')}</option>
+                  <option value="shells">{t('taxonomy.motiveApparatus.shells')}</option>
+                  <option value="tail">{t('taxonomy.motiveApparatus.tail')}</option>
+                  <option value="cap">{t('taxonomy.motiveApparatus.cap')}</option>
+                </select>
+              </div>
+            </div>
+            )}
+
+            {/* Grinding Mechanism - shown for all typologies */}
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-lg font-semibold">{t('add.form.mechanism.grinding.title')}</h3>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="millstoneQuantity">{t('add.form.mechanism.grinding.millstoneQuantity')}</Label>
+                  <Input
+                    id="millstoneQuantity"
+                    type="number"
+                    min="0"
+                    value={millstoneQuantity}
+                    onChange={(e) => setMillstoneQuantity(e.target.value)}
+                    placeholder={t('add.form.mechanism.grinding.millstoneQuantityPlaceholder')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="millstoneDiameter">{t('add.form.mechanism.grinding.millstoneDiameter')}</Label>
+                  <Input
+                    id="millstoneDiameter"
+                    type="text"
+                    value={millstoneDiameter}
+                    onChange={(e) => setMillstoneDiameter(e.target.value)}
+                    placeholder={t('add.form.mechanism.grinding.millstoneDiameterPlaceholder')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="millstoneState">{t('add.form.mechanism.grinding.millstoneState')}</Label>
+                  <select
+                    id="millstoneState"
+                    value={millstoneState}
+                    onChange={(e) => setMillstoneState(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.mechanism.grinding.millstoneStatePlaceholder')}</option>
+                    <option value="complete">{t('taxonomy.millstoneState.complete')}</option>
+                    <option value="disassembled">{t('taxonomy.millstoneState.disassembled')}</option>
+                    <option value="fragmented">{t('taxonomy.millstoneState.fragmented')}</option>
+                    <option value="missing">{t('taxonomy.millstoneState.missing')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('add.form.mechanism.grinding.components')}</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasTremonha}
+                      onChange={(e) => setHasTremonha(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.grindingComponent.tremonha')}</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasQuelha}
+                      onChange={(e) => setHasQuelha(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.grindingComponent.quelha')}</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasUrreiro}
+                      onChange={(e) => setHasUrreiro(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.grindingComponent.urreiro')}</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasAliviadouro}
+                      onChange={(e) => setHasAliviadouro(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.grindingComponent.aliviadouro')}</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={hasFarinaleiro}
+                      onChange={(e) => setHasFarinaleiro(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span>{t('taxonomy.grindingComponent.farinaleiro')}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Conservation Tab */}
+          <TabsContent value="conservation" className="space-y-6 mt-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('add.form.conservation.title')}</h3>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ratingStructure">{t('add.form.conservation.ratingStructure')}</Label>
+                  <select
+                    id="ratingStructure"
+                    value={ratingStructure}
+                    onChange={(e) => setRatingStructure(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.conservation.ratingPlaceholder')}</option>
+                    <option value="very_good">{t('taxonomy.conservation.very_good')}</option>
+                    <option value="good">{t('taxonomy.conservation.good')}</option>
+                    <option value="reasonable">{t('taxonomy.conservation.reasonable')}</option>
+                    <option value="bad">{t('taxonomy.conservation.bad')}</option>
+                    <option value="very_bad_ruin">{t('taxonomy.conservation.very_bad_ruin')}</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="observationsStructure">{t('add.form.conservation.observationsStructure')}</Label>
+                  <textarea
+                    id="observationsStructure"
+                    value={observationsStructure}
+                    onChange={(e) => setObservationsStructure(e.target.value)}
+                    placeholder={t('add.form.conservation.observationsPlaceholder')}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ratingRoof">{t('add.form.conservation.ratingRoof')}</Label>
+                  <select
+                    id="ratingRoof"
+                    value={ratingRoof}
+                    onChange={(e) => setRatingRoof(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.conservation.ratingPlaceholder')}</option>
+                    <option value="very_good">{t('taxonomy.conservation.very_good')}</option>
+                    <option value="good">{t('taxonomy.conservation.good')}</option>
+                    <option value="reasonable">{t('taxonomy.conservation.reasonable')}</option>
+                    <option value="bad">{t('taxonomy.conservation.bad')}</option>
+                    <option value="very_bad_ruin">{t('taxonomy.conservation.very_bad_ruin')}</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="observationsRoof">{t('add.form.conservation.observationsRoof')}</Label>
+                  <textarea
+                    id="observationsRoof"
+                    value={observationsRoof}
+                    onChange={(e) => setObservationsRoof(e.target.value)}
+                    placeholder={t('add.form.conservation.observationsPlaceholder')}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ratingHydraulic">{t('add.form.conservation.ratingHydraulic')}</Label>
+                  <select
+                    id="ratingHydraulic"
+                    value={ratingHydraulic}
+                    onChange={(e) => setRatingHydraulic(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.conservation.ratingPlaceholder')}</option>
+                    <option value="very_good">{t('taxonomy.conservation.very_good')}</option>
+                    <option value="good">{t('taxonomy.conservation.good')}</option>
+                    <option value="reasonable">{t('taxonomy.conservation.reasonable')}</option>
+                    <option value="bad">{t('taxonomy.conservation.bad')}</option>
+                    <option value="very_bad_ruin">{t('taxonomy.conservation.very_bad_ruin')}</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="observationsHydraulic">{t('add.form.conservation.observationsHydraulic')}</Label>
+                  <textarea
+                    id="observationsHydraulic"
+                    value={observationsHydraulic}
+                    onChange={(e) => setObservationsHydraulic(e.target.value)}
+                    placeholder={t('add.form.conservation.observationsPlaceholder')}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ratingMechanism">{t('add.form.conservation.ratingMechanism')}</Label>
+                  <select
+                    id="ratingMechanism"
+                    value={ratingMechanism}
+                    onChange={(e) => setRatingMechanism(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.conservation.ratingPlaceholder')}</option>
+                    <option value="very_good">{t('taxonomy.conservation.very_good')}</option>
+                    <option value="good">{t('taxonomy.conservation.good')}</option>
+                    <option value="reasonable">{t('taxonomy.conservation.reasonable')}</option>
+                    <option value="bad">{t('taxonomy.conservation.bad')}</option>
+                    <option value="very_bad_ruin">{t('taxonomy.conservation.very_bad_ruin')}</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="observationsMechanism">{t('add.form.conservation.observationsMechanism')}</Label>
+                  <textarea
+                    id="observationsMechanism"
+                    value={observationsMechanism}
+                    onChange={(e) => setObservationsMechanism(e.target.value)}
+                    placeholder={t('add.form.conservation.observationsPlaceholder')}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ratingOverall">{t('add.form.conservation.ratingOverall')}</Label>
+                  <select
+                    id="ratingOverall"
+                    value={ratingOverall}
+                    onChange={(e) => setRatingOverall(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.conservation.ratingPlaceholder')}</option>
+                    <option value="very_good">{t('taxonomy.conservation.very_good')}</option>
+                    <option value="good">{t('taxonomy.conservation.good')}</option>
+                    <option value="reasonable">{t('taxonomy.conservation.reasonable')}</option>
+                    <option value="bad">{t('taxonomy.conservation.bad')}</option>
+                    <option value="very_bad_ruin">{t('taxonomy.conservation.very_bad_ruin')}</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="observationsGeneral">{t('add.form.conservation.observationsGeneral')}</Label>
+                  <textarea
+                    id="observationsGeneral"
+                    value={observationsGeneral}
+                    onChange={(e) => setObservationsGeneral(e.target.value)}
+                    placeholder={t('add.form.conservation.observationsPlaceholder')}
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    rows={3}
+                  />
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

@@ -101,16 +101,16 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5: DATA ENTRY & SCIENTIFIC INVENTORY)**
-* **Mission:** Build the "Add New Stonework" wizard.
-* **Architecture:** Class Table Inheritance. One submission creates a row in `constructions` (Core) + multiple rows in `construction_translations` + one row in `mills_data` (Extension).
-* **Validation:** Use Zod for multi-step form validation.
-* **Storage:** Image uploads must use Supabase Storage. Store only the path in the DB.
+**CURRENT CONTEXT (PHASE 5: SCIENTIFIC DATA DEPTH)**
+* **Mission:** Expand the "Add New" flow to support the full Molinological Inventory.
+* **Architecture:** Core + Extension. Parent: `constructions`. Child: `mills_data`.
+* **Constraint:** Do not simplify the scientific spec. Every field in `mills_data_spec.md` must be representable in the DB and the Form.
 
-**WORKING NOW: MULTI-STEP CONSTRUCTION FORM**
-1. **Schema Check:** Ensure Drizzle schemas for `constructions` and `mills_data` are fully aligned with the `mills_data_spec.md`.
-2. **Action:** Create `createConstruction` server action. It must handle the transaction: insert Core, insert Translations, then insert Mill details.
-3. **UI:** Build a multi-tab or multi-step form in `src/app/[locale]/dashboard/add/page.tsx`.
-   - Step 1: Basic Info (Title, Description, Status=Draft).
-   - Step 2: Location (Coordinates, Address).
-   - Step 3: Mill Specifics (Typology, Mechanism, State).
+**WORKING NOW: SCIENTIFIC FIELD EXPANSION**
+1. **Schema Sync:** Review `src/db/schema.ts` and add missing columns for Motive Systems, Architecture, Grinding Mechanism, and Conservation Ratings (Structure, Roof, Mechanism, etc.).
+2. **Action Update:** Expand the `createMillConstructionSchema` Zod object and the `createMillConstruction` transaction to include these new fields.
+3. **UI Expansion:** Add new Tabs to the form in `src/app/[locale]/dashboard/add/page.tsx`:
+   - "Architecture" (Shapes, Materials, Finishes).
+   - "Mechanism" (Motive systems, Grinding stones).
+   - "Condition" (Granular ratings VG through VB).
+4. **Taxonomy:** Update `messages/*.json` with the full technical taxonomy from the spec.

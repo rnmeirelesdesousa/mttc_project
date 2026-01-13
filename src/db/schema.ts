@@ -47,45 +47,117 @@ export const conservationStateEnum = pgEnum('conservation_state', [
   'very_bad_ruin',
 ]);
 
-// Derived enums based on Portuguese mill architecture
+// Derived enums based on Portuguese mill architecture (mills_data_spec.md)
 export const planShapeEnum = pgEnum('plan_shape', [
-  'circular',
+  'circular_tower',
+  'quadrangular',
   'rectangular',
-  'square',
-  'polygonal',
   'irregular',
 ]);
 
+export const volumetryEnum = pgEnum('volumetry', [
+  'cylindrical',
+  'conical',
+  'prismatic_sq_rec',
+]);
+
 export const constructionTechniqueEnum = pgEnum('construction_technique', [
-  'stone_masonry',
-  'adobe',
-  'mixed',
-  'concrete',
-  'wood',
+  'dry_stone',
+  'mortared_stone',
+  'mixed_other',
+]);
+
+export const exteriorFinishEnum = pgEnum('exterior_finish', [
+  'exposed',
+  'plastered',
+  'whitewashed',
 ]);
 
 export const roofShapeEnum = pgEnum('roof_shape', [
   'conical',
-  'pyramidal',
-  'domed',
-  'flat',
-  'gabled',
-  'none',
+  'gable',
+  'lean_to',
+  'inexistent',
 ]);
 
-export const waterCaptationEnum = pgEnum('water_captation', [
+export const roofMaterialEnum = pgEnum('roof_material', [
+  'tile',
+  'zinc',
+  'thatch',
+  'slate',
+]);
+
+export const settingEnum = pgEnum('setting', [
+  'rural',
+  'urban',
+  'isolated',
+  'milling_cluster',
+]);
+
+// Motive Systems Enums
+export const captationTypeEnum = pgEnum('captation_type', [
+  'weir',
+  'pool',
   'direct',
-  'channel',
-  'reservoir',
-  'aqueduct',
-  'none',
 ]);
 
-export const windApparatusEnum = pgEnum('wind_apparatus', [
-  'fixed',
-  'rotating',
-  'adjustable',
-  'none',
+export const conductionTypeEnum = pgEnum('conduction_type', [
+  'levada',
+  'modern_pipe',
+]);
+
+export const conductionStateEnum = pgEnum('conduction_state', [
+  'operational_clean',
+  'clogged',
+  'damaged_broken',
+]);
+
+export const admissionRodizioEnum = pgEnum('admission_rodizio', [
+  'cubo',
+  'calha',
+]);
+
+export const admissionAzenhaEnum = pgEnum('admission_azenha', [
+  'calha_superior',
+  'canal_inferior',
+]);
+
+export const wheelTypeRodizioEnum = pgEnum('wheel_type_rodizio', [
+  'penas',
+  'colheres',
+]);
+
+export const wheelTypeAzenhaEnum = pgEnum('wheel_type_azenha', [
+  'copeira',
+  'dezio_palas',
+]);
+
+export const motiveApparatusEnum = pgEnum('motive_apparatus', [
+  'sails',
+  'shells',
+  'tail',
+  'cap',
+]);
+
+export const millstoneStateEnum = pgEnum('millstone_state', [
+  'complete',
+  'disassembled',
+  'fragmented',
+  'missing',
+]);
+
+export const epigraphyLocationEnum = pgEnum('epigraphy_location', [
+  'door_jambs',
+  'interior_walls',
+  'millstones',
+  'other',
+]);
+
+export const epigraphyTypeEnum = pgEnum('epigraphy_type', [
+  'dates',
+  'initials',
+  'religious_symbols',
+  'counting_marks',
 ]);
 
 // User Roles Enum (Phase 3: Academic Shield)
@@ -149,6 +221,7 @@ export const constructions = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     slug: varchar('slug', { length: 255 }).notNull().unique(),
+    legacyId: text('legacy_id'), // Original paper inventory code or external reference
     typeCategory: varchar('type_category', { length: 50 }).notNull().default('MILL'),
     geom: geographyPoint('geom').notNull(),
     district: text('district'),
@@ -188,33 +261,61 @@ export const millsData = pgTable('mills_data', {
   legalProtection: legalProtectionEnum('legal_protection'),
   propertyStatus: propertyStatusEnum('property_status'),
 
-  // Architectural attributes
+  // Characterization
+  epoch: epochEnum('epoch'),
+  setting: settingEnum('setting'),
+  currentUse: currentUseEnum('current_use'),
+
+  // Architecture (Section III)
   planShape: planShapeEnum('plan_shape'),
+  volumetry: volumetryEnum('volumetry'),
   constructionTechnique: constructionTechniqueEnum('construction_technique'),
+  exteriorFinish: exteriorFinishEnum('exterior_finish'),
   roofShape: roofShapeEnum('roof_shape'),
-  roofMaterial: text('roof_material'), 
+  roofMaterial: roofMaterialEnum('roof_material'),
 
-  // Motive attributes
-  waterCaptation: waterCaptationEnum('water_captation'),
+  // Motive Systems - Hydraulic (Section IV)
+  captationType: captationTypeEnum('captation_type'),
+  conductionType: conductionTypeEnum('conduction_type'),
+  conductionState: conductionStateEnum('conduction_state'),
+  admissionRodizio: admissionRodizioEnum('admission_rodizio'),
+  admissionAzenha: admissionAzenhaEnum('admission_azenha'),
+  wheelTypeRodizio: wheelTypeRodizioEnum('wheel_type_rodizio'),
+  wheelTypeAzenha: wheelTypeAzenhaEnum('wheel_type_azenha'),
   rodizioQty: integer('rodizio_qty'),
-  windApparatus: windApparatusEnum('wind_apparatus'),
-  millstonesPairs: integer('millstones_pairs'),
+  azenhaQty: integer('azenha_qty'),
 
-  // Conservation ratings
+  // Motive Systems - Wind
+  motiveApparatus: motiveApparatusEnum('motive_apparatus'),
+
+  // Grinding Mechanism
+  millstoneQuantity: integer('millstone_quantity'),
+  millstoneDiameter: text('millstone_diameter'), // Float stored as text for precision
+  millstoneState: millstoneStateEnum('millstone_state'),
+  hasTremonha: boolean('has_tremonha').default(false),
+  hasQuelha: boolean('has_quelha').default(false),
+  hasUrreiro: boolean('has_urreiro').default(false),
+  hasAliviadouro: boolean('has_aliviadouro').default(false),
+  hasFarinaleiro: boolean('has_farinaleiro').default(false),
+
+  // Epigraphy (Section V)
+  epigraphyPresence: boolean('epigraphy_presence').default(false),
+  epigraphyLocation: epigraphyLocationEnum('epigraphy_location'),
+  epigraphyType: epigraphyTypeEnum('epigraphy_type'),
+  epigraphyDescription: text('epigraphy_description'),
+
+  // Conservation Ratings (Section VI - Granular)
   ratingStructure: conservationStateEnum('rating_structure'),
   ratingRoof: conservationStateEnum('rating_roof'),
   ratingHydraulic: conservationStateEnum('rating_hydraulic'),
   ratingMechanism: conservationStateEnum('rating_mechanism'),
   ratingOverall: conservationStateEnum('rating_overall'),
 
-  // Boolean flags
+  // Annexes (Boolean flags)
   hasOven: boolean('has_oven').default(false),
   hasMillerHouse: boolean('has_miller_house').default(false),
-  epigraphyPresence: boolean('epigraphy_presence').default(false),
-
-  // Additional metadata
-  epoch: epochEnum('epoch'),
-  currentUse: currentUseEnum('current_use'),
+  hasStable: boolean('has_stable').default(false),
+  hasFullingMill: boolean('has_fulling_mill').default(false),
 });
 
 // ============================================================================
@@ -230,8 +331,12 @@ export const constructionTranslations = pgTable(
     langCode: varchar('lang_code', { length: 2 }).notNull(),
     title: text('title').notNull(),
     description: text('description'),
+    // Conservation observations (Section VI)
     observationsStructure: text('observations_structure'),
     observationsRoof: text('observations_roof'),
+    observationsHydraulic: text('observations_hydraulic'),
+    observationsMechanism: text('observations_mechanism'),
+    observationsGeneral: text('observations_general'),
   },
   (table) => {
     return {

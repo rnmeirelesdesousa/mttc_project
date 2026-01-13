@@ -143,39 +143,110 @@
       "museum": "Museu"
     },
     "planShape": {
-      "circular": "Circular",
+      "circular_tower": "Torre Circular",
+      "quadrangular": "Quadrangular",
       "rectangular": "Rectangular",
-      "square": "Quadrado",
-      "polygonal": "Poligonal",
       "irregular": "Irregular"
     },
+    "volumetry": {
+      "cylindrical": "Cilíndrico",
+      "conical": "Cónico",
+      "prismatic_sq_rec": "Prismático (Quadrado/Rectangular)"
+    },
     "constructionTechnique": {
-      "stone_masonry": "Alvenaria de Pedra",
-      "adobe": "Adobe",
-      "mixed": "Misto",
-      "concrete": "Betão",
-      "wood": "Madeira"
+      "dry_stone": "Pedra Seca",
+      "mortared_stone": "Pedra com Argamassa",
+      "mixed_other": "Misto/Outro"
+    },
+    "exteriorFinish": {
+      "exposed": "Pedra à Vista (Aparelho Visível)",
+      "plastered": "Rebocado (Cimento/Cal)",
+      "whitewashed": "Caiado (Pintado a Cal Branca)"
     },
     "roofShape": {
       "conical": "Cónico",
-      "pyramidal": "Piramidal",
-      "domed": "Abobadado",
-      "flat": "Plano",
-      "gabled": "Duas Águas",
-      "none": "Nenhum"
+      "gable": "Duas Águas",
+      "lean_to": "Uma Água",
+      "inexistent": "Inexistente"
     },
-    "waterCaptation": {
-      "direct": "Direta",
-      "channel": "Canal",
-      "reservoir": "Reservatório",
-      "aqueduct": "Aqueduto",
-      "none": "Nenhum"
+    "roofMaterial": {
+      "tile": "Telha",
+      "zinc": "Zinco",
+      "thatch": "Colmo/Mato",
+      "slate": "Lousa/Xisto"
     },
-    "windApparatus": {
-      "fixed": "Fixo",
-      "rotating": "Rotativo",
-      "adjustable": "Ajustável",
-      "none": "Nenhum"
+    "setting": {
+      "rural": "Rural",
+      "urban": "Urbano",
+      "isolated": "Isolado",
+      "milling_cluster": "Conjunto de Moinhos"
+    },
+    "captationType": {
+      "weir": "Açude (Represa no Rio)",
+      "pool": "Poça (Reservatório)",
+      "direct": "Captação Direta (Sem Açude)"
+    },
+    "conductionType": {
+      "levada": "Levada (Canal em Terra/Pedra)",
+      "modern_pipe": "Tubagem Moderna"
+    },
+    "conductionState": {
+      "operational_clean": "Limpa/Operacional",
+      "clogged": "Obstruída (Mato/Terra)",
+      "damaged_broken": "Destruída/Rompida"
+    },
+    "admissionRodizio": {
+      "cubo": "Cubo (Torre de Pedra Fechada - Pressão)",
+      "calha": "Calha/Caleira (Canal Aberto Inclinado - Queda)"
+    },
+    "admissionAzenha": {
+      "calha_superior": "Calha Superior (Leva Água ao Topo da Roda)",
+      "canal_inferior": "Canal Inferior (Água Passa por Baixo)"
+    },
+    "wheelTypeRodizio": {
+      "penas": "Penas (Madeira)",
+      "colheres": "Colheres (Metal/Madeira)"
+    },
+    "wheelTypeAzenha": {
+      "copeira": "Copeira (Por Cima)",
+      "dezio_palas": "Dezio/Palas (Por Baixo)"
+    },
+    "motiveApparatus": {
+      "sails": "Mastro e Velas (Pano)",
+      "shells": "Armação/Búzios",
+      "tail": "Rabo (Orientação)",
+      "cap": "Capelo"
+    },
+    "millstoneState": {
+      "complete": "Completo",
+      "disassembled": "Desmontado",
+      "fragmented": "Fragmentado",
+      "missing": "Faltante"
+    },
+    "grindingComponent": {
+      "tremonha": "Tremonha",
+      "quelha": "Quelha",
+      "urreiro": "Urreiro",
+      "aliviadouro": "Aliviadouro",
+      "farinaleiro": "Farinaleiro"
+    },
+    "epigraphyLocation": {
+      "door_jambs": "Ombreiras da Porta",
+      "interior_walls": "Paredes Interiores",
+      "millstones": "Mós",
+      "other": "Outro"
+    },
+    "epigraphyType": {
+      "dates": "Datas",
+      "initials": "Iniciais/Nomes",
+      "religious_symbols": "Símbolos Religiosos (Cruzes)",
+      "counting_marks": "Contas de Farinha"
+    },
+    "annex": {
+      "miller_house": "Casa do Moleiro",
+      "oven": "Forno",
+      "stable": "Estrebaria",
+      "fulling_mill": "Pisão"
     }
   },
   "add": {
@@ -184,13 +255,17 @@
     "tabs": {
       "general": "Informação Geral",
       "location": "Localização",
-      "technical": "Especificações Técnicas"
+      "technical": "Especificações Técnicas",
+      "mechanism": "Mecanismo",
+      "conservation": "Conservação"
     },
     "form": {
       "general": {
         "title": "Título",
         "titlePlaceholder": "Ex: Azenha do Rio Douro",
         "titleRequired": "O título é obrigatório",
+        "legacyId": "ID/Código Legado",
+        "legacyIdPlaceholder": "Ex: INV-001 ou código do inventário original",
         "description": "Descrição",
         "descriptionPlaceholder": "Descrição detalhada do moinho..."
       },
@@ -225,7 +300,88 @@
         "epoch": "Época",
         "epochPlaceholder": "Selecione a época",
         "currentUse": "Uso Atual",
-        "currentUsePlaceholder": "Selecione o uso atual"
+        "currentUsePlaceholder": "Selecione o uso atual",
+        "setting": "Ambiente",
+        "settingPlaceholder": "Selecione o ambiente",
+        "architecture": {
+          "title": "Arquitetura",
+          "planShape": "Forma da Planta",
+          "planShapePlaceholder": "Selecione a forma",
+          "volumetry": "Volumetria",
+          "volumetryPlaceholder": "Selecione a volumetria",
+          "constructionTechnique": "Técnica de Construção",
+          "constructionTechniquePlaceholder": "Selecione a técnica",
+          "exteriorFinish": "Acabamento Exterior",
+          "exteriorFinishPlaceholder": "Selecione o acabamento",
+          "roofShape": "Forma do Telhado",
+          "roofShapePlaceholder": "Selecione a forma",
+          "roofMaterial": "Material do Telhado",
+          "roofMaterialPlaceholder": "Selecione o material",
+          "annexes": "Anexos"
+        },
+        "epigraphy": {
+          "title": "Epigrafia",
+          "presence": "Presença de Grafitos/Inscrições",
+          "location": "Localização",
+          "locationPlaceholder": "Selecione a localização",
+          "type": "Tipo",
+          "typePlaceholder": "Selecione o tipo",
+          "description": "Descrição",
+          "descriptionPlaceholder": "Descreva as inscrições..."
+        }
+      },
+      "mechanism": {
+        "hydraulic": {
+          "title": "Sistema Hidráulico",
+          "captationType": "Tipo de Captação",
+          "captationTypePlaceholder": "Selecione o tipo",
+          "conductionType": "Tipo de Condução",
+          "conductionTypePlaceholder": "Selecione o tipo",
+          "conductionState": "Estado da Condução",
+          "conductionStatePlaceholder": "Selecione o estado",
+          "admissionRodizio": "Admissão (Rodízio)",
+          "admissionRodizioPlaceholder": "Selecione o tipo",
+          "admissionAzenha": "Admissão (Azenha)",
+          "admissionAzenhaPlaceholder": "Selecione o tipo",
+          "wheelTypeRodizio": "Tipo de Roda (Rodízio)",
+          "wheelTypeRodizioPlaceholder": "Selecione o tipo",
+          "wheelTypeAzenha": "Tipo de Roda (Azenha)",
+          "wheelTypeAzenhaPlaceholder": "Selecione o tipo",
+          "rodizioQty": "Quantidade de Rodízios",
+          "rodizioQtyPlaceholder": "Ex: 1",
+          "azenhaQty": "Quantidade de Azenhas",
+          "azenhaQtyPlaceholder": "Ex: 1"
+        },
+        "wind": {
+          "title": "Sistema Eólico",
+          "motiveApparatus": "Aparelho Motor",
+          "motiveApparatusPlaceholder": "Selecione o aparelho"
+        },
+        "grinding": {
+          "title": "Mecanismo de Moagem",
+          "millstoneQuantity": "Quantidade de Pares de Mós",
+          "millstoneQuantityPlaceholder": "Ex: 1",
+          "millstoneDiameter": "Diâmetro das Mós (cm)",
+          "millstoneDiameterPlaceholder": "Ex: 120",
+          "millstoneState": "Estado das Mós",
+          "millstoneStatePlaceholder": "Selecione o estado",
+          "components": "Componentes"
+        }
+      },
+      "conservation": {
+        "title": "Conservação",
+        "ratingStructure": "Classificação - Estrutura (Paredes)",
+        "ratingRoof": "Classificação - Telhado",
+        "ratingHydraulic": "Classificação - Sistema Hidráulico",
+        "ratingMechanism": "Classificação - Mecanismo",
+        "ratingOverall": "Classificação - Estado Geral",
+        "ratingPlaceholder": "Selecione a classificação",
+        "observationsStructure": "Observações/Patologias - Estrutura",
+        "observationsRoof": "Observações/Patologias - Telhado",
+        "observationsHydraulic": "Observações/Patologias - Sistema Hidráulico",
+        "observationsMechanism": "Observações/Patologias - Mecanismo",
+        "observationsGeneral": "Observações/Patologias - Estado Geral",
+        "observationsPlaceholder": "Descreva as observações e patologias..."
       },
       "submit": "Criar Moinho",
       "submitting": "A criar...",
