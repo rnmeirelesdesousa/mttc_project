@@ -177,5 +177,60 @@
       "adjustable": "Adjustable",
       "none": "None"
     }
+  },
+  "add": {
+    "title": "Add New Mill",
+    "description": "Fill out the form to add a new mill to the database",
+    "tabs": {
+      "general": "General Info",
+      "location": "Location",
+      "technical": "Technical Specs"
+    },
+    "form": {
+      "general": {
+        "title": "Title",
+        "titlePlaceholder": "E.g.: Azenha do Rio Douro",
+        "titleRequired": "Title is required",
+        "description": "Description",
+        "descriptionPlaceholder": "Detailed description of the mill..."
+      },
+      "location": {
+        "latitude": "Latitude",
+        "latitudePlaceholder": "E.g.: 41.1579",
+        "latitudeRequired": "Latitude is required",
+        "longitude": "Longitude",
+        "longitudePlaceholder": "E.g.: -8.6125",
+        "longitudeRequired": "Longitude is required",
+        "district": "District",
+        "districtPlaceholder": "E.g.: Porto",
+        "municipality": "Municipality",
+        "municipalityPlaceholder": "E.g.: Porto",
+        "parish": "Parish",
+        "parishPlaceholder": "E.g.: Cedofeita",
+        "address": "Address",
+        "addressPlaceholder": "E.g.: Rua do Moinho, 123",
+        "drainageBasin": "Drainage Basin",
+        "drainageBasinPlaceholder": "E.g.: Rio Douro"
+      },
+      "technical": {
+        "typology": "Typology",
+        "typologyRequired": "Typology is required",
+        "typologyPlaceholder": "Select typology",
+        "access": "Access",
+        "accessPlaceholder": "Select access type",
+        "legalProtection": "Legal Protection",
+        "legalProtectionPlaceholder": "Select protection status",
+        "propertyStatus": "Property Status",
+        "propertyStatusPlaceholder": "Select status",
+        "epoch": "Epoch",
+        "epochPlaceholder": "Select epoch",
+        "currentUse": "Current Use",
+        "currentUsePlaceholder": "Select current use"
+      },
+      "submit": "Create Mill",
+      "submitting": "Creating...",
+      "success": "Mill created successfully!",
+      "error": "Error creating mill"
+    }
   }
 }

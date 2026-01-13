@@ -177,5 +177,60 @@
       "adjustable": "Ajustável",
       "none": "Nenhum"
     }
+  },
+  "add": {
+    "title": "Adicionar Novo Moinho",
+    "description": "Preencha o formulário para adicionar um novo moinho à base de dados",
+    "tabs": {
+      "general": "Informação Geral",
+      "location": "Localização",
+      "technical": "Especificações Técnicas"
+    },
+    "form": {
+      "general": {
+        "title": "Título",
+        "titlePlaceholder": "Ex: Azenha do Rio Douro",
+        "titleRequired": "O título é obrigatório",
+        "description": "Descrição",
+        "descriptionPlaceholder": "Descrição detalhada do moinho..."
+      },
+      "location": {
+        "latitude": "Latitude",
+        "latitudePlaceholder": "Ex: 41.1579",
+        "latitudeRequired": "A latitude é obrigatória",
+        "longitude": "Longitude",
+        "longitudePlaceholder": "Ex: -8.6125",
+        "longitudeRequired": "A longitude é obrigatória",
+        "district": "Distrito",
+        "districtPlaceholder": "Ex: Porto",
+        "municipality": "Concelho",
+        "municipalityPlaceholder": "Ex: Porto",
+        "parish": "Freguesia",
+        "parishPlaceholder": "Ex: Cedofeita",
+        "address": "Endereço",
+        "addressPlaceholder": "Ex: Rua do Moinho, 123",
+        "drainageBasin": "Bacia Hidrográfica",
+        "drainageBasinPlaceholder": "Ex: Rio Douro"
+      },
+      "technical": {
+        "typology": "Tipologia",
+        "typologyRequired": "A tipologia é obrigatória",
+        "typologyPlaceholder": "Selecione a tipologia",
+        "access": "Acesso",
+        "accessPlaceholder": "Selecione o tipo de acesso",
+        "legalProtection": "Proteção Legal",
+        "legalProtectionPlaceholder": "Selecione o estado de proteção",
+        "propertyStatus": "Estado da Propriedade",
+        "propertyStatusPlaceholder": "Selecione o estado",
+        "epoch": "Época",
+        "epochPlaceholder": "Selecione a época",
+        "currentUse": "Uso Atual",
+        "currentUsePlaceholder": "Selecione o uso atual"
+      },
+      "submit": "Criar Moinho",
+      "submitting": "A criar...",
+      "success": "Moinho criado com sucesso!",
+      "error": "Erro ao criar o moinho"
+    }
   }
 }
