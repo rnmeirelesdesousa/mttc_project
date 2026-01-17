@@ -209,7 +209,7 @@ export default function AddMillPage() {
     if (!path) return '';
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
     const baseUrl = supabaseUrl.replace(/\/$/, '');
-    return `${baseUrl}/storage/v1/object/public/stonework/${path}`;
+    return `${baseUrl}/storage/v1/object/public/constructions/${path}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -622,7 +622,7 @@ export default function AddMillPage() {
                 <option value="rural">{t('taxonomy.setting.rural')}</option>
                 <option value="urban">{t('taxonomy.setting.urban')}</option>
                 <option value="isolated">{t('taxonomy.setting.isolated')}</option>
-                <option value="milling_cluster">{t('taxonomy.setting.milling_cluster')}</option>
+                <option value="riverbank">{t('taxonomy.setting.riverbank')}</option>
               </select>
             </div>
 
@@ -639,10 +639,13 @@ export default function AddMillPage() {
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option value="">{t('add.form.technical.architecture.planShapePlaceholder')}</option>
+                    <option value="circular">{t('taxonomy.planShape.circular')}</option>
+                    <option value="rectangular">{t('taxonomy.planShape.rectangular')}</option>
+                    <option value="square">{t('taxonomy.planShape.square')}</option>
+                    <option value="polygonal">{t('taxonomy.planShape.polygonal')}</option>
+                    <option value="irregular">{t('taxonomy.planShape.irregular')}</option>
                     <option value="circular_tower">{t('taxonomy.planShape.circular_tower')}</option>
                     <option value="quadrangular">{t('taxonomy.planShape.quadrangular')}</option>
-                    <option value="rectangular">{t('taxonomy.planShape.rectangular')}</option>
-                    <option value="irregular">{t('taxonomy.planShape.irregular')}</option>
                   </select>
                 </div>
 

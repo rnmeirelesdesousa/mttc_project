@@ -153,10 +153,13 @@
       "museum": "Museum"
     },
     "planShape": {
-      "circular_tower": "Circular Tower",
-      "quadrangular": "Quadrangular",
+      "circular": "Circular",
       "rectangular": "Rectangular",
-      "irregular": "Irregular"
+      "square": "Square",
+      "polygonal": "Polygonal",
+      "irregular": "Irregular",
+      "circular_tower": "Circular Tower",
+      "quadrangular": "Quadrangular"
     },
     "volumetry": {
       "cylindrical": "Cylindrical",
@@ -189,7 +192,7 @@
       "rural": "Rural",
       "urban": "Urban",
       "isolated": "Isolated",
-      "milling_cluster": "Milling Cluster"
+      "riverbank": "Riverbank"
     },
     "captationType": {
       "weir": "Weir (River Dam)",

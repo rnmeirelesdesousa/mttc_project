@@ -90,12 +90,12 @@
       "wheelType": "Tipo de Roda",
       "wheel": "roda",
       "wheels": "rodas",
-      "roofMaterial": "Material do Telhado",
-      "roofShape": "Forma do Telhado",
+      "roofMaterial": "Material da Cobertura",
+      "roofShape": "Tipo de Cobertura",
       "constructionTechnique": "Técnica de Construção",
       "waterCaptation": "Captação de Água",
       "structure": "Estrutura",
-      "roof": "Telhado",
+      "roof": "Cobertura",
       "mechanismRating": "Mecanismo",
       "notAvailable": "Não disponível",
       "noImage": "Sem imagem disponível"
@@ -153,10 +153,13 @@
       "museum": "Museu"
     },
     "planShape": {
-      "circular_tower": "Torre Circular",
-      "quadrangular": "Quadrangular",
+      "circular": "Circular",
       "rectangular": "Rectangular",
-      "irregular": "Irregular"
+      "square": "Quadrado",
+      "polygonal": "Poligonal",
+      "irregular": "Irregular",
+      "circular_tower": "Torre Circular",
+      "quadrangular": "Quadrangular"
     },
     "volumetry": {
       "cylindrical": "Cilíndrico",
@@ -189,7 +192,7 @@
       "rural": "Rural",
       "urban": "Urbano",
       "isolated": "Isolado",
-      "milling_cluster": "Conjunto de Moinhos"
+      "riverbank": "Margem do Rio"
     },
     "captationType": {
       "weir": "Açude (Represa no Rio)",
@@ -327,9 +330,9 @@
           "constructionTechniquePlaceholder": "Selecione a técnica",
           "exteriorFinish": "Acabamento Exterior",
           "exteriorFinishPlaceholder": "Selecione o acabamento",
-          "roofShape": "Forma do Telhado",
-          "roofShapePlaceholder": "Selecione a forma",
-          "roofMaterial": "Material do Telhado",
+            "roofShape": "Tipo de Cobertura",
+            "roofShapePlaceholder": "Selecione a forma",
+          "roofMaterial": "Material da Cobertura",
           "roofMaterialPlaceholder": "Selecione o material",
           "annexes": "Anexos"
         },
@@ -385,13 +388,13 @@
       "conservation": {
         "title": "Conservação",
         "ratingStructure": "Classificação - Estrutura (Paredes)",
-        "ratingRoof": "Classificação - Telhado",
+        "ratingRoof": "Classificação - Cobertura",
         "ratingHydraulic": "Classificação - Sistema Hidráulico",
         "ratingMechanism": "Classificação - Mecanismo",
         "ratingOverall": "Classificação - Estado Geral",
         "ratingPlaceholder": "Selecione a classificação",
         "observationsStructure": "Observações/Patologias - Estrutura",
-        "observationsRoof": "Observações/Patologias - Telhado",
+        "observationsRoof": "Observações/Patologias - Cobertura",
         "observationsHydraulic": "Observações/Patologias - Sistema Hidráulico",
         "observationsMechanism": "Observações/Patologias - Mecanismo",
         "observationsGeneral": "Observações/Patologias - Estado Geral",

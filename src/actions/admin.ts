@@ -499,7 +499,7 @@ const createMillConstructionSchema = z.object({
   // Characterization (Section II)
   typology: z.enum(['azenha', 'rodizio', 'mare', 'torre_fixa', 'giratorio', 'velas', 'armacao']),
   epoch: z.enum(['18th_c', '19th_c', '20th_c', 'pre_18th_c']).optional(),
-  setting: z.enum(['rural', 'urban', 'isolated', 'milling_cluster']).optional(),
+  setting: z.enum(['rural', 'urban', 'isolated', 'riverbank']).optional(),
   currentUse: z.enum(['milling', 'housing', 'tourism', 'ruin', 'museum']).optional(),
   
   // Access & Legal
@@ -508,7 +508,7 @@ const createMillConstructionSchema = z.object({
   propertyStatus: z.enum(['private', 'public', 'unknown']).optional(),
   
   // Architecture (Section III)
-  planShape: z.enum(['circular_tower', 'quadrangular', 'rectangular', 'irregular']).optional(),
+  planShape: z.enum(['circular', 'rectangular', 'square', 'polygonal', 'irregular', 'circular_tower', 'quadrangular']).optional(),
   volumetry: z.enum(['cylindrical', 'conical', 'prismatic_sq_rec']).optional(),
   constructionTechnique: z.enum(['dry_stone', 'mortared_stone', 'mixed_other']).optional(),
   exteriorFinish: z.enum(['exposed', 'plastered', 'whitewashed']).optional(),
@@ -627,25 +627,30 @@ export async function createMillConstruction(
     // Use database transaction to ensure atomicity
     const result = await db.transaction(async (tx) => {
       // Step 1: Insert into constructions (core data)
+      const insertValues = {
+        slug: uniqueSlug,
+        legacyId: validated.legacyId || null,
+        typeCategory: 'MILL',
+        geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
+        district: validated.district || null,
+        municipality: validated.municipality || null,
+        parish: validated.parish || null,
+        address: validated.address || null,
+        drainageBasin: validated.drainageBasin || null,
+        mainImage: validated.mainImage || null,
+        galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
+          ? validated.galleryImages 
+          : null,
+        status: 'draft' as const, // Always start as draft
+        createdBy: userId,
+      };
+      
+      // Debug logging: Print the exact values being sent to the database
+      console.log('[createMillConstruction]: Inserting into constructions table with values:', JSON.stringify(insertValues, null, 2));
+      
       const [newConstruction] = await tx
         .insert(constructions)
-        .values({
-          slug: uniqueSlug,
-          legacyId: validated.legacyId || null,
-          typeCategory: 'MILL',
-          geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
-          district: validated.district || null,
-          municipality: validated.municipality || null,
-          parish: validated.parish || null,
-          address: validated.address || null,
-          drainageBasin: validated.drainageBasin || null,
-          mainImage: validated.mainImage || null,
-          galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
-            ? validated.galleryImages 
-            : null,
-          status: 'draft', // Always start as draft
-          createdBy: userId,
-        })
+        .values(insertValues)
         .returning({ id: constructions.id, slug: constructions.slug });
 
       if (!newConstruction) {

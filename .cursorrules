@@ -101,18 +101,24 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.5: IMAGE GALLERY & STORAGE)**
-* **Status:** Database Schema is VERIFIED and synchronized in Supabase.
-* **Mission:** Implement a robust image management system for researchers.
-* **Security:** Manual Email/Password auth is the standard.
-* **Storage Rule:** Use the 'stonework' bucket in Supabase. Binary files NEVER touch the DB; store relative paths only.
+**CURRENT CONTEXT (PHASE 5.9: INFRASTRUCTURE ALIGNMENT)**
+* **Status:** Feature code is complete, but Supabase Infrastructure is DESYNCED.
+* **Storage Reality:** The bucket is named `constructions` (not `stonework`).
+* **DB Reality:** The `constructions` table is missing the `legacy_id` column.
+* **Objective:** Fix the desync to resolve 404 Storage errors and 42703 Postgres errors.
 
-**WORKING NOW: PHASE 5.9 - RESEARCHER UX & MAP INTEGRATION**
-* **Mission:** Refine the data entry experience and link the dashboard to the public map.
-* **Objective:** Implement a "Location Picker" for the 'Add New' form.
-* **UX Rule:** Researchers should click a map to set coordinates, rather than typing Lat/Long manually.
+**WORKING NOW: PHASE 5.99 - COMPLETE SCHEMA RECONCILIATION**
+* **Mission:** Hard-code the full scientific inventory into `src/db/schema.ts`.
+* **Current Error:** Database rejects values like 'quadrangular' because they are missing from the Enum definitions.
+* **Objective:** Ensure every scientific constant is defined in the ORM.
 
-**TASKS:**
-1.  **Component:** Create a `LocationPickerMap.tsx` component using Leaflet. 
-2.  **Integration:** Replace the raw Latitude/Longitude inputs in `src/app/[locale]/dashboard/add/page.tsx` with this interactive map. 
-3.  **Dashboard Home:** Update the main Dashboard index (`src/app/[locale]/dashboard/page.tsx`) to show a "Status Summary" (Number of Drafts vs. Published entries by the user).
+**REQUIRED SCHEMA UPDATES (STRICT DATA SPEC):**
+1. **planShapeEnum:** Add `circular_tower`, `quadrangular`.
+2. **volumetryEnum:** Define as `('cylindrical', 'conical', 'prismatic_sq_rec')`.
+3. **exteriorFinishEnum:** Define as `('exposed', 'plastered', 'whitewashed')`.
+4. **roofMaterialEnum:** Define as `('tile', 'zinc', 'thatch', 'slate')`.
+5. **motiveApparatusEnum:** Define as `('sails', 'shells', 'tail', 'cap')`.
+6. **conservationRatingEnum:** Ensure all 5 levels: `('very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin')`.
+7. **epigraphyLocationEnum:** Add `('door_jambs', 'interior_walls', 'millstones', 'other')`.
+8. **epigraphyTypeEnum:** Add `('dates', 'initials', 'religious_symbols', 'counting_marks')`.
+9. **settingEnum:** Define as `('rural', 'urban', 'isolated', 'riverbank')`.
