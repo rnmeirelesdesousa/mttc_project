@@ -101,24 +101,42 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9: INFRASTRUCTURE ALIGNMENT)**
-* **Status:** Feature code is complete, but Supabase Infrastructure is DESYNCED.
-* **Storage Reality:** The bucket is named `constructions` (not `stonework`).
-* **DB Reality:** The `constructions` table is missing the `legacy_id` column.
-* **Objective:** Fix the desync to resolve 404 Storage errors and 42703 Postgres errors.
+**CURRENT CONTEXT: PHASE 5.9.1 - UI/UX REFINEMENT**
+* **Mission:** Transform the functional dashboard into a premium, academic tool.
+* **Tech Constraints:** Next.js 14 RSC-First, Tailwind CSS, Shadcn/UI, `next-intl`.
+* **Rules of Engagement:**
+    1.  **NO SCHEMA CHANGES:** The Drizzle schema is parity-validated. Focus on the View and Controller layers.
+    2.  **i18n EVERYTHING:** Every string in the UI must use the `t('key')` pattern.
+    3.  **Form Ergonomics:** Optimize the `mills_data` entry forms. Use multi-step patterns or logical groupings based on the `mills_data_spec`.
+    4.  **Map Interactivity:** Ensure Leaflet/OSM markers are performant and the Sidebar syncs state with the URL slugs.
 
-**WORKING NOW: PHASE 5.99 - COMPLETE SCHEMA RECONCILIATION**
-* **Mission:** Hard-code the full scientific inventory into `src/db/schema.ts`.
-* **Current Error:** Database rejects values like 'quadrangular' because they are missing from the Enum definitions.
-* **Objective:** Ensure every scientific constant is defined in the ORM.
+**WORKING NOW: PHASE 5.9.1 - CONDITIONAL FORM ERGONOMICS**
+* **Context:** Refining `dashboard/add` (specifically the 'Architecture' section within 'Technical Specs').
+* **Objective:** Implement conditional visibility and logical grouping for stone materials and roof structures.
 
-**REQUIRED SCHEMA UPDATES (STRICT DATA SPEC):**
-1. **planShapeEnum:** Add `circular_tower`, `quadrangular`.
-2. **volumetryEnum:** Define as `('cylindrical', 'conical', 'prismatic_sq_rec')`.
-3. **exteriorFinishEnum:** Define as `('exposed', 'plastered', 'whitewashed')`.
-4. **roofMaterialEnum:** Define as `('tile', 'zinc', 'thatch', 'slate')`.
-5. **motiveApparatusEnum:** Define as `('sails', 'shells', 'tail', 'cap')`.
-6. **conservationRatingEnum:** Ensure all 5 levels: `('very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin')`.
-7. **epigraphyLocationEnum:** Add `('door_jambs', 'interior_walls', 'millstones', 'other')`.
-8. **epigraphyTypeEnum:** Add `('dates', 'initials', 'religious_symbols', 'counting_marks')`.
-9. **settingEnum:** Define as `('rural', 'urban', 'isolated', 'riverbank')`.
+**UI LOGIC REQUIREMENTS:**
+1. **Construction Technique Group:**
+   - If a 'Construction Technique' is selected, reveal a checkbox group: "Stone Type".
+   - Options: [Granite, Schist, Other].
+   - If "Other" is checked, reveal a Text Input for the manual description.
+   - Mapping: Map values to the `mills_data` material fields. "Other" text should be stored in the appropriate description/notes column.
+
+2. **Consolidated Roof Section:**
+   - Merge "Roof Shape" and "Roof Material" into a single UI block.
+   - Primary Selection (Radio/Select): [Fake Dome (Falsa Cúpula), Stone (Lageado), Gable Roof (Duas Águas)].
+   - Conditional Logic: If "Gable Roof" is selected, reveal a checkbox group for specific materials: [Lusa, Marselha, Meia-cana].
+
+3. **Technical Constraints:**
+   - **i18n:** All new labels (`lusa`, `meia-cana`, `falsa_cupula`, etc.) must be added to `messages/pt.json` and `messages/en.json`. Use `next-intl`.
+   - **State Management:** Use `react-hook-form` (already in the stack) with `watch` or `useWatch` for conditional rendering.
+   - **Styling:** Tailwind CSS only. Use Shadcn/UI components for checkboxes and inputs.
+   - **Data Integrity:** Do NOT modify `schema.ts`. Ensure values are cast or mapped to fit the existing Enums or text columns. If a sub-type (like 'lusa') doesn't have a specific Enum, ensure it is handled gracefully in a general material field or description.
+
+**STRICT RULE:** Use Server-First patterns where possible, but use `'use client'` for this form component to handle the interactivity.
+
+**CORRECTION: CONSTRUCTION TECHNIQUE ERGONOMICS**
+* **Task:** Refactor the "Construction Technique" section in `dashboard/add/page.tsx` to match the "Roof" section pattern.
+* **Logic:** 1. **Replace Select with RadioGroup:** Options: [Dry Stone (Pedra Seca), Mortared Stone (Pedra com Argamassa), Mixed/Other (Misto/Outro)].
+    2. **Technique 'Other' Logic:** If "Mixed/Other" is selected, reveal a Text Input for `construction_technique_description`.
+    3. **Stone Type Visibility:** Keep the "Stone Type" checkboxes visible whenever a stone-based technique is active.
+    4. **i18n:** Ensure the new labels use keys from `pt.json` and `en.json`.

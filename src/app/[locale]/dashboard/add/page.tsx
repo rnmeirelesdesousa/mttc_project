@@ -7,6 +7,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { createMillConstruction } from '@/actions/admin';
 import { uploadStoneworkImage } from '@/actions/storage';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
@@ -73,6 +75,21 @@ export default function AddMillPage() {
   const [exteriorFinish, setExteriorFinish] = useState<string>('');
   const [roofShape, setRoofShape] = useState<string>('');
   const [roofMaterial, setRoofMaterial] = useState<string>('');
+
+  // Construction Technique - Other Description
+  const [otherTechniqueDescription, setOtherTechniqueDescription] = useState<string>('');
+
+  // Stone Material (new fields)
+  const [stoneTypeGranite, setStoneTypeGranite] = useState(false);
+  const [stoneTypeSchist, setStoneTypeSchist] = useState(false);
+  const [stoneTypeOther, setStoneTypeOther] = useState(false);
+  const [materialDescription, setMaterialDescription] = useState<string>('');
+
+  // Consolidated Roof (new fields)
+  const [roofType, setRoofType] = useState<string>(''); // 'fake_dome' | 'stone' | 'gable'
+  const [gableRoofMaterialLusa, setGableRoofMaterialLusa] = useState(false);
+  const [gableRoofMaterialMarselha, setGableRoofMaterialMarselha] = useState(false);
+  const [gableRoofMaterialMeiaCana, setGableRoofMaterialMeiaCana] = useState(false);
 
   // Mechanism - Hydraulic
   const [captationType, setCaptationType] = useState<string>('');
@@ -320,8 +337,39 @@ export default function AddMillPage() {
         ratingHydraulic: ratingHydraulic || undefined,
         ratingMechanism: ratingMechanism || undefined,
         ratingOverall: ratingOverall || undefined,
-        observationsStructure: observationsStructure.trim() || undefined,
-        observationsRoof: observationsRoof.trim() || undefined,
+        observationsStructure: (() => {
+          // Include construction technique "other" description if provided
+          const techniqueNote = constructionTechnique === 'mixed_other' && otherTechniqueDescription.trim()
+            ? `Construction Technique (Other): ${otherTechniqueDescription.trim()}. ` 
+            : '';
+          
+          // Include stone material info in structure observations if provided
+          const stoneMaterialParts: string[] = [];
+          if (stoneTypeGranite) stoneMaterialParts.push('Granite');
+          if (stoneTypeSchist) stoneMaterialParts.push('Schist');
+          if (stoneTypeOther && materialDescription) {
+            stoneMaterialParts.push(`Other: ${materialDescription}`);
+          }
+          const stoneMaterialNote = stoneMaterialParts.length > 0 
+            ? `Stone Material: ${stoneMaterialParts.join(', ')}. ` 
+            : '';
+          
+          const existingObs = observationsStructure.trim();
+          const combined = (techniqueNote + stoneMaterialNote + existingObs).trim();
+          return combined || undefined;
+        })(),
+        observationsRoof: (() => {
+          // Include gable roof material details if provided
+          const gableMaterials: string[] = [];
+          if (gableRoofMaterialLusa) gableMaterials.push('Lusa');
+          if (gableRoofMaterialMarselha) gableMaterials.push('Marselha');
+          if (gableRoofMaterialMeiaCana) gableMaterials.push('Meia-cana');
+          const gableMaterialNote = gableMaterials.length > 0 
+            ? `Gable Roof Materials: ${gableMaterials.join(', ')}. ` 
+            : '';
+          const existingObs = observationsRoof.trim();
+          return (gableMaterialNote + existingObs) || undefined;
+        })(),
         observationsHydraulic: observationsHydraulic.trim() || undefined,
         observationsMechanism: observationsMechanism.trim() || undefined,
         observationsGeneral: observationsGeneral.trim() || undefined,
@@ -665,70 +713,215 @@ export default function AddMillPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="constructionTechnique">{t('add.form.technical.architecture.constructionTechnique')}</Label>
-                  <select
-                    id="constructionTechnique"
-                    value={constructionTechnique}
-                    onChange={(e) => setConstructionTechnique(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">{t('add.form.technical.architecture.constructionTechniquePlaceholder')}</option>
-                    <option value="dry_stone">{t('taxonomy.constructionTechnique.dry_stone')}</option>
-                    <option value="mortared_stone">{t('taxonomy.constructionTechnique.mortared_stone')}</option>
-                    <option value="mixed_other">{t('taxonomy.constructionTechnique.mixed_other')}</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="exteriorFinish">{t('add.form.technical.architecture.exteriorFinish')}</Label>
-                  <select
-                    id="exteriorFinish"
-                    value={exteriorFinish}
-                    onChange={(e) => setExteriorFinish(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">{t('add.form.technical.architecture.exteriorFinishPlaceholder')}</option>
-                    <option value="exposed">{t('taxonomy.exteriorFinish.exposed')}</option>
-                    <option value="plastered">{t('taxonomy.exteriorFinish.plastered')}</option>
-                    <option value="whitewashed">{t('taxonomy.exteriorFinish.whitewashed')}</option>
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="exteriorFinish">{t('add.form.technical.architecture.exteriorFinish')}</Label>
+                <select
+                  id="exteriorFinish"
+                  value={exteriorFinish}
+                  onChange={(e) => setExteriorFinish(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">{t('add.form.technical.architecture.exteriorFinishPlaceholder')}</option>
+                  <option value="exposed">{t('taxonomy.exteriorFinish.exposed')}</option>
+                  <option value="plastered">{t('taxonomy.exteriorFinish.plastered')}</option>
+                  <option value="whitewashed">{t('taxonomy.exteriorFinish.whitewashed')}</option>
+                </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="roofShape">{t('add.form.technical.architecture.roofShape')}</Label>
-                  <select
-                    id="roofShape"
-                    value={roofShape}
-                    onChange={(e) => setRoofShape(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">{t('add.form.technical.architecture.roofShapePlaceholder')}</option>
-                    <option value="conical">{t('taxonomy.roofShape.conical')}</option>
-                    <option value="gable">{t('taxonomy.roofShape.gable')}</option>
-                    <option value="lean_to">{t('taxonomy.roofShape.lean_to')}</option>
-                    <option value="inexistent">{t('taxonomy.roofShape.inexistent')}</option>
-                  </select>
-                </div>
+              {/* Construction Technique Section */}
+              <div className="space-y-4">
+                <Label>{t('add.form.technical.architecture.constructionTechnique')}</Label>
+                <RadioGroup
+                  value={constructionTechnique}
+                  onValueChange={(value) => {
+                    setConstructionTechnique(value);
+                    // Clear other technique description if switching away from mixed_other
+                    if (value !== 'mixed_other') {
+                      setOtherTechniqueDescription('');
+                    }
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="dry_stone" id="construction-dry-stone" />
+                    <Label htmlFor="construction-dry-stone" className="font-normal cursor-pointer">
+                      {t('taxonomy.constructionTechnique.dry_stone')}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="mortared_stone" id="construction-mortared-stone" />
+                    <Label htmlFor="construction-mortared-stone" className="font-normal cursor-pointer">
+                      {t('taxonomy.constructionTechnique.mortared_stone')}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="mixed_other" id="construction-mixed-other" />
+                    <Label htmlFor="construction-mixed-other" className="font-normal cursor-pointer">
+                      {t('taxonomy.constructionTechnique.mixed_other')}
+                    </Label>
+                  </div>
+                </RadioGroup>
 
-                <div className="space-y-2">
-                  <Label htmlFor="roofMaterial">{t('add.form.technical.architecture.roofMaterial')}</Label>
-                  <select
-                    id="roofMaterial"
-                    value={roofMaterial}
-                    onChange={(e) => setRoofMaterial(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">{t('add.form.technical.architecture.roofMaterialPlaceholder')}</option>
-                    <option value="tile">{t('taxonomy.roofMaterial.tile')}</option>
-                    <option value="zinc">{t('taxonomy.roofMaterial.zinc')}</option>
-                    <option value="thatch">{t('taxonomy.roofMaterial.thatch')}</option>
-                    <option value="slate">{t('taxonomy.roofMaterial.slate')}</option>
-                  </select>
-                </div>
+                {/* Other Technique Description - Conditional on "Mixed/Other" */}
+                {constructionTechnique === 'mixed_other' && (
+                  <div className="ml-6 mt-3 space-y-2">
+                    <Label htmlFor="otherTechniqueDescription">{t('add.form.technical.architecture.otherTechniqueDescription')}</Label>
+                    <Input
+                      id="otherTechniqueDescription"
+                      type="text"
+                      value={otherTechniqueDescription}
+                      onChange={(e) => setOtherTechniqueDescription(e.target.value)}
+                      placeholder={t('add.form.technical.architecture.otherTechniqueDescriptionPlaceholder')}
+                    />
+                  </div>
+                )}
+
+                {/* Stone Type - Conditional on Construction Technique */}
+                {constructionTechnique && (
+                  <div className="ml-6 mt-3 space-y-3">
+                    <Label>{t('add.form.technical.architecture.stoneType')}</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="stoneTypeGranite"
+                          checked={stoneTypeGranite}
+                          onCheckedChange={(checked) => setStoneTypeGranite(checked === true)}
+                        />
+                        <Label htmlFor="stoneTypeGranite" className="font-normal cursor-pointer">
+                          {t('add.form.technical.architecture.stoneTypeGranite')}
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="stoneTypeSchist"
+                          checked={stoneTypeSchist}
+                          onCheckedChange={(checked) => setStoneTypeSchist(checked === true)}
+                        />
+                        <Label htmlFor="stoneTypeSchist" className="font-normal cursor-pointer">
+                          {t('add.form.technical.architecture.stoneTypeSchist')}
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="stoneTypeOther"
+                          checked={stoneTypeOther}
+                          onCheckedChange={(checked) => setStoneTypeOther(checked === true)}
+                        />
+                        <Label htmlFor="stoneTypeOther" className="font-normal cursor-pointer">
+                          {t('add.form.technical.architecture.stoneTypeOther')}
+                        </Label>
+                      </div>
+                    </div>
+                    
+                    {/* Material Description - Conditional on "Other" */}
+                    {stoneTypeOther && (
+                      <div className="mt-3 space-y-2">
+                        <Label htmlFor="materialDescription">{t('add.form.technical.architecture.materialDescription')}</Label>
+                        <Input
+                          id="materialDescription"
+                          type="text"
+                          value={materialDescription}
+                          onChange={(e) => setMaterialDescription(e.target.value)}
+                          placeholder={t('add.form.technical.architecture.materialDescriptionPlaceholder')}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Consolidated Roof Section */}
+              <div className="space-y-4">
+                <Label>{t('add.form.technical.architecture.roof')}</Label>
+                <RadioGroup
+                  value={roofType}
+                  onValueChange={(value) => {
+                    setRoofType(value);
+                    // Map consolidated roof type to roofShape and roofMaterial
+                    if (value === 'fake_dome') {
+                      setRoofShape('conical');
+                      setRoofMaterial('');
+                      // Clear gable roof materials if switching away
+                      setGableRoofMaterialLusa(false);
+                      setGableRoofMaterialMarselha(false);
+                      setGableRoofMaterialMeiaCana(false);
+                    } else if (value === 'stone') {
+                      setRoofShape('conical');
+                      setRoofMaterial('slate');
+                      // Clear gable roof materials if switching away
+                      setGableRoofMaterialLusa(false);
+                      setGableRoofMaterialMarselha(false);
+                      setGableRoofMaterialMeiaCana(false);
+                    } else if (value === 'gable') {
+                      setRoofShape('gable');
+                      setRoofMaterial('tile');
+                    } else {
+                      setRoofShape('');
+                      setRoofMaterial('');
+                      // Clear gable roof materials
+                      setGableRoofMaterialLusa(false);
+                      setGableRoofMaterialMarselha(false);
+                      setGableRoofMaterialMeiaCana(false);
+                    }
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="fake_dome" id="roof-fake-dome" />
+                    <Label htmlFor="roof-fake-dome" className="font-normal cursor-pointer">
+                      {t('add.form.technical.architecture.roofTypeFakeDome')}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="stone" id="roof-stone" />
+                    <Label htmlFor="roof-stone" className="font-normal cursor-pointer">
+                      {t('add.form.technical.architecture.roofTypeStone')}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gable" id="roof-gable" />
+                    <Label htmlFor="roof-gable" className="font-normal cursor-pointer">
+                      {t('add.form.technical.architecture.roofTypeGable')}
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                {/* Gable Roof Materials - Conditional on "Gable Roof" */}
+                {roofType === 'gable' && (
+                  <div className="ml-6 mt-3 space-y-3">
+                    <Label>{t('add.form.technical.architecture.gableRoofMaterials')}</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="gableRoofMaterialLusa"
+                          checked={gableRoofMaterialLusa}
+                          onCheckedChange={(checked) => setGableRoofMaterialLusa(checked === true)}
+                        />
+                        <Label htmlFor="gableRoofMaterialLusa" className="font-normal cursor-pointer">
+                          {t('add.form.technical.architecture.gableRoofMaterialLusa')}
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="gableRoofMaterialMarselha"
+                          checked={gableRoofMaterialMarselha}
+                          onCheckedChange={(checked) => setGableRoofMaterialMarselha(checked === true)}
+                        />
+                        <Label htmlFor="gableRoofMaterialMarselha" className="font-normal cursor-pointer">
+                          {t('add.form.technical.architecture.gableRoofMaterialMarselha')}
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="gableRoofMaterialMeiaCana"
+                          checked={gableRoofMaterialMeiaCana}
+                          onCheckedChange={(checked) => setGableRoofMaterialMeiaCana(checked === true)}
+                        />
+                        <Label htmlFor="gableRoofMaterialMeiaCana" className="font-normal cursor-pointer">
+                          {t('add.form.technical.architecture.gableRoofMaterialMeiaCana')}
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
