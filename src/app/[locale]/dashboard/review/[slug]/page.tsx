@@ -5,7 +5,7 @@ import { PublishButton } from '@/components/features/PublishButton';
 import { getPublicUrl } from '@/lib/storage';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Edit } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
@@ -79,7 +79,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto py-8 max-w-4xl">
-      {/* Header with back button and publish action */}
+      {/* Header with back button, edit, and publish action */}
       <div className="mb-6 flex items-center justify-between">
         <Link href={`/${params.locale}/dashboard/review`}>
           <Button variant="outline" size="sm">
@@ -87,10 +87,22 @@ export default async function ReviewDetailPage({ params }: PageProps) {
             {t('review.backToQueue')}
           </Button>
         </Link>
-        <PublishButton
-          constructionId={construction.id}
-          currentStatus={construction.status as 'draft' | 'review' | 'published'}
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+          >
+            <Link href={`/${params.locale}/dashboard/edit/${construction.id}`}>
+              <Edit className="mr-2 h-4 w-4" />
+              {t('review.editDraft')}
+            </Link>
+          </Button>
+          <PublishButton
+            constructionId={construction.id}
+            currentStatus={construction.status as 'draft' | 'review' | 'published'}
+          />
+        </div>
       </div>
 
       <h1 className="text-3xl font-bold mb-2">

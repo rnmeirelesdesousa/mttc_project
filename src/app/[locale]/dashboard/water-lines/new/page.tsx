@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { createWaterLine } from '@/actions/admin';
+import { createWaterLine, updateWaterLine, getWaterLineByIdForEdit } from '@/actions/admin';
 import { getMapData } from '@/actions/public';
 import dynamic from 'next/dynamic';
 
@@ -24,7 +24,7 @@ const DynamicLevadaEditor = dynamic(
 );
 
 /**
- * New Water Line Page
+ * New Water Line Page (Inner Component)
  * 
  * Form for creating a new water line (levada) entry.
  * - Interactive map for drawing the line path
@@ -32,10 +32,17 @@ const DynamicLevadaEditor = dynamic(
  * 
  * Security: Should be protected by middleware/auth (researcher or admin only)
  */
-export default function NewWaterLinePage() {
+function NewWaterLinePageContent() {
   const t = useTranslations();
   const locale = useLocale() as 'pt' | 'en';
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Edit mode state
+  const editId = searchParams.get('edit');
+  const [isEditMode, setIsEditMode] = useState(!!editId);
+  const [isLoadingData, setIsLoadingData] = useState(!!editId);
+  const [waterLineId, setWaterLineId] = useState<string | null>(editId);
 
   // Form state
   const [name, setName] = useState('');
@@ -74,6 +81,43 @@ export default function NewWaterLinePage() {
     fetchMapData();
   }, [locale]);
 
+  // Fetch existing water line data if in edit mode
+  useEffect(() => {
+    const fetchWaterLineData = async () => {
+      if (!editId || !isEditMode) return;
+
+      setIsLoadingData(true);
+      setError(null);
+
+      try {
+        const result = await getWaterLineByIdForEdit(editId, locale);
+        
+        if (result.success) {
+          const data = result.data;
+          setWaterLineId(data.id);
+          
+          // Populate form fields
+          setName(data.name);
+          setDescription(data.description || '');
+          setColor(data.color);
+          
+          // Convert path from [lng, lat] to [lat, lng] for Leaflet
+          const leafletPath: [number, number][] = data.path.map(([lng, lat]) => [lat, lng]);
+          setPath(leafletPath);
+        } else {
+          setError(result.error);
+        }
+      } catch (err) {
+        console.error('[NewWaterLinePage]: Error fetching water line data:', err);
+        setError('Failed to load water line data');
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchWaterLineData();
+  }, [editId, isEditMode, locale]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -101,18 +145,34 @@ export default function NewWaterLinePage() {
         return;
       }
 
-      // Call server action
-      const result = await createWaterLine({
-        name: name.trim(),
-        description: description.trim() || undefined,
-        color,
-        path,
-        locale,
-      });
+      // Convert path from [lat, lng] (Leaflet) to [lng, lat] (PostGIS)
+      const dbPath: [number, number][] = path.map(([lat, lng]) => [lng, lat]);
+
+      // Call appropriate server action (create or update)
+      const result = isEditMode && waterLineId
+        ? await updateWaterLine({
+            id: waterLineId,
+            name: name.trim(),
+            description: description.trim() || undefined,
+            color,
+            path: dbPath,
+            locale,
+          })
+        : await createWaterLine({
+            name: name.trim(),
+            description: description.trim() || undefined,
+            color,
+            path: dbPath,
+            locale,
+          });
 
       if (result.success) {
-        // Redirect to dashboard
-        router.push(`/${locale}/dashboard`);
+        // Redirect to dashboard or inventory
+        if (isEditMode) {
+          router.push(`/${locale}/dashboard/inventory`);
+        } else {
+          router.push(`/${locale}/dashboard`);
+        }
         router.refresh();
       } else {
         setError(result.error);
@@ -127,8 +187,18 @@ export default function NewWaterLinePage() {
 
   return (
     <div className="container mx-auto py-8 max-w-6xl">
-      <h1 className="text-3xl font-bold mb-2">{t('waterLines.new.title')}</h1>
-      <p className="text-muted-foreground mb-8">{t('waterLines.new.description')}</p>
+      <h1 className="text-3xl font-bold mb-2">
+        {isEditMode ? t('waterLines.editTitle') : t('waterLines.new.title')}
+      </h1>
+      <p className="text-muted-foreground mb-8">
+        {isEditMode ? t('waterLines.editDescription') : t('waterLines.new.description')}
+      </p>
+
+      {isLoadingData && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
+          {t('waterLines.loadingData')}
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-800">
@@ -146,6 +216,7 @@ export default function NewWaterLinePage() {
               onPathChange={handlePathChange}
               existingMills={mapData?.mills || []}
               existingWaterLines={mapData?.waterLines || []}
+              initialPath={path}
             />
           </div>
 
@@ -210,11 +281,32 @@ export default function NewWaterLinePage() {
           >
             {t('waterLines.form.cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? t('waterLines.form.submitting') : t('waterLines.form.submit')}
+          <Button type="submit" disabled={isSubmitting || isLoadingData}>
+            {isSubmitting 
+              ? (isEditMode ? t('waterLines.form.updating') : t('waterLines.form.submitting'))
+              : (isEditMode ? t('waterLines.form.update') : t('waterLines.form.submit'))}
           </Button>
         </div>
       </form>
     </div>
+  );
+}
+
+/**
+ * New Water Line Page (Wrapper with Suspense)
+ * 
+ * Wraps the content in Suspense to support useSearchParams()
+ */
+export default function NewWaterLinePage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto py-8 max-w-6xl">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <NewWaterLinePageContent />
+    </Suspense>
   );
 }

@@ -2,10 +2,12 @@ import { getWaterLineBySlug } from '@/actions/public';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Edit } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { getPublicUrl } from '@/lib/storage';
+import { isResearcherOrAdmin } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
 
 // Dynamically import LevadaMap to avoid SSR issues with Leaflet
 const DynamicLevadaMap = dynamic(
@@ -46,16 +48,31 @@ export default async function LevadaDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  // Check if user can edit (researcher or admin)
+  const canEdit = await isResearcherOrAdmin();
+
   return (
     <div className="container mx-auto p-8 max-w-6xl">
-      {/* Breadcrumbs */}
-      <Link
-        href={`/${params.locale}/map`}
-        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        {t('map.backToMap')}
-      </Link>
+      {/* Breadcrumbs and Edit Button */}
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          href={`/${params.locale}/map`}
+          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {t('map.backToMap')}
+        </Link>
+        
+        {/* Edit Button - Only visible to Researchers/Admins */}
+        {canEdit && (
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/${params.locale}/dashboard/edit/${levada.id}`}>
+              <Edit className="mr-2 h-4 w-4" />
+              {t('levadaDetails.editEntry')}
+            </Link>
+          </Button>
+        )}
+      </div>
 
       {/* Header */}
       <div className="mb-8">

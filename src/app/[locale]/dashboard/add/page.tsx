@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -108,17 +108,24 @@ function SortableGalleryItem({ id, path, index, getImageUrl, onRemove }: Sortabl
 }
 
 /**
- * Add New Mill Construction Page
+ * Add New Mill Construction Page (Inner Component)
  * 
  * Multi-step form for creating a new mill construction entry.
  * Uses Tabs to separate: General Info, Location, and Technical Specs.
  * 
  * Security: Should be protected by middleware/auth (researcher or admin only)
  */
-export default function AddMillPage() {
+function AddMillPageContent() {
   const t = useTranslations();
   const locale = useLocale() as 'pt' | 'en';
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Edit mode state
+  const editId = searchParams.get('edit');
+  const [isEditMode, setIsEditMode] = useState(!!editId);
+  const [isLoadingData, setIsLoadingData] = useState(!!editId);
+  const [constructionId, setConstructionId] = useState<string | null>(editId);
 
   // Form state
   const [activeTab, setActiveTab] = useState('general');
@@ -276,6 +283,127 @@ export default function AddMillPage() {
     fetchMapData();
   }, [locale]);
 
+  // Fetch existing construction data if in edit mode
+  useEffect(() => {
+    const fetchConstructionData = async () => {
+      if (!editId || !isEditMode) return;
+
+      setIsLoadingData(true);
+      setError(null);
+
+      try {
+        const result = await getConstructionByIdForEdit(editId, locale);
+        
+        if (result.success) {
+          const data = result.data;
+          setConstructionId(data.id);
+          
+          // Populate all form fields
+          setTitle(data.title || '');
+          setDescription(data.description || '');
+          setLegacyId(data.legacyId || '');
+          
+          // Location
+          setLatitude(data.lat.toString());
+          setLongitude(data.lng.toString());
+          setDistrict(data.district || '');
+          setMunicipality(data.municipality || '');
+          setParish(data.parish || '');
+          setAddress(data.address || '');
+          setDrainageBasin(data.drainageBasin || '');
+          
+          // Technical Specs
+          setTypology(data.typology);
+          setAccess(data.access || '');
+          setLegalProtection(data.legalProtection || '');
+          setPropertyStatus(data.propertyStatus || '');
+          setEpoch(data.epoch || '');
+          setSetting(data.setting || '');
+          setCurrentUse(data.currentUse || '');
+          
+          // Architecture
+          setPlanShape(data.planShape || '');
+          setVolumetry(data.volumetry || '');
+          setConstructionTechnique(data.constructionTechnique || '');
+          setExteriorFinish(data.exteriorFinish || '');
+          setRoofShape(data.roofShape || '');
+          setRoofMaterial(data.roofMaterial || '');
+          
+          // Mechanism - Hydraulic
+          setCaptationType(data.captationType || '');
+          setConductionType(data.conductionType || '');
+          setConductionState(data.conductionState || '');
+          setAdmissionRodizio(data.admissionRodizio || '');
+          setAdmissionAzenha(data.admissionAzenha || '');
+          setWheelTypeRodizio(data.wheelTypeRodizio || '');
+          setWheelTypeAzenha(data.wheelTypeAzenha || '');
+          setRodizioQty(data.rodizioQty?.toString() || '');
+          setAzenhaQty(data.azenhaQty?.toString() || '');
+          setWaterLineId(data.waterLineId || '');
+          
+          // Mechanism - Wind
+          setMotiveApparatus(data.motiveApparatus || '');
+          
+          // Mechanism - Grinding
+          setMillstoneQuantity(data.millstoneQuantity?.toString() || '');
+          setMillstoneDiameter(data.millstoneDiameter || '');
+          setMillstoneState(data.millstoneState || '');
+          setHasTremonha(data.hasTremonha);
+          setHasQuelha(data.hasQuelha);
+          setHasUrreiro(data.hasUrreiro);
+          setHasAliviadouro(data.hasAliviadouro);
+          setHasFarinaleiro(data.hasFarinaleiro);
+          
+          // Epigraphy
+          setEpigraphyPresence(data.epigraphyPresence);
+          setEpigraphyLocation(data.epigraphyLocation || '');
+          setEpigraphyType(data.epigraphyType || '');
+          setEpigraphyDescription(data.epigraphyDescription || '');
+          
+          // Conservation
+          setRatingStructure(data.ratingStructure || '');
+          setRatingRoof(data.ratingRoof || '');
+          setRatingHydraulic(data.ratingHydraulic || '');
+          setRatingMechanism(data.ratingMechanism || '');
+          setRatingOverall(data.ratingOverall || '');
+          setObservationsStructure(data.observationsStructure || '');
+          setObservationsRoof(data.observationsRoof || '');
+          setObservationsHydraulic(data.observationsHydraulic || '');
+          setObservationsMechanism(data.observationsMechanism || '');
+          setObservationsGeneral(data.observationsGeneral || '');
+          
+          // Annexes
+          setHasOven(data.hasOven);
+          setHasMillerHouse(data.hasMillerHouse);
+          setHasStable(data.hasStable);
+          setHasFullingMill(data.hasFullingMill);
+          
+          // Images
+          setMainImage(data.mainImage);
+          setGalleryImages(data.galleryImages || []);
+          
+          // Determine roof type from roofShape and roofMaterial
+          if (data.roofShape === 'conical' && !data.roofMaterial) {
+            setRoofType('fake_dome');
+          } else if (data.roofShape === 'conical' && data.roofMaterial === 'slate') {
+            setRoofType('stone');
+          } else if (data.roofShape === 'gable' && data.roofMaterial === 'tile') {
+            setRoofType('gable');
+          }
+        } else {
+          setError(result.error);
+        }
+      } catch (err) {
+        console.error('[AddMillPage]: Error fetching construction data:', err);
+        setError('Failed to load construction data');
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchConstructionData();
+  }, [editId, isEditMode, locale]);
+
   // Generate slug from title for image organization
   const getSlugForImages = (): string => {
     if (title.trim()) {
@@ -427,8 +555,8 @@ export default function AddMillPage() {
         return;
       }
 
-      // Call server action with all fields
-      const result = await createMillConstruction({
+      // Prepare form data
+      const formData = {
         title: title.trim(),
         description: description.trim() || undefined,
         legacyId: legacyId.trim() || undefined,
@@ -533,11 +661,23 @@ export default function AddMillPage() {
         hasMillerHouse,
         hasStable,
         hasFullingMill,
-      });
+      };
+
+      // Call appropriate server action (create or update)
+      const result = isEditMode && constructionId
+        ? await updateMillConstruction({
+            ...formData,
+            id: constructionId,
+          })
+        : await createMillConstruction(formData);
 
       if (result.success) {
-        // Redirect to dashboard or review queue
-        router.push(`/${locale}/dashboard`);
+        // Redirect to dashboard or inventory
+        if (isEditMode) {
+          router.push(`/${locale}/dashboard/inventory`);
+        } else {
+          router.push(`/${locale}/dashboard`);
+        }
         router.refresh();
       } else {
         setError(result.error);
@@ -1755,11 +1895,32 @@ export default function AddMillPage() {
         </Tabs>
 
         <div className="mt-8 flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? t('add.form.submitting') : t('add.form.submit')}
+          <Button type="submit" disabled={isSubmitting || isLoadingData}>
+            {isSubmitting 
+              ? (isEditMode ? t('add.form.updating') : t('add.form.submitting'))
+              : (isEditMode ? t('add.form.update') : t('add.form.submit'))}
           </Button>
         </div>
       </form>
     </div>
+  );
+}
+
+/**
+ * Add New Mill Construction Page (Wrapper with Suspense)
+ * 
+ * Wraps the content in Suspense to support useSearchParams()
+ */
+export default function AddMillPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto py-8 max-w-4xl">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <AddMillPageContent />
+    </Suspense>
   );
 }

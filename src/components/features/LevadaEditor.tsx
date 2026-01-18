@@ -22,6 +22,8 @@ interface LevadaEditorProps {
   // Phase 5.9.3: Contextual creation layer - existing data for reference
   existingMills?: PublishedMill[];
   existingWaterLines?: MapWaterLine[];
+  // Phase 5.9.3.8: Initial path for edit mode (in Leaflet format: [lat, lng][])
+  initialPath?: [number, number][];
 }
 
 /**
@@ -112,14 +114,27 @@ function MapCenterUpdater({
  * @param existingMills - Optional array of existing mills to display as reference (colored circles)
  * @param existingWaterLines - Optional array of existing water lines to display as reference (light-blue dashed lines)
  */
-export const LevadaEditor = ({ color, onPathChange, existingMills = [], existingWaterLines = [] }: LevadaEditorProps) => {
+export const LevadaEditor = ({ color, onPathChange, existingMills = [], existingWaterLines = [], initialPath = [] }: LevadaEditorProps) => {
   const [isDrawing, setIsDrawing] = useState(false);
-  const [path, setPath] = useState<[number, number][]>([]);
+  const [path, setPath] = useState<[number, number][]>(initialPath);
+  const [hasInitialized, setHasInitialized] = useState(initialPath.length > 0);
   const [snapPreview, setSnapPreview] = useState<[number, number] | null>(null);
 
   // Center of Portugal (approximate geographic center)
-  const portugalCenter: LatLngExpression = [39.5, -8.0];
-  const defaultZoom = 7;
+  // If initialPath exists, center on the first point
+  const portugalCenter: LatLngExpression = initialPath.length > 0 
+    ? [initialPath[0]![0], initialPath[0]![1]]
+    : [39.5, -8.0];
+  const defaultZoom = initialPath.length > 0 ? 12 : 7;
+
+  // Update path when initialPath changes (for edit mode)
+  // Only set once when initialPath becomes available
+  useEffect(() => {
+    if (initialPath.length > 0 && !hasInitialized) {
+      setPath(initialPath);
+      setHasInitialized(true);
+    }
+  }, [initialPath, hasInitialized]);
 
   // Convert path from [lat, lng] to [lng, lat] for GeoJSON and notify parent
   useEffect(() => {

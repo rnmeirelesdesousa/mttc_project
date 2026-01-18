@@ -101,10 +101,18 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.3.7: SPATIAL PRECISION)**
-* **Focus:** GIS Data Quality & Connectivity.
-* **Objective:** Implement "Snap-to-Feature" logic on the Map Editor.
-* **Tasks:** 1. Update the `LocationPickerMap` (for Mills) and `LevadaEditor` (for Water Lines).
-    2. Implement a distance calculation (Haversine or Leaflet's `distanceTo`) to find the nearest point or line within a 10-meter threshold.
-    3. When the user clicks to place a point or draw a line, if the cursor is within the threshold of an existing feature, "snap" the coordinate to that feature's exact location.
-* **Constraint:** Visual feedback is required (e.g., a small highlight or marker change) when a snap is active.
+**CONTEXT (PHASE 5.9.3.8: UNIFIED WORKFLOW & INVENTORY MANAGEMENT)**
+* **Focus:** Integration of Public and Admin interfaces.
+* **Objective 1 (Direct Edit):** Add "Edit" buttons to public Mill and Levada pages, visible only to authenticated Researchers/Admins.
+* **Objective 2 (Inventory Hub):** Create `/dashboard/inventory` with a unified list of all items, featuring text search and category filters.
+* **Objective 3 (Admin Intervention):** Allow Admins to edit constructions that are in 'review' status directly from the review queue.
+* **Constraint:** Maintain strict Auth checks on all 'Edit' buttons. Use the `profiles` table to verify permissions before rendering edit links on public pages.
+
+**CURRENT CONTEXT (PHASE 5.9.3.8 PART 2: THE EDIT REVISION)**
+* **Focus:** Full CRUD (Create, Read, Update, Delete) capability.
+* **Objective:** Transform the 'Add' form into a dual-purpose 'Editor' that populates existing data.
+* **Tasks:** 1. Update the Mill/Levada form to check for an `id` or `slug` in the URL.
+    2. If editing, fetch the record's current values (including translations) and pre-fill the form.
+    3. Update the Server Actions to support `updateMill` and `updateWaterLine` without creating duplicates.
+    4. Refactor the Landing Page (`/`) to be a clear "Portal" with two main paths: "Explore Map" and "Researcher Access".
+* **Constraint:** Ensure that when an Admin edits a 'Review' item, the status stays 'Review' unless they explicitly click 'Publish'.

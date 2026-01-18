@@ -12,7 +12,7 @@ import {
 import { PublishButton } from '@/components/features/PublishButton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Edit } from 'lucide-react';
 
 interface PageProps {
   params: {
@@ -103,6 +103,16 @@ export default async function ReviewPage({ params }: PageProps) {
                         <Link href={`/${params.locale}/dashboard/review/${draft.slug}`}>
                           <Eye className="mr-2 h-4 w-4" />
                           {t('common.review')}
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Link href={`/${params.locale}/dashboard/edit/${draft.id}`}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          {t('review.editDraft')}
                         </Link>
                       </Button>
                       <PublishButton

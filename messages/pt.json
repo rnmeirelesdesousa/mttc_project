@@ -10,7 +10,7 @@
     "review": "Revisão",
     "draft": "Rascunho",
     "published": "Publicado",
-    "loading": "Carregando...",
+    "loading": "A carregar...",
     "error": "Erro",
     "noItems": "Nenhum item encontrado"
   },
@@ -48,6 +48,7 @@
     "publishError": "Falha ao publicar construção",
     "unauthorized": "Não autorizado: Acesso de administrador necessário",
     "backToQueue": "Voltar à Fila",
+    "editDraft": "Editar Rascunho",
     "detail": {
       "subtitle": "Revisão de Construção"
     }
@@ -103,7 +104,8 @@
       "roof": "Cobertura",
       "mechanismRating": "Mecanismo",
       "notAvailable": "Não disponível",
-      "noImage": "Sem imagem disponível"
+      "noImage": "Sem imagem disponível",
+      "editEntry": "Editar Esta Entrada"
     }
   },
   "taxonomy": {
@@ -270,6 +272,9 @@
   "add": {
     "title": "Adicionar Novo Moinho",
     "description": "Preencha o formulário para adicionar um novo moinho à base de dados",
+    "editTitle": "Editar Moinho",
+    "editDescription": "Edite os detalhes do moinho abaixo",
+    "loadingData": "A carregar dados do moinho...",
     "tabs": {
       "general": "Informação Geral",
       "location": "Localização",
@@ -439,6 +444,8 @@
       },
       "submit": "Criar Moinho",
       "submitting": "A criar...",
+      "update": "Atualizar Moinho",
+      "updating": "A atualizar...",
       "success": "Moinho criado com sucesso!",
       "error": "Erro ao criar o moinho"
     }
@@ -448,6 +455,9 @@
       "title": "Criar Nova Levada",
       "description": "Desenhe uma linha de água (levada) no mapa e preencha os detalhes"
     },
+    "editTitle": "Editar Levada",
+    "editDescription": "Edite os detalhes da levada abaixo",
+    "loadingData": "A carregar dados da levada...",
     "form": {
       "map": "Mapa",
       "name": "Nome",
@@ -462,12 +472,43 @@
       "cancel": "Cancelar",
       "submit": "Criar Levada",
       "submitting": "A criar...",
+      "update": "Atualizar Levada",
+      "updating": "A atualizar...",
       "error": "Erro ao criar a levada"
     }
   },
   "levadaDetails": {
     "map": "Mapa",
     "fedMills": "Moinhos Alimentados",
-    "noMillsConnected": "Nenhum moinho está atualmente conectado a esta levada."
+    "noMillsConnected": "Nenhum moinho está atualmente conectado a esta levada.",
+    "editEntry": "Editar Esta Entrada"
+  },
+  "inventory": {
+    "title": "Inventário",
+    "description": "Lista completa de todas as construções e levadas",
+    "type": {
+      "mill": "Moinho",
+      "levada": "Levada"
+    },
+    "filters": {
+      "type": "Tipo",
+      "status": "Estado",
+      "search": "Pesquisar",
+      "allTypes": "Todos os Tipos",
+      "allStatuses": "Todos os Estados",
+      "searchPlaceholder": "Pesquisar por nome/título..."
+    },
+    "actions": {
+      "view": "Ver",
+      "edit": "Editar"
+    }
+  },
+  "home": {
+    "title": "Base de Dados de Alvenaria Portuguesa",
+    "mission": "Documentação científica e preservação do património dos moinhos portugueses",
+    "description": "Explore o inventário completo de moinhos de água e vento, levadas e infraestruturas hidráulicas históricas de Portugal.",
+    "exploreMap": "Explorar o Mapa",
+    "researcherPortal": "Portal do Investigador",
+    "footer": "Projeto de investigação académica dedicado à preservação e estudo do património moageiro português"
   }
 }

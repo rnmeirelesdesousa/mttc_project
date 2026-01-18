@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { constructions, constructionTranslations, millsData, waterLines, waterLineTranslations } from '@/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, or, like } from 'drizzle-orm';
 import { isAdmin, isResearcherOrAdmin, getSessionUserId } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -846,5 +846,972 @@ export async function createWaterLine(
   } catch (error) {
     console.error('[createWaterLine]:', error);
     return { success: false, error: 'An error occurred while creating the water line' };
+  }
+}
+
+/**
+ * Inventory item type for the master list
+ */
+export interface InventoryItem {
+  id: string;
+  slug: string;
+  type: 'MILL' | 'LEVADA';
+  title: string | null;
+  status: 'draft' | 'review' | 'published';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Fetches all constructions and water lines for the inventory master list
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * 
+ * @param locale - Current locale code ('en' | 'pt')
+ * @param filters - Optional filters for type and status
+ * @param searchQuery - Optional text search query (searches in title/name)
+ * @returns Standardized response with array of inventory items
+ */
+export async function getInventoryItems(
+  locale: string,
+  filters?: {
+    type?: 'MILL' | 'LEVADA' | 'ALL';
+    status?: 'draft' | 'review' | 'published' | 'ALL';
+  },
+  searchQuery?: string
+): Promise<
+  | { success: true; data: InventoryItem[] }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Validate locale
+    if (!locale || typeof locale !== 'string') {
+      return { success: false, error: 'Locale is required' };
+    }
+
+    const items: InventoryItem[] = [];
+
+    // Fetch constructions (mills)
+    if (!filters?.type || filters.type === 'MILL' || filters.type === 'ALL') {
+      const whereConditions = [];
+      
+      // Apply status filter
+      if (filters?.status && filters.status !== 'ALL') {
+        whereConditions.push(eq(constructions.status, filters.status));
+      }
+      
+      // Apply search query (searches in title)
+      if (searchQuery && searchQuery.trim()) {
+        const searchPattern = `%${searchQuery.trim()}%`;
+        whereConditions.push(
+          sql`LOWER(${constructionTranslations.title}) LIKE LOWER(${searchPattern})`
+        );
+      }
+
+      const constructionsQuery = db
+        .select({
+          id: constructions.id,
+          slug: constructions.slug,
+          status: constructions.status,
+          createdAt: constructions.createdAt,
+          updatedAt: constructions.updatedAt,
+          title: constructionTranslations.title,
+        })
+        .from(constructions)
+        .leftJoin(
+          constructionTranslations,
+          and(
+            eq(constructionTranslations.constructionId, constructions.id),
+            eq(constructionTranslations.langCode, locale)
+          )
+        )
+        .where(
+          whereConditions.length > 0
+            ? and(...whereConditions)
+            : undefined
+        )
+        .orderBy(desc(constructions.updatedAt));
+
+      const constructionsResults = await constructionsQuery;
+
+      items.push(
+        ...constructionsResults.map((row) => ({
+          id: row.id,
+          slug: row.slug,
+          type: 'MILL' as const,
+          title: row.title,
+          status: row.status as 'draft' | 'review' | 'published',
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+        }))
+      );
+    }
+
+    // Fetch water lines (levadas)
+    if (!filters?.type || filters.type === 'LEVADA' || filters.type === 'ALL') {
+      // Note: Water lines don't have status, so we only filter by search query
+      const whereConditions = [];
+      
+      // Apply search query (searches in name)
+      if (searchQuery && searchQuery.trim()) {
+        const searchPattern = `%${searchQuery.trim()}%`;
+        whereConditions.push(
+          sql`LOWER(${waterLineTranslations.name}) LIKE LOWER(${searchPattern})`
+        );
+      }
+
+      const waterLinesQuery = db
+        .select({
+          id: waterLines.id,
+          slug: waterLines.slug,
+          createdAt: waterLines.createdAt,
+          updatedAt: waterLines.updatedAt,
+          name: waterLineTranslations.name,
+        })
+        .from(waterLines)
+        .leftJoin(
+          waterLineTranslations,
+          and(
+            eq(waterLineTranslations.waterLineId, waterLines.id),
+            eq(waterLineTranslations.locale, locale)
+          )
+        )
+        .where(
+          whereConditions.length > 0
+            ? and(...whereConditions)
+            : undefined
+        )
+        .orderBy(desc(waterLines.updatedAt));
+
+      const waterLinesResults = await waterLinesQuery;
+
+      items.push(
+        ...waterLinesResults.map((row) => ({
+          id: row.id,
+          slug: row.slug,
+          type: 'LEVADA' as const,
+          title: row.name,
+          status: 'published' as const, // Water lines are always considered published
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+        }))
+      );
+    }
+
+    // Sort all items by updatedAt descending
+    items.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+
+    return { success: true, data: items };
+  } catch (error) {
+    console.error('[getInventoryItems]:', error);
+    return { success: false, error: 'An error occurred while fetching inventory items' };
+  }
+}
+
+/**
+ * Gets the type of an item by ID (MILL or LEVADA)
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * 
+ * @param id - Item UUID
+ * @returns Standardized response with item type or null if not found
+ */
+export async function getItemTypeById(
+  id: string
+): Promise<
+  | { success: true; data: { type: 'MILL' | 'LEVADA'; slug: string } }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Validate input
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Item ID is required' };
+    }
+
+    // Try to find in constructions table
+    const construction = await db
+      .select({
+        id: constructions.id,
+        slug: constructions.slug,
+      })
+      .from(constructions)
+      .where(eq(constructions.id, id))
+      .limit(1);
+
+    if (construction.length > 0) {
+      return { success: true, data: { type: 'MILL', slug: construction[0]!.slug } };
+    }
+
+    // Try to find in water_lines table
+    const waterLine = await db
+      .select({
+        id: waterLines.id,
+        slug: waterLines.slug,
+      })
+      .from(waterLines)
+      .where(eq(waterLines.id, id))
+      .limit(1);
+
+    if (waterLine.length > 0) {
+      return { success: true, data: { type: 'LEVADA', slug: waterLine[0]!.slug } };
+    }
+
+    return { success: false, error: 'Item not found' };
+  } catch (error) {
+    console.error('[getItemTypeById]:', error);
+    return { success: false, error: 'An error occurred while fetching item type' };
+  }
+}
+
+/**
+ * Gets a construction by ID for editing
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * Also verifies that the user is the author or an admin
+ * 
+ * @param id - Construction UUID
+ * @param locale - Current locale code ('en' | 'pt')
+ * @returns Standardized response with full construction data
+ */
+export async function getConstructionByIdForEdit(
+  id: string,
+  locale: string
+): Promise<
+  | {
+      success: true;
+      data: {
+        id: string;
+        slug: string;
+        status: string;
+        legacyId: string | null;
+        district: string | null;
+        municipality: string | null;
+        parish: string | null;
+        address: string | null;
+        drainageBasin: string | null;
+        mainImage: string | null;
+        galleryImages: string[] | null;
+        lat: number;
+        lng: number;
+        title: string | null;
+        description: string | null;
+        typology: string;
+        epoch: string | null;
+        setting: string | null;
+        currentUse: string | null;
+        access: string | null;
+        legalProtection: string | null;
+        propertyStatus: string | null;
+        planShape: string | null;
+        volumetry: string | null;
+        constructionTechnique: string | null;
+        exteriorFinish: string | null;
+        roofShape: string | null;
+        roofMaterial: string | null;
+        captationType: string | null;
+        conductionType: string | null;
+        conductionState: string | null;
+        admissionRodizio: string | null;
+        admissionAzenha: string | null;
+        wheelTypeRodizio: string | null;
+        wheelTypeAzenha: string | null;
+        rodizioQty: number | null;
+        azenhaQty: number | null;
+        motiveApparatus: string | null;
+        millstoneQuantity: number | null;
+        millstoneDiameter: string | null;
+        millstoneState: string | null;
+        hasTremonha: boolean;
+        hasQuelha: boolean;
+        hasUrreiro: boolean;
+        hasAliviadouro: boolean;
+        hasFarinaleiro: boolean;
+        epigraphyPresence: boolean;
+        epigraphyLocation: string | null;
+        epigraphyType: string | null;
+        epigraphyDescription: string | null;
+        ratingStructure: string | null;
+        ratingRoof: string | null;
+        ratingHydraulic: string | null;
+        ratingMechanism: string | null;
+        ratingOverall: string | null;
+        observationsStructure: string | null;
+        observationsRoof: string | null;
+        observationsHydraulic: string | null;
+        observationsMechanism: string | null;
+        observationsGeneral: string | null;
+        hasOven: boolean;
+        hasMillerHouse: boolean;
+        hasStable: boolean;
+        hasFullingMill: boolean;
+        waterLineId: string | null;
+        createdBy: string | null;
+      };
+    }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Get current user ID
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Check if user is admin
+    const isUserAdmin = await isAdmin();
+
+    // Validate inputs
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Construction ID is required' };
+    }
+
+    if (!locale || typeof locale !== 'string') {
+      return { success: false, error: 'Locale is required' };
+    }
+
+    // Query construction with all related data
+    const results = await db
+      .select({
+        // Construction fields
+        id: constructions.id,
+        slug: constructions.slug,
+        status: constructions.status,
+        legacyId: constructions.legacyId,
+        district: constructions.district,
+        municipality: constructions.municipality,
+        parish: constructions.parish,
+        address: constructions.address,
+        drainageBasin: constructions.drainageBasin,
+        mainImage: constructions.mainImage,
+        galleryImages: constructions.galleryImages,
+        createdBy: constructions.createdBy,
+        // PostGIS coordinate extraction
+        lng: sql<number>`ST_X(${constructions.geom}::geometry)`,
+        lat: sql<number>`ST_Y(${constructions.geom}::geometry)`,
+        // Mills data fields
+        typology: millsData.typology,
+        epoch: millsData.epoch,
+        setting: millsData.setting,
+        currentUse: millsData.currentUse,
+        access: millsData.access,
+        legalProtection: millsData.legalProtection,
+        propertyStatus: millsData.propertyStatus,
+        planShape: millsData.planShape,
+        volumetry: millsData.volumetry,
+        constructionTechnique: millsData.constructionTechnique,
+        exteriorFinish: millsData.exteriorFinish,
+        roofShape: millsData.roofShape,
+        roofMaterial: millsData.roofMaterial,
+        captationType: millsData.captationType,
+        conductionType: millsData.conductionType,
+        conductionState: millsData.conductionState,
+        admissionRodizio: millsData.admissionRodizio,
+        admissionAzenha: millsData.admissionAzenha,
+        wheelTypeRodizio: millsData.wheelTypeRodizio,
+        wheelTypeAzenha: millsData.wheelTypeAzenha,
+        rodizioQty: millsData.rodizioQty,
+        azenhaQty: millsData.azenhaQty,
+        motiveApparatus: millsData.motiveApparatus,
+        millstoneQuantity: millsData.millstoneQuantity,
+        millstoneDiameter: millsData.millstoneDiameter,
+        millstoneState: millsData.millstoneState,
+        hasTremonha: millsData.hasTremonha,
+        hasQuelha: millsData.hasQuelha,
+        hasUrreiro: millsData.hasUrreiro,
+        hasAliviadouro: millsData.hasAliviadouro,
+        hasFarinaleiro: millsData.hasFarinaleiro,
+        epigraphyPresence: millsData.epigraphyPresence,
+        epigraphyLocation: millsData.epigraphyLocation,
+        epigraphyType: millsData.epigraphyType,
+        epigraphyDescription: millsData.epigraphyDescription,
+        ratingStructure: millsData.ratingStructure,
+        ratingRoof: millsData.ratingRoof,
+        ratingHydraulic: millsData.ratingHydraulic,
+        ratingMechanism: millsData.ratingMechanism,
+        ratingOverall: millsData.ratingOverall,
+        waterLineId: millsData.waterLineId,
+        // Translation fields
+        title: constructionTranslations.title,
+        description: constructionTranslations.description,
+        observationsStructure: constructionTranslations.observationsStructure,
+        observationsRoof: constructionTranslations.observationsRoof,
+        observationsHydraulic: constructionTranslations.observationsHydraulic,
+        observationsMechanism: constructionTranslations.observationsMechanism,
+        observationsGeneral: constructionTranslations.observationsGeneral,
+        // Annexes
+        hasOven: millsData.hasOven,
+        hasMillerHouse: millsData.hasMillerHouse,
+        hasStable: millsData.hasStable,
+        hasFullingMill: millsData.hasFullingMill,
+      })
+      .from(constructions)
+      .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
+      .leftJoin(
+        constructionTranslations,
+        and(
+          eq(constructionTranslations.constructionId, constructions.id),
+          eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .where(eq(constructions.id, id))
+      .limit(1);
+
+    if (results.length === 0) {
+      return { success: false, error: 'Construction not found' };
+    }
+
+    const row = results[0]!;
+
+    // Security check: Only author or admin can edit
+    if (!isUserAdmin && row.createdBy !== userId) {
+      return { success: false, error: 'Unauthorized: You can only edit your own constructions' };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: row.id,
+        slug: row.slug,
+        status: row.status,
+        legacyId: row.legacyId,
+        district: row.district,
+        municipality: row.municipality,
+        parish: row.parish,
+        address: row.address,
+        drainageBasin: row.drainageBasin,
+        mainImage: row.mainImage,
+        galleryImages: row.galleryImages || [],
+        lat: Number(row.lat),
+        lng: Number(row.lng),
+        title: row.title,
+        description: row.description,
+        typology: row.typology,
+        epoch: row.epoch,
+        setting: row.setting,
+        currentUse: row.currentUse,
+        access: row.access,
+        legalProtection: row.legalProtection,
+        propertyStatus: row.propertyStatus,
+        planShape: row.planShape,
+        volumetry: row.volumetry,
+        constructionTechnique: row.constructionTechnique,
+        exteriorFinish: row.exteriorFinish,
+        roofShape: row.roofShape,
+        roofMaterial: row.roofMaterial,
+        captationType: row.captationType,
+        conductionType: row.conductionType,
+        conductionState: row.conductionState,
+        admissionRodizio: row.admissionRodizio,
+        admissionAzenha: row.admissionAzenha,
+        wheelTypeRodizio: row.wheelTypeRodizio,
+        wheelTypeAzenha: row.wheelTypeAzenha,
+        rodizioQty: row.rodizioQty,
+        azenhaQty: row.azenhaQty,
+        motiveApparatus: row.motiveApparatus,
+        millstoneQuantity: row.millstoneQuantity,
+        millstoneDiameter: row.millstoneDiameter,
+        millstoneState: row.millstoneState,
+        hasTremonha: row.hasTremonha,
+        hasQuelha: row.hasQuelha,
+        hasUrreiro: row.hasUrreiro,
+        hasAliviadouro: row.hasAliviadouro,
+        hasFarinaleiro: row.hasFarinaleiro,
+        epigraphyPresence: row.epigraphyPresence,
+        epigraphyLocation: row.epigraphyLocation,
+        epigraphyType: row.epigraphyType,
+        epigraphyDescription: row.epigraphyDescription,
+        ratingStructure: row.ratingStructure,
+        ratingRoof: row.ratingRoof,
+        ratingHydraulic: row.ratingHydraulic,
+        ratingMechanism: row.ratingMechanism,
+        ratingOverall: row.ratingOverall,
+        observationsStructure: row.observationsStructure,
+        observationsRoof: row.observationsRoof,
+        observationsHydraulic: row.observationsHydraulic,
+        observationsMechanism: row.observationsMechanism,
+        observationsGeneral: row.observationsGeneral,
+        hasOven: row.hasOven,
+        hasMillerHouse: row.hasMillerHouse,
+        hasStable: row.hasStable,
+        hasFullingMill: row.hasFullingMill,
+        waterLineId: row.waterLineId,
+        createdBy: row.createdBy,
+      },
+    };
+  } catch (error) {
+    console.error('[getConstructionByIdForEdit]:', error);
+    return { success: false, error: 'An error occurred while fetching construction data' };
+  }
+}
+
+/**
+ * Gets a water line by ID for editing
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * 
+ * @param id - Water line UUID
+ * @param locale - Current locale code ('en' | 'pt')
+ * @returns Standardized response with water line data
+ */
+export async function getWaterLineByIdForEdit(
+  id: string,
+  locale: string
+): Promise<
+  | {
+      success: true;
+      data: {
+        id: string;
+        slug: string;
+        name: string;
+        description: string | null;
+        color: string;
+        path: [number, number][]; // Array of [lng, lat] coordinate pairs
+      };
+    }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Validate inputs
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Water line ID is required' };
+    }
+
+    if (!locale || typeof locale !== 'string') {
+      return { success: false, error: 'Locale is required' };
+    }
+
+    // Query water line by ID with translation
+    const results = await db
+      .select({
+        id: waterLines.id,
+        slug: waterLines.slug,
+        pathText: sql<string>`ST_AsText(${waterLines.path})`.as('path_text'),
+        color: waterLines.color,
+        name: waterLineTranslations.name,
+        description: waterLineTranslations.description,
+      })
+      .from(waterLines)
+      .leftJoin(
+        waterLineTranslations,
+        and(
+          eq(waterLineTranslations.waterLineId, waterLines.id),
+          eq(waterLineTranslations.locale, locale)
+        )
+      )
+      .where(eq(waterLines.id, id))
+      .limit(1);
+
+    if (results.length === 0) {
+      return { success: false, error: 'Water line not found' };
+    }
+
+    const row = results[0]!;
+
+    // Parse PostGIS LINESTRING format: LINESTRING(lng1 lat1, lng2 lat2, ...)
+    const match = row.pathText.match(/LINESTRING\((.+)\)/);
+    if (!match) {
+      return { success: false, error: 'Invalid water line geometry' };
+    }
+
+    const coordsStr = match[1];
+    const coordPairs = coordsStr.split(',').map(coord => coord.trim());
+    
+    // Parse coordinates - keep as [lng, lat] for database format
+    const path: [number, number][] = coordPairs.map(coord => {
+      const [lng, lat] = coord.split(/\s+/).map(parseFloat);
+      return [lng, lat] as [number, number];
+    });
+
+    if (path.length < 2) {
+      return { success: false, error: 'Invalid water line path' };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: row.id,
+        slug: row.slug,
+        name: row.name || row.slug,
+        description: row.description,
+        color: row.color,
+        path,
+      },
+    };
+  } catch (error) {
+    console.error('[getWaterLineByIdForEdit]:', error);
+    return { success: false, error: 'An error occurred while fetching water line data' };
+  }
+}
+
+/**
+ * Zod schema for mill construction update (same as create, but with id)
+ */
+const updateMillConstructionSchema = createMillConstructionSchema.extend({
+  id: z.string().uuid('Invalid construction ID'),
+});
+
+/**
+ * Updates an existing mill construction with all related data
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * Also verifies that the user is the author or an admin
+ * 
+ * This action uses a database transaction to ensure atomicity:
+ * 1. Updates constructions (core data)
+ * 2. Updates or inserts construction_translations (title/description for locale)
+ * 3. Updates mills_data (scientific/technical details)
+ * 
+ * @param data - Form data containing all construction information including id
+ * @returns Standardized response: { success: true, data?: { id: string, slug: string } } or { success: false, error: string }
+ */
+export async function updateMillConstruction(
+  data: z.infer<typeof updateMillConstructionSchema>
+): Promise<
+  | { success: true; data: { id: string; slug: string } }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Get current user ID
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Check if user is admin
+    const isUserAdmin = await isAdmin();
+
+    // Validate input with Zod
+    const validationResult = updateMillConstructionSchema.safeParse(data);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      return { success: false, error: `Validation failed: ${errors}` };
+    }
+
+    const validated = validationResult.data;
+
+    // Check if construction exists and verify permissions
+    const existing = await db
+      .select({
+        id: constructions.id,
+        createdBy: constructions.createdBy,
+      })
+      .from(constructions)
+      .where(eq(constructions.id, validated.id))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return { success: false, error: 'Construction not found' };
+    }
+
+    // Security check: Only author or admin can update
+    if (!isUserAdmin && existing[0]!.createdBy !== userId) {
+      return { success: false, error: 'Unauthorized: You can only edit your own constructions' };
+    }
+
+    // Use database transaction to ensure atomicity
+    const result = await db.transaction(async (tx) => {
+      // Step 1: Update constructions (core data)
+      const [updatedConstruction] = await tx
+        .update(constructions)
+        .set({
+          legacyId: validated.legacyId || null,
+          geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
+          district: validated.district || null,
+          municipality: validated.municipality || null,
+          parish: validated.parish || null,
+          address: validated.address || null,
+          drainageBasin: validated.drainageBasin || null,
+          mainImage: validated.mainImage || null,
+          galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
+            ? validated.galleryImages 
+            : null,
+          updatedAt: new Date(),
+        })
+        .where(eq(constructions.id, validated.id))
+        .returning({ id: constructions.id, slug: constructions.slug });
+
+      if (!updatedConstruction) {
+        throw new Error('Failed to update construction');
+      }
+
+      // Step 2: Update or insert construction_translations (i18n + conservation observations)
+      // Check if translation exists
+      const existingTranslation = await tx
+        .select({ constructionId: constructionTranslations.constructionId })
+        .from(constructionTranslations)
+        .where(
+          and(
+            eq(constructionTranslations.constructionId, validated.id),
+            eq(constructionTranslations.langCode, validated.locale)
+          )
+        )
+        .limit(1);
+
+      if (existingTranslation.length > 0) {
+        // Update existing translation
+        await tx
+          .update(constructionTranslations)
+          .set({
+            title: validated.title,
+            description: validated.description || null,
+            observationsStructure: validated.observationsStructure || null,
+            observationsRoof: validated.observationsRoof || null,
+            observationsHydraulic: validated.observationsHydraulic || null,
+            observationsMechanism: validated.observationsMechanism || null,
+            observationsGeneral: validated.observationsGeneral || null,
+          })
+          .where(
+            and(
+              eq(constructionTranslations.constructionId, validated.id),
+              eq(constructionTranslations.langCode, validated.locale)
+            )
+          );
+      } else {
+        // Insert new translation
+        await tx.insert(constructionTranslations).values({
+          constructionId: validated.id,
+          langCode: validated.locale,
+          title: validated.title,
+          description: validated.description || null,
+          observationsStructure: validated.observationsStructure || null,
+          observationsRoof: validated.observationsRoof || null,
+          observationsHydraulic: validated.observationsHydraulic || null,
+          observationsMechanism: validated.observationsMechanism || null,
+          observationsGeneral: validated.observationsGeneral || null,
+        });
+      }
+
+      // Step 3: Update mills_data (scientific/technical details - all sections)
+      await tx
+        .update(millsData)
+        .set({
+          typology: validated.typology,
+          // Characterization
+          epoch: validated.epoch || null,
+          setting: validated.setting || null,
+          currentUse: validated.currentUse || null,
+          // Access & Legal
+          access: validated.access || null,
+          legalProtection: validated.legalProtection || null,
+          propertyStatus: validated.propertyStatus || null,
+          // Architecture (Section III)
+          planShape: validated.planShape || null,
+          volumetry: validated.volumetry || null,
+          constructionTechnique: validated.constructionTechnique || null,
+          exteriorFinish: validated.exteriorFinish || null,
+          roofShape: validated.roofShape || null,
+          roofMaterial: validated.roofMaterial || null,
+          // Motive Systems - Hydraulic (Section IV)
+          captationType: validated.captationType || null,
+          conductionType: validated.conductionType || null,
+          conductionState: validated.conductionState || null,
+          admissionRodizio: validated.admissionRodizio || null,
+          admissionAzenha: validated.admissionAzenha || null,
+          wheelTypeRodizio: validated.wheelTypeRodizio || null,
+          wheelTypeAzenha: validated.wheelTypeAzenha || null,
+          rodizioQty: validated.rodizioQty || null,
+          azenhaQty: validated.azenhaQty || null,
+          // Motive Systems - Wind
+          motiveApparatus: validated.motiveApparatus || null,
+          // Grinding Mechanism
+          millstoneQuantity: validated.millstoneQuantity || null,
+          millstoneDiameter: validated.millstoneDiameter || null,
+          millstoneState: validated.millstoneState || null,
+          hasTremonha: validated.hasTremonha || false,
+          hasQuelha: validated.hasQuelha || false,
+          hasUrreiro: validated.hasUrreiro || false,
+          hasAliviadouro: validated.hasAliviadouro || false,
+          hasFarinaleiro: validated.hasFarinaleiro || false,
+          // Epigraphy (Section V)
+          epigraphyPresence: validated.epigraphyPresence || false,
+          epigraphyLocation: validated.epigraphyLocation || null,
+          epigraphyType: validated.epigraphyType || null,
+          epigraphyDescription: validated.epigraphyDescription || null,
+          // Conservation Ratings (Section VI)
+          ratingStructure: validated.ratingStructure || null,
+          ratingRoof: validated.ratingRoof || null,
+          ratingHydraulic: validated.ratingHydraulic || null,
+          ratingMechanism: validated.ratingMechanism || null,
+          ratingOverall: validated.ratingOverall || null,
+          // Annexes
+          hasOven: validated.hasOven || false,
+          hasMillerHouse: validated.hasMillerHouse || false,
+          hasStable: validated.hasStable || false,
+          hasFullingMill: validated.hasFullingMill || false,
+          // Hydraulic Infrastructure (Phase 5.9.2.3)
+          waterLineId: validated.waterLineId || null,
+        })
+        .where(eq(millsData.constructionId, validated.id));
+
+      return updatedConstruction;
+    });
+
+    // Revalidate dashboard pages and public pages
+    revalidatePath('/en/dashboard');
+    revalidatePath('/pt/dashboard');
+    revalidatePath('/en/dashboard/review');
+    revalidatePath('/pt/dashboard/review');
+    revalidatePath('/en/dashboard/inventory');
+    revalidatePath('/pt/dashboard/inventory');
+    revalidatePath(`/en/mill/${result.slug}`);
+    revalidatePath(`/pt/mill/${result.slug}`);
+
+    return { success: true, data: { id: result.id, slug: result.slug } };
+  } catch (error) {
+    console.error('[updateMillConstruction]:', error);
+    return { success: false, error: 'An error occurred while updating the construction' };
+  }
+}
+
+/**
+ * Zod schema for water line update (same as create, but with id)
+ */
+const updateWaterLineSchema = createWaterLineSchema.extend({
+  id: z.string().uuid('Invalid water line ID'),
+});
+
+/**
+ * Updates an existing water line with translation
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * 
+ * This action uses a database transaction to ensure atomicity:
+ * 1. Updates water_lines (core data including PostGIS LineString geometry)
+ * 2. Updates or inserts water_line_translations (name/description for locale)
+ * 
+ * @param data - Form data containing water line information including id
+ * @returns Standardized response: { success: true, data?: { id: string, slug: string } } or { success: false, error: string }
+ */
+export async function updateWaterLine(
+  data: z.infer<typeof updateWaterLineSchema>
+): Promise<
+  | { success: true; data: { id: string; slug: string } }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Validate input with Zod
+    const validationResult = updateWaterLineSchema.safeParse(data);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      return { success: false, error: `Validation failed: ${errors}` };
+    }
+
+    const validated = validationResult.data;
+
+    // Check if water line exists
+    const existing = await db
+      .select({ id: waterLines.id, slug: waterLines.slug })
+      .from(waterLines)
+      .where(eq(waterLines.id, validated.id))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return { success: false, error: 'Water line not found' };
+    }
+
+    // Use database transaction to ensure atomicity
+    const result = await db.transaction(async (tx) => {
+      // Step 1: Update water_lines (core data with PostGIS LineString)
+      const [updatedWaterLine] = await tx
+        .update(waterLines)
+        .set({
+          path: validated.path as [number, number][], // PostGIS: array of [lng, lat] tuples
+          color: validated.color,
+          updatedAt: new Date(),
+        })
+        .where(eq(waterLines.id, validated.id))
+        .returning({ id: waterLines.id, slug: waterLines.slug });
+
+      if (!updatedWaterLine) {
+        throw new Error('Failed to update water line');
+      }
+
+      // Step 2: Update or insert water_line_translations (i18n)
+      const existingTranslation = await tx
+        .select({ waterLineId: waterLineTranslations.waterLineId })
+        .from(waterLineTranslations)
+        .where(
+          and(
+            eq(waterLineTranslations.waterLineId, validated.id),
+            eq(waterLineTranslations.locale, validated.locale)
+          )
+        )
+        .limit(1);
+
+      if (existingTranslation.length > 0) {
+        // Update existing translation
+        await tx
+          .update(waterLineTranslations)
+          .set({
+            name: validated.name,
+            description: validated.description || null,
+          })
+          .where(
+            and(
+              eq(waterLineTranslations.waterLineId, validated.id),
+              eq(waterLineTranslations.locale, validated.locale)
+            )
+          );
+      } else {
+        // Insert new translation
+        await tx.insert(waterLineTranslations).values({
+          waterLineId: validated.id,
+          locale: validated.locale,
+          name: validated.name,
+          description: validated.description || null,
+        });
+      }
+
+      return updatedWaterLine;
+    });
+
+    // Revalidate dashboard pages and public pages
+    revalidatePath('/en/dashboard');
+    revalidatePath('/pt/dashboard');
+    revalidatePath('/en/dashboard/inventory');
+    revalidatePath('/pt/dashboard/inventory');
+    revalidatePath(`/en/levada/${result.slug}`);
+    revalidatePath(`/pt/levada/${result.slug}`);
+
+    return { success: true, data: { id: result.id, slug: result.slug } };
+  } catch (error) {
+    console.error('[updateWaterLine]:', error);
+    return { success: false, error: 'An error occurred while updating the water line' };
   }
 }

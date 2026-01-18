@@ -48,6 +48,7 @@
     "publishError": "Failed to publish construction",
     "unauthorized": "Unauthorized: Admin access required",
     "backToQueue": "Back to Queue",
+    "editDraft": "Edit Draft",
     "detail": {
       "subtitle": "Construction Review"
     }
@@ -103,7 +104,8 @@
       "roof": "Roof",
       "mechanismRating": "Mechanism",
       "notAvailable": "Not available",
-      "noImage": "No image available"
+      "noImage": "No image available",
+      "editEntry": "Edit This Entry"
     }
   },
   "taxonomy": {
@@ -270,6 +272,9 @@
   "add": {
     "title": "Add New Mill",
     "description": "Fill out the form to add a new mill to the database",
+    "editTitle": "Edit Mill",
+    "editDescription": "Edit the mill details below",
+    "loadingData": "Loading mill data...",
     "tabs": {
       "general": "General Info",
       "location": "Location",
@@ -439,6 +444,8 @@
       },
       "submit": "Create Mill",
       "submitting": "Creating...",
+      "update": "Update Mill",
+      "updating": "Updating...",
       "success": "Mill created successfully!",
       "error": "Error creating mill"
     }
@@ -448,6 +455,9 @@
       "title": "Create New Water Line",
       "description": "Draw a water line (levada) on the map and fill in the details"
     },
+    "editTitle": "Edit Water Line",
+    "editDescription": "Edit the water line details below",
+    "loadingData": "Loading water line data...",
     "form": {
       "map": "Map",
       "name": "Name",
@@ -462,12 +472,43 @@
       "cancel": "Cancel",
       "submit": "Create Water Line",
       "submitting": "Creating...",
+      "update": "Update Water Line",
+      "updating": "Updating...",
       "error": "Error creating water line"
     }
   },
   "levadaDetails": {
     "map": "Map",
     "fedMills": "Fed Mills",
-    "noMillsConnected": "No mills are currently connected to this levada."
+    "noMillsConnected": "No mills are currently connected to this levada.",
+    "editEntry": "Edit This Entry"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "description": "Complete list of all constructions and water lines",
+    "type": {
+      "mill": "Mill",
+      "levada": "Levada"
+    },
+    "filters": {
+      "type": "Type",
+      "status": "Status",
+      "search": "Search",
+      "allTypes": "All Types",
+      "allStatuses": "All Statuses",
+      "searchPlaceholder": "Search by name/title..."
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit"
+    }
+  },
+  "home": {
+    "title": "Portuguese Stonework Database",
+    "mission": "Scientific documentation and preservation of Portuguese mill heritage",
+    "description": "Explore the complete inventory of water and wind mills, levadas and historical hydraulic infrastructure of Portugal.",
+    "exploreMap": "Explore the Map",
+    "researcherPortal": "Researcher Portal",
+    "footer": "Academic research project dedicated to the preservation and study of Portuguese milling heritage"
   }
 }
