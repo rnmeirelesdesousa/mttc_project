@@ -101,42 +101,14 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT: PHASE 5.9.1 - UI/UX REFINEMENT**
-* **Mission:** Transform the functional dashboard into a premium, academic tool.
-* **Tech Constraints:** Next.js 14 RSC-First, Tailwind CSS, Shadcn/UI, `next-intl`.
-* **Rules of Engagement:**
-    1.  **NO SCHEMA CHANGES:** The Drizzle schema is parity-validated. Focus on the View and Controller layers.
-    2.  **i18n EVERYTHING:** Every string in the UI must use the `t('key')` pattern.
-    3.  **Form Ergonomics:** Optimize the `mills_data` entry forms. Use multi-step patterns or logical groupings based on the `mills_data_spec`.
-    4.  **Map Interactivity:** Ensure Leaflet/OSM markers are performant and the Sidebar syncs state with the URL slugs.
+**CURRENT CONTEXT (PHASE 5.9.2: HYDRAULIC GEOMETRY)**
+* **Focus:** Implementing "Levada" (Water Line) infrastructure and custom map iconography.
+* **Architectural Change:** Introduction of `water_lines` and `water_line_translations` tables.
+* **GIS Shift:** Moving beyond `Point` to `LineString` for water flow paths.
+* **Storage Change:** `constructions` table now accepts `custom_icon_url` for Supabase-hosted SVGs/PNGs.
 
-**WORKING NOW: PHASE 5.9.1 - CONDITIONAL FORM ERGONOMICS**
-* **Context:** Refining `dashboard/add` (specifically the 'Architecture' section within 'Technical Specs').
-* **Objective:** Implement conditional visibility and logical grouping for stone materials and roof structures.
-
-**UI LOGIC REQUIREMENTS:**
-1. **Construction Technique Group:**
-   - If a 'Construction Technique' is selected, reveal a checkbox group: "Stone Type".
-   - Options: [Granite, Schist, Other].
-   - If "Other" is checked, reveal a Text Input for the manual description.
-   - Mapping: Map values to the `mills_data` material fields. "Other" text should be stored in the appropriate description/notes column.
-
-2. **Consolidated Roof Section:**
-   - Merge "Roof Shape" and "Roof Material" into a single UI block.
-   - Primary Selection (Radio/Select): [Fake Dome (Falsa Cúpula), Stone (Lageado), Gable Roof (Duas Águas)].
-   - Conditional Logic: If "Gable Roof" is selected, reveal a checkbox group for specific materials: [Lusa, Marselha, Meia-cana].
-
-3. **Technical Constraints:**
-   - **i18n:** All new labels (`lusa`, `meia-cana`, `falsa_cupula`, etc.) must be added to `messages/pt.json` and `messages/en.json`. Use `next-intl`.
-   - **State Management:** Use `react-hook-form` (already in the stack) with `watch` or `useWatch` for conditional rendering.
-   - **Styling:** Tailwind CSS only. Use Shadcn/UI components for checkboxes and inputs.
-   - **Data Integrity:** Do NOT modify `schema.ts`. Ensure values are cast or mapped to fit the existing Enums or text columns. If a sub-type (like 'lusa') doesn't have a specific Enum, ensure it is handled gracefully in a general material field or description.
-
-**STRICT RULE:** Use Server-First patterns where possible, but use `'use client'` for this form component to handle the interactivity.
-
-**CORRECTION: CONSTRUCTION TECHNIQUE ERGONOMICS**
-* **Task:** Refactor the "Construction Technique" section in `dashboard/add/page.tsx` to match the "Roof" section pattern.
-* **Logic:** 1. **Replace Select with RadioGroup:** Options: [Dry Stone (Pedra Seca), Mortared Stone (Pedra com Argamassa), Mixed/Other (Misto/Outro)].
-    2. **Technique 'Other' Logic:** If "Mixed/Other" is selected, reveal a Text Input for `construction_technique_description`.
-    3. **Stone Type Visibility:** Keep the "Stone Type" checkboxes visible whenever a stone-based technique is active.
-    4. **i18n:** Ensure the new labels use keys from `pt.json` and `en.json`.
+**STRICT GIS & STORAGE RULES:**
+1.  **PostGIS LineStrings:** Use `customType` in Drizzle to handle `geometry(LineString, 4326)`. 
+2.  **Color Codes:** `water_lines` must store a hex string (`color`) to dictate the Polyline color on the Leaflet map.
+3.  **Core + Extension i18n:** Every new entity (`water_lines`) MUST have a corresponding `_translations` table. No hardcoded text.
+4.  **Supabase Storage:** Custom icons must be stored in a public bucket named `map-assets`. The DB only stores the Public URL.

@@ -179,6 +179,10 @@ const users = authSchema.table('users', {
 // ============================================================================
 // STEP 2.5: PostGIS Geography Point Type
 // ============================================================================
+// NOTE: Phase 5.9.2 - Custom icons for constructions must be stored in the
+// Supabase Storage bucket named 'map-assets'. The customIconUrl field stores
+// the public URL to these assets (SVG/PNG format recommended for map markers).
+// ============================================================================
 
 // Custom type for PostGIS geography(POINT)
 const geographyPoint = customType<{ data: [number, number]; driverData: string }>({
@@ -197,6 +201,33 @@ const geographyPoint = customType<{ data: [number, number]; driverData: string }
     }
     // Fallback/Safety
     return [0,0];
+  },
+});
+
+// Custom type for PostGIS geometry(LineString, 4326)
+// Stores an array of [lng, lat] coordinate pairs representing a water line path
+const geometryLineString = customType<{ data: [number, number][]; driverData: string }>({
+  dataType() {
+    return 'geometry(LineString, 4326)';
+  },
+  toDriver(value: [number, number][]): string {
+    // Convert array of [lng, lat] tuples to PostGIS LINESTRING format
+    const coords = value.map(([lng, lat]) => `${lng} ${lat}`).join(', ');
+    return `LINESTRING(${coords})`;
+  },
+  fromDriver(value: string): [number, number][] {
+    // Parse PostGIS LINESTRING format: LINESTRING(lng1 lat1, lng2 lat2, ...)
+    const match = value.match(/LINESTRING\((.+)\)/);
+    if (match) {
+      const coordsStr = match[1];
+      const coordPairs = coordsStr.split(',').map(coord => coord.trim());
+      return coordPairs.map(coord => {
+        const [lng, lat] = coord.split(/\s+/).map(parseFloat);
+        return [lng, lat] as [number, number];
+      });
+    }
+    // Fallback/Safety
+    return [];
   },
 });
 
@@ -234,6 +265,8 @@ export const constructions = pgTable(
     drainageBasin: text('drainage_basin'),
     mainImage: text('main_image'),
     galleryImages: text('gallery_images').array(),
+    // Phase 5.9.2: Custom icon URL for map markers (stored in Supabase Storage bucket 'map-assets')
+    customIconUrl: text('custom_icon_url'),
     status: statusEnum('status').notNull().default('draft'),
     // Phase 3: Academic Shield - Audit trail
     createdBy: uuid('created_by').references(() => profiles.id),
@@ -319,6 +352,9 @@ export const millsData = pgTable('mills_data', {
   hasMillerHouse: boolean('has_miller_house').default(false),
   hasStable: boolean('has_stable').default(false),
   hasFullingMill: boolean('has_fulling_mill').default(false),
+
+  // Phase 5.9.2: Hydraulic Infrastructure - Reference to water line
+  waterLineId: uuid('water_line_id').references(() => waterLines.id),
 });
 
 // ============================================================================
@@ -344,6 +380,48 @@ export const constructionTranslations = pgTable(
   (table) => {
     return {
       pk: primaryKey({ columns: [table.constructionId, table.langCode] }),
+    };
+  }
+);
+
+// ============================================================================
+// STEP 5.5: Table `water_lines` (Phase 5.9.2: Hydraulic Infrastructure)
+// ============================================================================
+
+export const waterLines = pgTable(
+  'water_lines',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    slug: varchar('slug', { length: 255 }).notNull().unique(),
+    path: geometryLineString('path').notNull(), // PostGIS LineString geometry (SRID 4326)
+    color: varchar('color', { length: 7 }).notNull().default('#3b82f6'), // Hex color code for map display
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => {
+    return {
+      slugIdx: index('water_lines_slug_idx').on(table.slug),
+    };
+  }
+);
+
+// ============================================================================
+// STEP 5.6: Table `water_line_translations` (Phase 5.9.2: i18n for water lines)
+// ============================================================================
+
+export const waterLineTranslations = pgTable(
+  'water_line_translations',
+  {
+    waterLineId: uuid('water_line_id')
+      .notNull()
+      .references(() => waterLines.id, { onDelete: 'cascade' }),
+    locale: varchar('locale', { length: 5 }).notNull(), // e.g., 'pt', 'en', 'pt-BR'
+    name: text('name').notNull(),
+    description: text('description'),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.waterLineId, table.locale] }),
     };
   }
 );
@@ -376,6 +454,11 @@ export const millsDataRelations = relations(millsData, ({ one }) => ({
     fields: [millsData.constructionId],
     references: [constructions.id],
   }),
+  // Phase 5.9.2: Hydraulic Infrastructure relation
+  waterLine: one(waterLines, {
+    fields: [millsData.waterLineId],
+    references: [waterLines.id],
+  }),
 }));
 
 export const constructionTranslationsRelations = relations(
@@ -384,6 +467,22 @@ export const constructionTranslationsRelations = relations(
     construction: one(constructions, {
       fields: [constructionTranslations.constructionId],
       references: [constructions.id],
+    }),
+  })
+);
+
+// Phase 5.9.2: Water Lines Relations
+export const waterLinesRelations = relations(waterLines, ({ many }) => ({
+  translations: many(waterLineTranslations),
+  mills: many(millsData),
+}));
+
+export const waterLineTranslationsRelations = relations(
+  waterLineTranslations,
+  ({ one }) => ({
+    waterLine: one(waterLines, {
+      fields: [waterLineTranslations.waterLineId],
+      references: [waterLines.id],
     }),
   })
 );
@@ -404,9 +503,17 @@ export type NewConstructionTranslation = InferInsertModel<typeof constructionTra
 export type Profile = InferSelectModel<typeof profiles>;
 export type NewProfile = InferInsertModel<typeof profiles>;
 
+export type WaterLine = InferSelectModel<typeof waterLines>;
+export type NewWaterLine = InferInsertModel<typeof waterLines>;
+
+export type WaterLineTranslation = InferSelectModel<typeof waterLineTranslations>;
+export type NewWaterLineTranslation = InferInsertModel<typeof waterLineTranslations>;
+
 export const schema = {
   constructions,
   millsData,
   constructionTranslations,
   profiles,
+  waterLines,
+  waterLineTranslations,
 };
