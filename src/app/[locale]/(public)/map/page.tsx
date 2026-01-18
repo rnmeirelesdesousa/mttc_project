@@ -1,4 +1,4 @@
-import { getPublishedMills, getUniqueDistricts, type MillFilters } from '@/actions/public';
+import { getMapData, getUniqueDistricts, type MillFilters } from '@/actions/public';
 import { getTranslations } from 'next-intl/server';
 import dynamic from 'next/dynamic';
 import { MapSidebar } from '@/components/features/MapSidebar';
@@ -56,8 +56,11 @@ export default async function MapPage({ params, searchParams }: PageProps) {
   const districtsResult = await getUniqueDistricts();
   const availableDistricts = districtsResult.success ? districtsResult.data : [];
 
-  // Fetch published mills with filters
-  const result = await getPublishedMills(params.locale, Object.keys(filters).length > 0 ? filters : undefined);
+  // Fetch map data (mills + water lines) with filters
+  const result = await getMapData(
+    params.locale,
+    Object.keys(filters).length > 0 ? filters : undefined
+  );
 
   if (!result.success) {
     return (
@@ -68,7 +71,7 @@ export default async function MapPage({ params, searchParams }: PageProps) {
     );
   }
 
-  const mills = result.data;
+  const { mills, waterLines } = result.data;
 
   return (
     <div className="container mx-auto p-8">
@@ -83,7 +86,7 @@ export default async function MapPage({ params, searchParams }: PageProps) {
         
         {/* Map - 1 column on mobile, 3 columns on large screens */}
         <div className="lg:col-span-3 h-[600px] w-full rounded-lg overflow-hidden border border-gray-300">
-          <DynamicMillMap mills={mills} locale={params.locale} />
+          <DynamicMillMap mills={mills} waterLines={waterLines} locale={params.locale} />
         </div>
       </div>
     </div>

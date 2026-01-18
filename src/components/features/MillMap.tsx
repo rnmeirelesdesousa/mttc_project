@@ -1,14 +1,15 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { PublishedMill } from '@/actions/public';
+import type { PublishedMill, MapWaterLine } from '@/actions/public';
 import { getPublicUrl } from '@/lib/storage';
+import { getMillIcon } from '@/lib/map-icons';
 
 // Fix Leaflet icon issue in Next.js/Webpack
 // Leaflet's default icon paths don't work correctly with Webpack bundling
@@ -22,22 +23,25 @@ L.Icon.Default.mergeOptions({
 
 interface MillMapProps {
   mills: PublishedMill[];
+  waterLines: MapWaterLine[];
   locale: string;
 }
 
 /**
  * MillMap Component
  * 
- * Displays published mills on an interactive Leaflet map.
+ * Displays published mills and water lines on an interactive Leaflet map.
  * - Centers on Portugal (approx [39.5, -8.0])
- * - Shows markers for each mill
- * - Popups display mill title and link to detail page
+ * - Shows markers for each mill (with custom icons if available)
+ * - Shows polylines for each water line (levada) with their stored colors
+ * - Popups display mill/water line information and links
  * - Uses OpenStreetMap tiles (no Google Maps)
  * 
  * @param mills - Array of published mills to display
+ * @param waterLines - Array of water lines to display
  * @param locale - Current locale for i18n and link generation
  */
-export const MillMap = ({ mills, locale }: MillMapProps) => {
+export const MillMap = ({ mills, waterLines, locale }: MillMapProps) => {
   const t = useTranslations();
 
   // Center of Portugal (approximate geographic center)
@@ -57,6 +61,32 @@ export const MillMap = ({ mills, locale }: MillMapProps) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
+      {/* Render water lines as polylines (Phase 5.9.2.4) */}
+      {waterLines.map((waterLine) => {
+        if (!waterLine.path || waterLine.path.length < 2) {
+          return null; // Skip invalid water lines
+        }
+
+        return (
+          <Polyline
+            key={waterLine.id}
+            positions={waterLine.path}
+            pathOptions={{
+              color: waterLine.color,
+              weight: 4,
+              opacity: 0.8,
+            }}
+          >
+            <Popup>
+              <div className="p-2">
+                <h3 className="font-semibold text-sm mb-1">{waterLine.name}</h3>
+                <p className="text-xs text-muted-foreground">{waterLine.slug}</p>
+              </div>
+            </Popup>
+          </Polyline>
+        );
+      })}
+
       {/* Render markers for each mill */}
       {mills.map((mill) => {
         // Skip mills without valid coordinates
@@ -66,11 +96,13 @@ export const MillMap = ({ mills, locale }: MillMapProps) => {
 
         const position: LatLngExpression = [mill.lat, mill.lng];
         const millTitle = mill.title || mill.slug; // Fallback to slug if title is null
-
         const imageUrl = getPublicUrl(mill.mainImage);
+        
+        // Get custom icon if available (Phase 5.9.2.4)
+        const customIcon = getMillIcon(mill.customIconUrl);
 
         return (
-          <Marker key={mill.id} position={position}>
+          <Marker key={mill.id} position={position} icon={customIcon}>
             <Popup>
               <div className="p-2">
                 <div className="flex items-start gap-2 mb-2">

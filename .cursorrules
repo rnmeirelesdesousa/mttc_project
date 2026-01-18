@@ -101,9 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.2.2: THE LEVADA BUILDER)**
-* **Focus:** Interactive Drawing UI for Water Lines.
-* **Objective:** Create a dashboard page to draw and save LineString geometries.
-* **Stack:** Use `react-leaflet` and `leaflet-draw` (or custom polyline handlers).
-* **Data Flow:** Capture coordinates -> Send to Server Action -> Insert into `water_lines` table.
-* **Constraint:** Ensure the `slug` is auto-generated from the Name (using a utility or Zod) before saving.
+**CURRENT CONTEXT (PHASE 5.9.2.4: HIGH-FIDELITY MAP VISUALIZATION)**
+* **Focus:** Visualizing Hydraulic Connectivity on the public map.
+* **Objective:** Render Levadas as polylines and use custom icons for Mill markers.
+* **Tasks:** 1. Update the Map fetcher to include `water_lines` (slug, path, color).
+    2. Render `Polyline` components for all active Levadas.
+    3. Implement a custom marker factory that prioritizes `constructions.custom_icon_url` over default icons.
+* **Constraint:** Ensure map performance isn't degraded by the new geometry layers. Use a standard color fallback if `color` is missing.

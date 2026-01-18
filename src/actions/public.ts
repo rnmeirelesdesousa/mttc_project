@@ -31,9 +31,23 @@ export interface PublishedMill {
   access: string | null;
   legalProtection: string | null;
   propertyStatus: string | null;
+  // Phase 5.9.2: Custom icon and water line reference
+  customIconUrl: string | null;
+  waterLineId: string | null;
   // Translation (may be null if translation for locale doesn't exist)
   title: string | null;
   description: string | null;
+}
+
+/**
+ * Type definition for a water line on the map
+ */
+export interface MapWaterLine {
+  id: string;
+  slug: string;
+  path: [number, number][]; // Array of [lng, lat] coordinate pairs
+  color: string; // Hex color code
+  name: string; // Translated name
 }
 
 /**
@@ -103,6 +117,9 @@ export async function getPublishedMills(
         access: millsData.access,
         legalProtection: millsData.legalProtection,
         propertyStatus: millsData.propertyStatus,
+        // Phase 5.9.2: Custom icon and water line reference
+        customIconUrl: constructions.customIconUrl,
+        waterLineId: millsData.waterLineId,
         // Translation fields
         title: constructionTranslations.title,
         description: constructionTranslations.description,
@@ -135,6 +152,8 @@ export async function getPublishedMills(
       access: row.access,
       legalProtection: row.legalProtection,
       propertyStatus: row.propertyStatus,
+      customIconUrl: row.customIconUrl,
+      waterLineId: row.waterLineId,
       title: row.title,
       description: row.description,
     }));
@@ -395,6 +414,114 @@ export async function getWaterLinesList(
     return {
       success: false,
       error: 'An error occurred while fetching water lines',
+    };
+  }
+}
+
+/**
+ * Map data response containing both mills and water lines
+ */
+export interface MapData {
+  mills: PublishedMill[];
+  waterLines: MapWaterLine[];
+}
+
+/**
+ * Fetches all data needed for the map display
+ * 
+ * Returns both published mills (with custom icons and water line references) and all water lines.
+ * Water lines are always shown regardless of filters (as per Phase 5.9.2.4 requirements).
+ * 
+ * @param locale - Language code ('pt' | 'en')
+ * @param filters - Optional filters for mills (typology and district)
+ * @returns Standardized response with mills and water lines
+ */
+export async function getMapData(
+  locale: string,
+  filters?: MillFilters
+): Promise<
+  | { success: true; data: MapData }
+  | { success: false; error: string }
+> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
+    }
+
+    // Fetch mills with filters (reuse existing function)
+    const millsResult = await getPublishedMills(locale, filters);
+    if (!millsResult.success) {
+      return millsResult;
+    }
+
+    // Fetch all water lines with translations
+    const waterLinesResult = await getWaterLinesList(locale);
+    if (!waterLinesResult.success) {
+      return waterLinesResult;
+    }
+
+    // Fetch water line geometries and colors
+    // Use ST_AsText to get the raw PostGIS text, then parse it manually
+    // since Drizzle custom types may not always parse correctly in selects
+    const waterLinesWithGeometry = await db
+      .select({
+        id: waterLines.id,
+        slug: waterLines.slug,
+        pathText: sql<string>`ST_AsText(${waterLines.path})`.as('path_text'),
+        color: waterLines.color,
+      })
+      .from(waterLines);
+
+    // Combine water line data with translations
+    const mapWaterLines: MapWaterLine[] = waterLinesWithGeometry
+      .map((wl) => {
+        const translation = waterLinesResult.data.find((t) => t.id === wl.id);
+        if (!translation) {
+          return null; // Skip water lines without translations
+        }
+
+        // Parse PostGIS LINESTRING format: LINESTRING(lng1 lat1, lng2 lat2, ...)
+        const match = wl.pathText.match(/LINESTRING\((.+)\)/);
+        if (!match) {
+          return null; // Skip invalid geometries
+        }
+
+        const coordsStr = match[1];
+        const coordPairs = coordsStr.split(',').map(coord => coord.trim());
+        
+        // Parse coordinates and convert from [lng, lat] to [lat, lng] for Leaflet
+        const leafletPath: [number, number][] = coordPairs.map(coord => {
+          const [lng, lat] = coord.split(/\s+/).map(parseFloat);
+          return [lat, lng] as [number, number];
+        });
+
+        if (leafletPath.length < 2) {
+          return null; // Skip invalid paths
+        }
+
+        return {
+          id: wl.id,
+          slug: wl.slug,
+          path: leafletPath, // Leaflet uses [lat, lng] format
+          color: wl.color,
+          name: translation.name,
+        };
+      })
+      .filter((wl): wl is MapWaterLine => wl !== null);
+
+    return {
+      success: true,
+      data: {
+        mills: millsResult.data,
+        waterLines: mapWaterLines,
+      },
+    };
+  } catch (error) {
+    console.error('[getMapData]:', error);
+    return {
+      success: false,
+      error: 'An error occurred while fetching map data',
     };
   }
 }
