@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { createMillConstruction } from '@/actions/admin';
 import { uploadStoneworkImage } from '@/actions/storage';
-import { getWaterLinesList, type WaterLineListItem } from '@/actions/public';
+import { getWaterLinesList, getMapData, type WaterLineListItem } from '@/actions/public';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -107,6 +107,10 @@ export default function AddMillPage() {
   // Water lines list for selector
   const [waterLines, setWaterLines] = useState<WaterLineListItem[]>([]);
   const [loadingWaterLines, setLoadingWaterLines] = useState(true);
+  
+  // Phase 5.9.3: Map data for contextual creation layer
+  const [mapData, setMapData] = useState<{ mills: any[]; waterLines: any[] } | null>(null);
+  const [loadingMapData, setLoadingMapData] = useState(true);
 
   // Mechanism - Wind
   const [motiveApparatus, setMotiveApparatus] = useState<string>('');
@@ -170,6 +174,27 @@ export default function AddMillPage() {
     };
 
     fetchWaterLines();
+  }, [locale]);
+
+  // Phase 5.9.3: Fetch map data for contextual creation layer
+  useEffect(() => {
+    const fetchMapData = async () => {
+      setLoadingMapData(true);
+      try {
+        const result = await getMapData(locale);
+        if (result.success) {
+          setMapData(result.data);
+        } else {
+          console.error('[AddMillPage]: Failed to fetch map data:', result.error);
+        }
+      } catch (err) {
+        console.error('[AddMillPage]: Error fetching map data:', err);
+      } finally {
+        setLoadingMapData(false);
+      }
+    };
+
+    fetchMapData();
   }, [locale]);
 
   // Generate slug from title for image organization
@@ -499,6 +524,8 @@ export default function AddMillPage() {
                   setLatitude(lat.toString());
                   setLongitude(lng.toString());
                 }}
+                existingMills={mapData?.mills || []}
+                existingWaterLines={mapData?.waterLines || []}
               />
             </div>
 

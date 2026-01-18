@@ -7,6 +7,9 @@ import Image from 'next/image';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import type { PublishedMill, MapWaterLine } from '@/actions/public';
 import { getPublicUrl } from '@/lib/storage';
 import { getMillIcon } from '@/lib/map-icons';
@@ -87,61 +90,73 @@ export const MillMap = ({ mills, waterLines, locale }: MillMapProps) => {
         );
       })}
 
-      {/* Render markers for each mill */}
-      {mills.map((mill) => {
-        // Skip mills without valid coordinates
-        if (!mill.lat || !mill.lng || isNaN(mill.lat) || isNaN(mill.lng)) {
-          return null;
-        }
+      {/* Render markers for each mill with clustering (Phase 5.9.3) */}
+      <MarkerClusterGroup
+        chunkedLoading
+        iconCreateFunction={(cluster) => {
+          const count = cluster.getChildCount();
+          return L.divIcon({
+            html: `<div style="background-color: #3b82f6; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${count}</div>`,
+            className: 'custom-cluster-icon',
+            iconSize: [40, 40],
+          });
+        }}
+      >
+        {mills.map((mill) => {
+          // Skip mills without valid coordinates
+          if (!mill.lat || !mill.lng || isNaN(mill.lat) || isNaN(mill.lng)) {
+            return null;
+          }
 
-        const position: LatLngExpression = [mill.lat, mill.lng];
-        const millTitle = mill.title || mill.slug; // Fallback to slug if title is null
-        const imageUrl = getPublicUrl(mill.mainImage);
-        
-        // Get custom icon if available (Phase 5.9.2.4)
-        const customIcon = getMillIcon(mill.customIconUrl);
+          const position: LatLngExpression = [mill.lat, mill.lng];
+          const millTitle = mill.title || mill.slug; // Fallback to slug if title is null
+          const imageUrl = getPublicUrl(mill.mainImage);
+          
+          // Get custom icon if available (Phase 5.9.2.4)
+          const customIcon = getMillIcon(mill.customIconUrl);
 
-        return (
-          <Marker key={mill.id} position={position} icon={customIcon}>
-            <Popup>
-              <div className="p-2">
-                <div className="flex items-start gap-2 mb-2">
-                  {imageUrl ? (
-                    <div className="flex-shrink-0">
-                      <Image
-                        src={imageUrl}
-                        alt={millTitle}
-                        width={40}
-                        height={40}
-                        className="rounded object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">—</span>
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm mb-1">{millTitle}</h3>
-                    {mill.municipality && (
-                      <p className="text-xs text-gray-600 mb-2">
-                        {mill.municipality}
-                        {mill.district && `, ${mill.district}`}
-                      </p>
+          return (
+            <Marker key={mill.id} position={position} icon={customIcon}>
+              <Popup>
+                <div className="p-2">
+                  <div className="flex items-start gap-2 mb-2">
+                    {imageUrl ? (
+                      <div className="flex-shrink-0">
+                        <Image
+                          src={imageUrl}
+                          alt={millTitle}
+                          width={40}
+                          height={40}
+                          className="rounded object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                        <span className="text-gray-400 text-xs">—</span>
+                      </div>
                     )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm mb-1">{millTitle}</h3>
+                      {mill.municipality && (
+                        <p className="text-xs text-gray-600 mb-2">
+                          {mill.municipality}
+                          {mill.district && `, ${mill.district}`}
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  <Link
+                    href={`/${locale}/mill/${mill.slug}`}
+                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    {t('map.viewDetails')}
+                  </Link>
                 </div>
-                <Link
-                  href={`/${locale}/mill/${mill.slug}`}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
-                >
-                  {t('map.viewDetails')}
-                </Link>
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MarkerClusterGroup>
     </MapContainer>
   );
 };

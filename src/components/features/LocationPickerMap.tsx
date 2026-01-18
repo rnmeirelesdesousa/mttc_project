@@ -1,10 +1,11 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, useMapEvents, useMap } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect } from 'react';
+import type { PublishedMill, MapWaterLine } from '@/actions/public';
 
 // Fix Leaflet icon issue in Next.js/Webpack
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
@@ -18,6 +19,9 @@ interface LocationPickerMapProps {
   latitude: number | null;
   longitude: number | null;
   onLocationSelect: (lat: number, lng: number) => void;
+  // Phase 5.9.3: Contextual creation layer - existing data for reference
+  existingMills?: PublishedMill[];
+  existingWaterLines?: MapWaterLine[];
 }
 
 /**
@@ -64,15 +68,20 @@ function MapCenterUpdater({
  * - Shows a marker at the selected location
  * - Updates parent component's latitude/longitude state on click
  * - Uses OpenStreetMap tiles (no Google Maps)
+ * - Phase 5.9.3: Shows existing mills and water lines as reference layer
  * 
  * @param latitude - Current latitude value (can be null)
  * @param longitude - Current longitude value (can be null)
  * @param onLocationSelect - Callback function called when user clicks the map
+ * @param existingMills - Optional array of existing mills to display as reference (small gray circles)
+ * @param existingWaterLines - Optional array of existing water lines to display as reference (light-blue dashed lines)
  */
 export const LocationPickerMap = ({
   latitude,
   longitude,
   onLocationSelect,
+  existingMills = [],
+  existingWaterLines = [],
 }: LocationPickerMapProps) => {
   // Center of Portugal (approximate geographic center)
   const portugalCenter: LatLngExpression = [39.5, -8.0];
@@ -106,6 +115,48 @@ export const LocationPickerMap = ({
 
       {/* Update map center when coordinates change */}
       <MapCenterUpdater center={mapCenter} zoom={initialZoom} />
+
+      {/* Phase 5.9.3: Render existing water lines as reference (light-blue dashed lines, thicker) */}
+      {existingWaterLines.map((waterLine) => {
+        if (!waterLine.path || waterLine.path.length < 2) {
+          return null;
+        }
+
+        return (
+          <Polyline
+            key={waterLine.id}
+            positions={waterLine.path}
+            pathOptions={{
+              color: '#93c5fd', // Light blue
+              weight: 3, // Thicker than before (was 2)
+              opacity: 0.5,
+              dashArray: '10, 5', // Dashed line
+            }}
+          />
+        );
+      })}
+
+      {/* Phase 5.9.3: Render existing mills as reference (colored circles, more visible) */}
+      {existingMills.map((mill) => {
+        if (!mill.lat || !mill.lng || isNaN(mill.lat) || isNaN(mill.lng)) {
+          return null;
+        }
+
+        // Use blue color for visibility (matching project's primary color)
+        return (
+          <CircleMarker
+            key={mill.id}
+            center={[mill.lat, mill.lng]}
+            radius={6} // Larger than before (was 4)
+            pathOptions={{
+              color: '#3b82f6', // Blue (project's primary color)
+              fillColor: '#3b82f6', // Blue fill
+              fillOpacity: 0.7, // More opaque than before
+              weight: 2, // Thicker border
+            }}
+          />
+        );
+      })}
 
       {/* Show marker if location is selected */}
       {latitude !== null && longitude !== null && (

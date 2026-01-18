@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { createWaterLine } from '@/actions/admin';
+import { getMapData } from '@/actions/public';
 import dynamic from 'next/dynamic';
 
 // Dynamically import LevadaEditor to avoid SSR issues with Leaflet
@@ -43,10 +44,35 @@ export default function NewWaterLinePage() {
   const [path, setPath] = useState<[number, number][]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Phase 5.9.3: Map data for contextual creation layer
+  const [mapData, setMapData] = useState<{ mills: any[]; waterLines: any[] } | null>(null);
+  const [loadingMapData, setLoadingMapData] = useState(true);
 
   const handlePathChange = (newPath: [number, number][]) => {
     setPath(newPath);
   };
+
+  // Phase 5.9.3: Fetch map data for contextual creation layer
+  useEffect(() => {
+    const fetchMapData = async () => {
+      setLoadingMapData(true);
+      try {
+        const result = await getMapData(locale);
+        if (result.success) {
+          setMapData(result.data);
+        } else {
+          console.error('[NewWaterLinePage]: Failed to fetch map data:', result.error);
+        }
+      } catch (err) {
+        console.error('[NewWaterLinePage]: Error fetching map data:', err);
+      } finally {
+        setLoadingMapData(false);
+      }
+    };
+
+    fetchMapData();
+  }, [locale]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,7 +141,12 @@ export default function NewWaterLinePage() {
           {/* Map Section */}
           <div className="space-y-4">
             <Label>{t('waterLines.form.map')}</Label>
-            <DynamicLevadaEditor color={color} onPathChange={handlePathChange} />
+            <DynamicLevadaEditor 
+              color={color} 
+              onPathChange={handlePathChange}
+              existingMills={mapData?.mills || []}
+              existingWaterLines={mapData?.waterLines || []}
+            />
           </div>
 
           {/* Form Fields Section */}

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, CircleMarker, useMapEvents, useMap } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import type { PublishedMill, MapWaterLine } from '@/actions/public';
 
 // Fix Leaflet icon issue in Next.js/Webpack
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
@@ -17,6 +18,9 @@ L.Icon.Default.mergeOptions({
 interface LevadaEditorProps {
   color: string;
   onPathChange: (path: [number, number][]) => void;
+  // Phase 5.9.3: Contextual creation layer - existing data for reference
+  existingMills?: PublishedMill[];
+  existingWaterLines?: MapWaterLine[];
 }
 
 /**
@@ -67,11 +71,14 @@ function MapCenterUpdater({
  * - Allows clicking to add points to create a polyline
  * - Displays the current path as a colored line
  * - Converts coordinates to GeoJSON LineString format
+ * - Phase 5.9.3: Shows existing mills as reference layer
  * 
  * @param color - Hex color code for the polyline (e.g., '#3b82f6')
  * @param onPathChange - Callback function called when the path changes, receives array of [lng, lat] tuples
+ * @param existingMills - Optional array of existing mills to display as reference (colored circles)
+ * @param existingWaterLines - Optional array of existing water lines to display as reference (light-blue dashed lines)
  */
-export const LevadaEditor = ({ color, onPathChange }: LevadaEditorProps) => {
+export const LevadaEditor = ({ color, onPathChange, existingMills = [], existingWaterLines = [] }: LevadaEditorProps) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [path, setPath] = useState<[number, number][]>([]);
 
@@ -167,6 +174,48 @@ export const LevadaEditor = ({ color, onPathChange }: LevadaEditorProps) => {
 
           {/* Handle map clicks */}
           <MapClickHandler isDrawing={isDrawing} onPointAdd={handlePointAdd} />
+
+          {/* Phase 5.9.3: Render existing water lines as reference (light-blue dashed lines, thicker) */}
+          {existingWaterLines.map((waterLine) => {
+            if (!waterLine.path || waterLine.path.length < 2) {
+              return null;
+            }
+
+            return (
+              <Polyline
+                key={waterLine.id}
+                positions={waterLine.path}
+                pathOptions={{
+                  color: '#93c5fd', // Light blue
+                  weight: 3, // Thicker than before (was 2)
+                  opacity: 0.5,
+                  dashArray: '10, 5', // Dashed line
+                }}
+              />
+            );
+          })}
+
+          {/* Phase 5.9.3: Render existing mills as reference (colored circles, more visible) */}
+          {existingMills.map((mill) => {
+            if (!mill.lat || !mill.lng || isNaN(mill.lat) || isNaN(mill.lng)) {
+              return null;
+            }
+
+            // Use blue color for visibility (matching project's primary color)
+            return (
+              <CircleMarker
+                key={mill.id}
+                center={[mill.lat, mill.lng]}
+                radius={6} // Larger than before (was 4)
+                pathOptions={{
+                  color: '#3b82f6', // Blue (project's primary color)
+                  fillColor: '#3b82f6', // Blue fill
+                  fillOpacity: 0.7, // More opaque than before
+                  weight: 2, // Thicker border
+                }}
+              />
+            );
+          })}
 
           {/* Display polyline if path has points */}
           {leafletPath.length > 1 && (
