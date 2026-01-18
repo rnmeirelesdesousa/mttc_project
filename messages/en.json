@@ -384,7 +384,13 @@
           "rodizioQty": "Rodízio Quantity",
           "rodizioQtyPlaceholder": "E.g.: 1",
           "azenhaQty": "Azenha Quantity",
-          "azenhaQtyPlaceholder": "E.g.: 1"
+          "azenhaQtyPlaceholder": "E.g.: 1",
+          "infrastructure": {
+            "title": "Hydraulic Infrastructure",
+            "waterLine": "Water Line",
+            "selectWaterLine": "Select a water line (optional)",
+            "noWaterLine": "No water lines available. Create a water line first."
+          }
         },
         "wind": {
           "title": "Wind System",

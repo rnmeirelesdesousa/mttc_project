@@ -563,6 +563,9 @@ const createMillConstructionSchema = z.object({
   hasStable: z.boolean().optional(),
   hasFullingMill: z.boolean().optional(),
   
+  // Hydraulic Infrastructure (Phase 5.9.2.3)
+  waterLineId: z.string().uuid().optional().nullable(),
+  
   // Images
   mainImage: z.string().optional(),
   galleryImages: z.array(z.string()).optional(),
@@ -726,6 +729,8 @@ export async function createMillConstruction(
         hasMillerHouse: validated.hasMillerHouse || false,
         hasStable: validated.hasStable || false,
         hasFullingMill: validated.hasFullingMill || false,
+        // Hydraulic Infrastructure (Phase 5.9.2.3)
+        waterLineId: validated.waterLineId || null,
       });
 
       return newConstruction;

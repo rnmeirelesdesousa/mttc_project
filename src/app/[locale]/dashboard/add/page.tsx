@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { createMillConstruction } from '@/actions/admin';
 import { uploadStoneworkImage } from '@/actions/storage';
+import { getWaterLinesList, type WaterLineListItem } from '@/actions/public';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -101,6 +102,11 @@ export default function AddMillPage() {
   const [wheelTypeAzenha, setWheelTypeAzenha] = useState<string>('');
   const [rodizioQty, setRodizioQty] = useState<string>('');
   const [azenhaQty, setAzenhaQty] = useState<string>('');
+  const [waterLineId, setWaterLineId] = useState<string>('');
+  
+  // Water lines list for selector
+  const [waterLines, setWaterLines] = useState<WaterLineListItem[]>([]);
+  const [loadingWaterLines, setLoadingWaterLines] = useState(true);
 
   // Mechanism - Wind
   const [motiveApparatus, setMotiveApparatus] = useState<string>('');
@@ -144,6 +150,27 @@ export default function AddMillPage() {
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [uploadingMain, setUploadingMain] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+
+  // Fetch water lines list on mount
+  useEffect(() => {
+    const fetchWaterLines = async () => {
+      setLoadingWaterLines(true);
+      try {
+        const result = await getWaterLinesList(locale);
+        if (result.success) {
+          setWaterLines(result.data);
+        } else {
+          console.error('[AddMillPage]: Failed to fetch water lines:', result.error);
+        }
+      } catch (err) {
+        console.error('[AddMillPage]: Error fetching water lines:', err);
+      } finally {
+        setLoadingWaterLines(false);
+      }
+    };
+
+    fetchWaterLines();
+  }, [locale]);
 
   // Generate slug from title for image organization
   const getSlugForImages = (): string => {
@@ -315,6 +342,8 @@ export default function AddMillPage() {
         wheelTypeAzenha: wheelTypeAzenha || undefined,
         rodizioQty: rodizioQty ? parseInt(rodizioQty, 10) : undefined,
         azenhaQty: azenhaQty ? parseInt(azenhaQty, 10) : undefined,
+        // Hydraulic Infrastructure (Phase 5.9.2.3)
+        waterLineId: waterLineId.trim() || undefined,
         // Mechanism - Wind
         motiveApparatus: motiveApparatus || undefined,
         // Mechanism - Grinding
@@ -1168,6 +1197,35 @@ export default function AddMillPage() {
                     onChange={(e) => setAzenhaQty(e.target.value)}
                     placeholder={t('add.form.mechanism.hydraulic.azenhaQtyPlaceholder')}
                   />
+                </div>
+              </div>
+
+              {/* Hydraulic Infrastructure Section (Phase 5.9.2.3) */}
+              <div className="pt-4 border-t space-y-4">
+                <h3 className="text-lg font-semibold">{t('add.form.mechanism.hydraulic.infrastructure.title')}</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="waterLineId">{t('add.form.mechanism.hydraulic.infrastructure.waterLine')}</Label>
+                  <select
+                    id="waterLineId"
+                    value={waterLineId}
+                    onChange={(e) => setWaterLineId(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={loadingWaterLines}
+                  >
+                    <option value="">{t('add.form.mechanism.hydraulic.infrastructure.selectWaterLine')}</option>
+                    {waterLines.map((waterLine) => (
+                      <option key={waterLine.id} value={waterLine.id}>
+                        {waterLine.name}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingWaterLines && (
+                    <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+                  )}
+                  {!loadingWaterLines && waterLines.length === 0 && (
+                    <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.infrastructure.noWaterLine')}</p>
+                  )}
                 </div>
               </div>
             </div>

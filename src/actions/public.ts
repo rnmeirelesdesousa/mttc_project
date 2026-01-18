@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { constructions, millsData, constructionTranslations } from '@/db/schema';
+import { constructions, millsData, constructionTranslations, waterLines, waterLineTranslations } from '@/db/schema';
 import { eq, and, sql, inArray, or } from 'drizzle-orm';
 
 /**
@@ -333,6 +333,68 @@ export async function getUniqueDistricts(): Promise<
     return {
       success: false,
       error: 'An error occurred while fetching districts',
+    };
+  }
+}
+
+/**
+ * Water line list item with translated name
+ */
+export interface WaterLineListItem {
+  id: string;
+  slug: string;
+  name: string;
+}
+
+/**
+ * Fetches all water lines with their translated names
+ * 
+ * @param locale - Language code ('pt' | 'en')
+ * @returns Standardized response with array of water lines (id, slug, translated name)
+ */
+export async function getWaterLinesList(
+  locale: string
+): Promise<
+  | { success: true; data: WaterLineListItem[] }
+  | { success: false; error: string }
+> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
+    }
+
+    // Query all water lines with their translations
+    // Use inner join to only get water lines that have translations for the locale
+    const results = await db
+      .select({
+        id: waterLines.id,
+        slug: waterLines.slug,
+        name: waterLineTranslations.name,
+      })
+      .from(waterLines)
+      .innerJoin(
+        waterLineTranslations,
+        and(
+          eq(waterLineTranslations.waterLineId, waterLines.id),
+          eq(waterLineTranslations.locale, locale)
+        )
+      )
+      .orderBy(waterLineTranslations.name);
+
+    // Transform results
+    const waterLinesList: WaterLineListItem[] = results.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+    }));
+
+    return { success: true, data: waterLinesList };
+  } catch (error) {
+    console.error('[getWaterLinesList]:', error);
+    return {
+      success: false,
+      error: 'An error occurred while fetching water lines',
     };
   }
 }

@@ -384,7 +384,13 @@
           "rodizioQty": "Quantidade de Rodízios",
           "rodizioQtyPlaceholder": "Ex: 1",
           "azenhaQty": "Quantidade de Azenhas",
-          "azenhaQtyPlaceholder": "Ex: 1"
+          "azenhaQtyPlaceholder": "Ex: 1",
+          "infrastructure": {
+            "title": "Infraestrutura Hidráulica",
+            "waterLine": "Levada",
+            "selectWaterLine": "Selecione uma levada (opcional)",
+            "noWaterLine": "Nenhuma levada disponível. Crie uma levada primeiro."
+          }
         },
         "wind": {
           "title": "Sistema Eólico",
