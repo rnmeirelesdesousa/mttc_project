@@ -101,10 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.3.6: ASSET CURATION)**
-* **Focus:** Researcher Ergonomics for Visual Documentation.
-* **Objective:** Enable drag-and-drop reordering of gallery images in the Mill Edit/Add form.
-* **Tasks:** 1. Update the `constructions` table or `mills_data` logic to store image order (or ensure the array index is preserved).
-    2. Implement a draggable gallery UI using a library like `@dnd-kit/sortable`.
-    3. Update the `updateMill` server action to handle the new image order.
-* **Constraint:** Binary files remain in Supabase Storage; we are only reordering the metadata/URLs in the database array.
+**CURRENT CONTEXT (PHASE 5.9.3.7: SPATIAL PRECISION)**
+* **Focus:** GIS Data Quality & Connectivity.
+* **Objective:** Implement "Snap-to-Feature" logic on the Map Editor.
+* **Tasks:** 1. Update the `LocationPickerMap` (for Mills) and `LevadaEditor` (for Water Lines).
+    2. Implement a distance calculation (Haversine or Leaflet's `distanceTo`) to find the nearest point or line within a 10-meter threshold.
+    3. When the user clicks to place a point or draw a line, if the cursor is within the threshold of an existing feature, "snap" the coordinate to that feature's exact location.
+* **Constraint:** Visual feedback is required (e.g., a small highlight or marker change) when a snap is active.

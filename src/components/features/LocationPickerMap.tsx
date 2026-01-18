@@ -4,8 +4,9 @@ import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, useMapEvents, 
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { PublishedMill, MapWaterLine } from '@/actions/public';
+import { findNearestWaterLine } from '@/lib/gis-utils';
 
 // Fix Leaflet icon issue in Next.js/Webpack
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
@@ -25,17 +26,46 @@ interface LocationPickerMapProps {
 }
 
 /**
- * MapClickHandler - Internal component to handle map clicks
+ * MapClickHandler - Internal component to handle map clicks with snap-to-feature
  */
 function MapClickHandler({
   onLocationSelect,
+  existingWaterLines,
+  onSnapPreview,
 }: {
   onLocationSelect: (lat: number, lng: number) => void;
+  existingWaterLines: MapWaterLine[];
+  onSnapPreview: (point: [number, number] | null) => void;
 }) {
   useMapEvents({
     click(e) {
       const { lat, lng } = e.latlng;
-      onLocationSelect(lat, lng);
+      
+      // Check for nearby water lines and snap if within 10 meters
+      const nearest = findNearestWaterLine(lat, lng, existingWaterLines, 10);
+      
+      if (nearest) {
+        // Snap to the nearest point on the water line
+        const [snappedLat, snappedLng] = nearest.snappedPoint;
+        onLocationSelect(snappedLat, snappedLng);
+        onSnapPreview(null); // Clear preview after snap
+      } else {
+        // Use clicked location as-is
+        onLocationSelect(lat, lng);
+        onSnapPreview(null);
+      }
+    },
+    mousemove(e) {
+      const { lat, lng } = e.latlng;
+      
+      // Check for nearby water lines to show snap preview
+      const nearest = findNearestWaterLine(lat, lng, existingWaterLines, 10);
+      
+      if (nearest) {
+        onSnapPreview(nearest.snappedPoint);
+      } else {
+        onSnapPreview(null);
+      }
     },
   });
   return null;
@@ -83,6 +113,9 @@ export const LocationPickerMap = ({
   existingMills = [],
   existingWaterLines = [],
 }: LocationPickerMapProps) => {
+  // State for snap preview indicator
+  const [snapPreview, setSnapPreview] = useState<[number, number] | null>(null);
+
   // Center of Portugal (approximate geographic center)
   const portugalCenter: LatLngExpression = [39.5, -8.0];
   const defaultZoom = 7;
@@ -100,7 +133,7 @@ export const LocationPickerMap = ({
     <MapContainer
       center={mapCenter}
       zoom={initialZoom}
-      style={{ height: '400px', width: '100%' }}
+      style={{ height: '400px', width: '100%', cursor: snapPreview ? 'crosshair' : 'default' }}
       scrollWheelZoom={true}
       className="rounded-md border border-input"
     >
@@ -110,8 +143,12 @@ export const LocationPickerMap = ({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* Handle map clicks */}
-      <MapClickHandler onLocationSelect={onLocationSelect} />
+      {/* Handle map clicks with snap-to-feature */}
+      <MapClickHandler 
+        onLocationSelect={onLocationSelect}
+        existingWaterLines={existingWaterLines}
+        onSnapPreview={setSnapPreview}
+      />
 
       {/* Update map center when coordinates change */}
       <MapCenterUpdater center={mapCenter} zoom={initialZoom} />
@@ -157,6 +194,20 @@ export const LocationPickerMap = ({
           />
         );
       })}
+
+      {/* Show snap preview indicator */}
+      {snapPreview && (
+        <CircleMarker
+          center={snapPreview}
+          radius={8}
+          pathOptions={{
+            color: '#10b981', // Green color for snap indicator
+            fillColor: '#10b981',
+            fillOpacity: 0.6,
+            weight: 2,
+          }}
+        />
+      )}
 
       {/* Show marker if location is selected */}
       {latitude !== null && longitude !== null && (
