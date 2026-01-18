@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { constructions, constructionTranslations, millsData } from '@/db/schema';
+import { constructions, constructionTranslations, millsData, waterLines, waterLineTranslations } from '@/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { isAdmin, isResearcherOrAdmin, getSessionUserId } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
@@ -741,5 +741,105 @@ export async function createMillConstruction(
   } catch (error) {
     console.error('[createMillConstruction]:', error);
     return { success: false, error: 'An error occurred while creating the construction' };
+  }
+}
+
+/**
+ * Zod schema for water line creation
+ */
+const createWaterLineSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Invalid color format'),
+  path: z.array(z.tuple([z.number(), z.number()])).min(2, 'Path must have at least 2 points'),
+  locale: z.enum(['pt', 'en']),
+});
+
+/**
+ * Creates a new water line with translation
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * 
+ * This action uses a database transaction to ensure atomicity:
+ * 1. Inserts into water_lines (core data including PostGIS LineString geometry)
+ * 2. Inserts into water_line_translations (name/description for locale)
+ * 
+ * @param data - Form data containing water line information
+ * @returns Standardized response: { success: true, data?: { id: string, slug: string } } or { success: false, error: string }
+ */
+export async function createWaterLine(
+  data: z.infer<typeof createWaterLineSchema>
+): Promise<
+  | { success: true; data: { id: string; slug: string } }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Validate input with Zod
+    const validationResult = createWaterLineSchema.safeParse(data);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      return { success: false, error: `Validation failed: ${errors}` };
+    }
+
+    const validated = validationResult.data;
+
+    // Generate unique slug from name
+    const baseSlug = generateSlug(validated.name);
+    
+    // Check if slug exists
+    const slugExists = async (slug: string): Promise<boolean> => {
+      const existing = await db
+        .select({ id: waterLines.id })
+        .from(waterLines)
+        .where(eq(waterLines.slug, slug))
+        .limit(1);
+      return existing.length > 0;
+    };
+
+    const uniqueSlug = await generateUniqueSlug(baseSlug, slugExists);
+
+    // Use database transaction to ensure atomicity
+    const result = await db.transaction(async (tx) => {
+      // Step 1: Insert into water_lines (core data with PostGIS LineString)
+      // The path is already in GeoJSON format [lng, lat] from the component
+      // The geometryLineString custom type expects [lng, lat][] format
+      const [newWaterLine] = await tx
+        .insert(waterLines)
+        .values({
+          slug: uniqueSlug,
+          path: validated.path as [number, number][], // PostGIS: array of [lng, lat] tuples
+          color: validated.color,
+        })
+        .returning({ id: waterLines.id, slug: waterLines.slug });
+
+      if (!newWaterLine) {
+        throw new Error('Failed to create water line');
+      }
+
+      // Step 2: Insert into water_line_translations (i18n)
+      await tx.insert(waterLineTranslations).values({
+        waterLineId: newWaterLine.id,
+        locale: validated.locale,
+        name: validated.name,
+        description: validated.description || null,
+      });
+
+      return newWaterLine;
+    });
+
+    // Revalidate dashboard pages
+    revalidatePath('/en/dashboard');
+    revalidatePath('/pt/dashboard');
+
+    return { success: true, data: { id: result.id, slug: result.slug } };
+  } catch (error) {
+    console.error('[createWaterLine]:', error);
+    return { success: false, error: 'An error occurred while creating the water line' };
   }
 }

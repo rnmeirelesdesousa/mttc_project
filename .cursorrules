@@ -101,14 +101,9 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.2: HYDRAULIC GEOMETRY)**
-* **Focus:** Implementing "Levada" (Water Line) infrastructure and custom map iconography.
-* **Architectural Change:** Introduction of `water_lines` and `water_line_translations` tables.
-* **GIS Shift:** Moving beyond `Point` to `LineString` for water flow paths.
-* **Storage Change:** `constructions` table now accepts `custom_icon_url` for Supabase-hosted SVGs/PNGs.
-
-**STRICT GIS & STORAGE RULES:**
-1.  **PostGIS LineStrings:** Use `customType` in Drizzle to handle `geometry(LineString, 4326)`. 
-2.  **Color Codes:** `water_lines` must store a hex string (`color`) to dictate the Polyline color on the Leaflet map.
-3.  **Core + Extension i18n:** Every new entity (`water_lines`) MUST have a corresponding `_translations` table. No hardcoded text.
-4.  **Supabase Storage:** Custom icons must be stored in a public bucket named `map-assets`. The DB only stores the Public URL.
+**CURRENT CONTEXT (PHASE 5.9.2.2: THE LEVADA BUILDER)**
+* **Focus:** Interactive Drawing UI for Water Lines.
+* **Objective:** Create a dashboard page to draw and save LineString geometries.
+* **Stack:** Use `react-leaflet` and `leaflet-draw` (or custom polyline handlers).
+* **Data Flow:** Capture coordinates -> Send to Server Action -> Insert into `water_lines` table.
+* **Constraint:** Ensure the `slug` is auto-generated from the Name (using a utility or Zod) before saving.

@@ -431,5 +431,27 @@
       "success": "Moinho criado com sucesso!",
       "error": "Erro ao criar o moinho"
     }
+  },
+  "waterLines": {
+    "new": {
+      "title": "Criar Nova Levada",
+      "description": "Desenhe uma linha de água (levada) no mapa e preencha os detalhes"
+    },
+    "form": {
+      "map": "Mapa",
+      "name": "Nome",
+      "namePlaceholder": "Ex: Levada do Norte",
+      "nameRequired": "O nome é obrigatório",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Descrição da levada...",
+      "color": "Cor",
+      "colorDescription": "Selecione a cor para exibir a linha no mapa",
+      "pathRequired": "A linha deve ter pelo menos 2 pontos. Clique em 'Start Drawing' e adicione pontos no mapa.",
+      "invalidColor": "Formato de cor inválido. Use formato hexadecimal (ex: #3b82f6)",
+      "cancel": "Cancelar",
+      "submit": "Criar Levada",
+      "submitting": "A criar...",
+      "error": "Erro ao criar a levada"
+    }
   }
 }

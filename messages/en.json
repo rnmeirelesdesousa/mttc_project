@@ -431,5 +431,27 @@
       "success": "Mill created successfully!",
       "error": "Error creating mill"
     }
+  },
+  "waterLines": {
+    "new": {
+      "title": "Create New Water Line",
+      "description": "Draw a water line (levada) on the map and fill in the details"
+    },
+    "form": {
+      "map": "Map",
+      "name": "Name",
+      "namePlaceholder": "E.g.: Levada do Norte",
+      "nameRequired": "Name is required",
+      "description": "Description",
+      "descriptionPlaceholder": "Description of the water line...",
+      "color": "Color",
+      "colorDescription": "Select the color to display the line on the map",
+      "pathRequired": "The line must have at least 2 points. Click 'Start Drawing' and add points on the map.",
+      "invalidColor": "Invalid color format. Use hexadecimal format (e.g.: #3b82f6)",
+      "cancel": "Cancel",
+      "submit": "Create Water Line",
+      "submitting": "Creating...",
+      "error": "Error creating water line"
+    }
   }
 }
