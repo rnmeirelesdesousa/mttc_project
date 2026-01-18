@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -30,31 +30,123 @@ export const Header = ({ locale }: HeaderProps) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const localeRef = useRef(locale);
+  const userRef = useRef<SupabaseUser | null>(null);
+
+  // Keep locale ref up to date
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
 
   useEffect(() => {
     const supabase = createBrowserSupabaseClient();
+    let isMounted = true;
 
-    // Get initial session
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      setLoading(false);
-    });
+    // Get initial session - try multiple methods for reliability
+    const checkSession = async () => {
+      try {
+        // First try getSession (most reliable for cookie-based sessions)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isMounted && session?.user) {
+          userRef.current = session.user;
+          setUser(session.user);
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.warn('[Header] getSession failed:', error);
+      }
 
-    // Listen for auth state changes
+      try {
+        // Fallback to getUser
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (isMounted) {
+          if (user && !error) {
+            userRef.current = user;
+            setUser(user);
+          } else {
+            userRef.current = null;
+            setUser(null);
+          }
+          setLoading(false);
+        }
+      } catch (error) {
+        console.warn('[Header] getUser failed:', error);
+        if (isMounted) {
+          userRef.current = null;
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    };
+
+    checkSession();
+
+    // Re-check session after a short delay to catch delayed session availability
+    // This is especially important after login when session might not be immediately available
+    const recheckTimer = setTimeout(() => {
+      if (isMounted && !userRef.current) {
+        checkSession();
+      }
+    }, 200);
+
+    // Listen for auth state changes with specific event handling
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+
+      if (event === 'SIGNED_IN') {
+        // Hard sync: Set loading state at start of event
+        setLoading(true);
+        // Set user immediately from session - this triggers UI update to show Dashboard/Logout
+        if (session?.user) {
+          userRef.current = session.user;
+          setUser(session.user);
+        } else {
+          // If session.user is not available, re-fetch to ensure we have the user
+          const { data: { user } } = await supabase.auth.getUser();
+          if (isMounted) {
+            userRef.current = user;
+            setUser(user);
+          }
+        }
+        // Force router refresh to update server-side rendered content
+        // Note: Navigation is handled by LoginForm, we just need to refresh here
+        router.refresh();
+        // Set loading to false after state is updated
+        setLoading(false);
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Token refreshed - update user state
+        userRef.current = session?.user ?? null;
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } else if (event === 'SIGNED_OUT') {
+        // User signed out - clear user state and refresh router
+        userRef.current = null;
+        setUser(null);
+        setLoading(false);
+        // Force full page refresh to update server-side rendered content (e.g., Edit buttons)
+        router.refresh();
+      } else {
+        // Other events (e.g., USER_UPDATED) - update user state
+        userRef.current = session?.user ?? null;
+        setUser(session?.user ?? null);
+      }
     });
 
     return () => {
+      isMounted = false;
+      clearTimeout(recheckTimer);
       subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   const handleLogoutClick = async () => {
     await handleLogout(locale);
-    router.refresh();
+    // Force full page refresh to ensure server-side rendered content (Edit buttons) is updated
+    // Using window.location.href ensures a complete page reload, not just a client-side navigation
+    window.location.href = `/${locale}`;
   };
 
   const isAuthenticated = !!user;
@@ -88,7 +180,8 @@ export const Header = ({ locale }: HeaderProps) => {
         {/* Right: Auth Actions (Desktop) */}
         <div className="hidden md:flex items-center space-x-4">
           {loading ? (
-            <div className="h-9 w-20 animate-pulse bg-muted rounded-md" />
+            // Neutral placeholder to prevent hydration flicker
+            <div className="h-9 w-20 bg-transparent" />
           ) : isAuthenticated ? (
             <>
               <Link href={dashboardPath}>
@@ -138,7 +231,8 @@ export const Header = ({ locale }: HeaderProps) => {
               <span>{t('header.map')}</span>
             </Link>
             {loading ? (
-              <div className="h-9 w-full animate-pulse bg-muted rounded-md" />
+              // Neutral placeholder to prevent hydration flicker
+              <div className="h-9 w-full bg-transparent" />
             ) : isAuthenticated ? (
               <>
                 <Link

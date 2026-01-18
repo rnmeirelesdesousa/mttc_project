@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 /**
@@ -81,6 +82,8 @@ export async function signInWithPassword(
     }
 
     // Success - user is authenticated and has valid role
+    // Hard sync: Dump the entire cache for the app to ensure fresh data
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
     console.error('[signInWithPassword]:', error);

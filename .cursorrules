@@ -101,18 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CONTEXT (PHASE 5.9.3.8: UNIFIED WORKFLOW & INVENTORY MANAGEMENT)**
-* **Focus:** Integration of Public and Admin interfaces.
-* **Objective 1 (Direct Edit):** Add "Edit" buttons to public Mill and Levada pages, visible only to authenticated Researchers/Admins.
-* **Objective 2 (Inventory Hub):** Create `/dashboard/inventory` with a unified list of all items, featuring text search and category filters.
-* **Objective 3 (Admin Intervention):** Allow Admins to edit constructions that are in 'review' status directly from the review queue.
-* **Constraint:** Maintain strict Auth checks on all 'Edit' buttons. Use the `profiles` table to verify permissions before rendering edit links on public pages.
-
-**CURRENT CONTEXT (PHASE 5.9.3.8 PART 2: THE EDIT REVISION)**
-* **Focus:** Full CRUD (Create, Read, Update, Delete) capability.
-* **Objective:** Transform the 'Add' form into a dual-purpose 'Editor' that populates existing data.
-* **Tasks:** 1. Update the Mill/Levada form to check for an `id` or `slug` in the URL.
-    2. If editing, fetch the record's current values (including translations) and pre-fill the form.
-    3. Update the Server Actions to support `updateMill` and `updateWaterLine` without creating duplicates.
-    4. Refactor the Landing Page (`/`) to be a clear "Portal" with two main paths: "Explore Map" and "Researcher Access".
-* **Constraint:** Ensure that when an Admin edits a 'Review' item, the status stays 'Review' unless they explicitly click 'Publish'.
+**CURRENT CONTEXT (PHASE 5.9.3.9: AUTH HARD-SYNC)**
+* **Focus:** Eliminating Authentication State Persistence Issues.
+* **Objective:** Force a global layout revalidation upon any Auth state change.
+* **Tasks:** 1. Update `Header.tsx` to use `router.refresh()` inside the `onAuthStateChange` callback for ALL events.
+    2. Add a `key` to the `Header` component in the root `layout.tsx` that changes based on session, or wrap the Auth section of the Header in a dedicated `AuthStatus` client component that forces its own re-render.
+    3. Ensure `signInWithPassword` in `auth.ts` explicitly calls `revalidatePath('/', 'layout')` before redirecting.
+* **Constraint:** Do not rely on `useEffect` alone. Use `router.push` + `router.refresh` to bridge the gap between Client State and Server Components.

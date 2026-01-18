@@ -11,6 +11,9 @@ interface LocaleLayoutProps {
   };
 }
 
+// Force dynamic rendering to prevent Header caching during testing
+export const dynamic = 'force-dynamic';
+
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
   // Ensure that the incoming `locale` is valid
   if (!routing.locales.includes(params.locale as 'en' | 'pt')) {

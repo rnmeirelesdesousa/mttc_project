@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { signInWithPassword } from '@/actions/auth';
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,9 +50,25 @@ export const LoginForm = ({ locale }: LoginFormProps) => {
       const result = await signInWithPassword(email, password);
       
       if (result.success) {
-        // Redirect to dashboard on successful login
-        router.push(`/${locale}/dashboard`);
-        router.refresh();
+        // Verify session exists in browser before navigating
+        const supabase = createBrowserSupabaseClient();
+        let sessionConfirmed = false;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        // Poll for session to be available in browser (up to 1 second)
+        while (!sessionConfirmed && attempts < maxAttempts) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            sessionConfirmed = true;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+        
+        // Use hard redirect to ensure full page reload and session is picked up
+        window.location.href = `/${locale}/dashboard`;
       } else {
         // Server action returns translation keys (e.g., 'errors.auth.invalidInput')
         // Translate the error key; if translation returns the same key (not found), use fallback
