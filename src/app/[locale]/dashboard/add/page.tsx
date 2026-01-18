@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { createMillConstruction } from '@/actions/admin';
+import { createMillConstruction, updateMillConstruction, getConstructionByIdForEdit } from '@/actions/admin';
 import { uploadStoneworkImage } from '@/actions/storage';
 import { getWaterLinesList, getMapData, type WaterLineListItem } from '@/actions/public';
 import { Upload, X, Image as ImageIcon, GripVertical } from 'lucide-react';
@@ -162,6 +162,11 @@ function AddMillPageContent() {
   const [exteriorFinish, setExteriorFinish] = useState<string>('');
   const [roofShape, setRoofShape] = useState<string>('');
   const [roofMaterial, setRoofMaterial] = useState<string>('');
+
+  // Physical Dimensions (Phase 5.9.3.10)
+  const [length, setLength] = useState<string>('');
+  const [width, setWidth] = useState<string>('');
+  const [height, setHeight] = useState<string>('');
 
   // Construction Technique - Other Description
   const [otherTechniqueDescription, setOtherTechniqueDescription] = useState<string>('');
@@ -328,6 +333,11 @@ function AddMillPageContent() {
           setExteriorFinish(data.exteriorFinish || '');
           setRoofShape(data.roofShape || '');
           setRoofMaterial(data.roofMaterial || '');
+          
+          // Physical Dimensions (Phase 5.9.3.10)
+          setLength(data.length?.toString() || '');
+          setWidth(data.width?.toString() || '');
+          setHeight(data.height?.toString() || '');
           
           // Mechanism - Hydraulic
           setCaptationType(data.captationType || '');
@@ -586,6 +596,10 @@ function AddMillPageContent() {
         exteriorFinish: exteriorFinish || undefined,
         roofShape: roofShape || undefined,
         roofMaterial: roofMaterial || undefined,
+        // Physical Dimensions (Phase 5.9.3.10)
+        length: length ? parseFloat(length) : undefined,
+        width: width ? parseFloat(width) : undefined,
+        height: height ? parseFloat(height) : undefined,
         // Mechanism - Hydraulic
         captationType: captationType || undefined,
         conductionType: conductionType || undefined,
@@ -1023,6 +1037,49 @@ function AddMillPageContent() {
                   <option value="plastered">{t('taxonomy.exteriorFinish.plastered')}</option>
                   <option value="whitewashed">{t('taxonomy.exteriorFinish.whitewashed')}</option>
                 </select>
+              </div>
+
+              {/* Physical Dimensions (Phase 5.9.3.10) */}
+              <div className="pt-4 border-t space-y-4">
+                <h3 className="text-lg font-semibold">{t('add.form.technical.architecture.dimensionsTitle')}</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="length">{t('add.form.technical.architecture.length')}</Label>
+                    <Input
+                      id="length"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={length}
+                      onChange={(e) => setLength(e.target.value)}
+                      placeholder={t('add.form.technical.architecture.lengthPlaceholder')}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="width">{t('add.form.technical.architecture.width')}</Label>
+                    <Input
+                      id="width"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={width}
+                      onChange={(e) => setWidth(e.target.value)}
+                      placeholder={t('add.form.technical.architecture.widthPlaceholder')}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="height">{t('add.form.technical.architecture.height')}</Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={height}
+                      onChange={(e) => setHeight(e.target.value)}
+                      placeholder={t('add.form.technical.architecture.heightPlaceholder')}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Construction Technique Section */}

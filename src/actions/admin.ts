@@ -514,6 +514,10 @@ const createMillConstructionSchema = z.object({
   exteriorFinish: z.enum(['exposed', 'plastered', 'whitewashed']).optional(),
   roofShape: z.enum(['conical', 'gable', 'lean_to', 'inexistent']).optional(),
   roofMaterial: z.enum(['tile', 'zinc', 'thatch', 'slate']).optional(),
+  // Physical Dimensions (Phase 5.9.3.10)
+  length: z.number().min(0).optional(),
+  width: z.number().min(0).optional(),
+  height: z.number().min(0).optional(),
   
   // Motive Systems - Hydraulic (Section IV)
   captationType: z.enum(['weir', 'pool', 'direct']).optional(),
@@ -692,6 +696,10 @@ export async function createMillConstruction(
         exteriorFinish: validated.exteriorFinish || null,
         roofShape: validated.roofShape || null,
         roofMaterial: validated.roofMaterial || null,
+        // Physical Dimensions (Phase 5.9.3.10)
+        length: validated.length || null,
+        width: validated.width || null,
+        height: validated.height || null,
         // Motive Systems - Hydraulic (Section IV)
         captationType: validated.captationType || null,
         conductionType: validated.conductionType || null,
@@ -1220,6 +1228,9 @@ export async function getConstructionByIdForEdit(
         exteriorFinish: millsData.exteriorFinish,
         roofShape: millsData.roofShape,
         roofMaterial: millsData.roofMaterial,
+        length: millsData.length,
+        width: millsData.width,
+        height: millsData.height,
         captationType: millsData.captationType,
         conductionType: millsData.conductionType,
         conductionState: millsData.conductionState,
@@ -1316,6 +1327,9 @@ export async function getConstructionByIdForEdit(
         exteriorFinish: row.exteriorFinish,
         roofShape: row.roofShape,
         roofMaterial: row.roofMaterial,
+        length: row.length,
+        width: row.width,
+        height: row.height,
         captationType: row.captationType,
         conductionType: row.conductionType,
         conductionState: row.conductionState,
@@ -1631,6 +1645,10 @@ export async function updateMillConstruction(
           exteriorFinish: validated.exteriorFinish || null,
           roofShape: validated.roofShape || null,
           roofMaterial: validated.roofMaterial || null,
+          // Physical Dimensions (Phase 5.9.3.10)
+          length: validated.length || null,
+          width: validated.width || null,
+          height: validated.height || null,
           // Motive Systems - Hydraulic (Section IV)
           captationType: validated.captationType || null,
           conductionType: validated.conductionType || null,

@@ -105,7 +105,8 @@
       "mechanismRating": "Mechanism",
       "notAvailable": "Not available",
       "noImage": "No image available",
-      "editEntry": "Edit This Entry"
+      "editEntry": "Edit This Entry",
+      "dimensionsTitle": "Dimensions"
     }
   },
   "taxonomy": {
@@ -361,6 +362,13 @@
           "roofShapePlaceholder": "Select shape",
           "roofMaterial": "Roof Material",
           "roofMaterialPlaceholder": "Select material",
+          "dimensionsTitle": "Exterior Dimensions (m)",
+          "length": "Length",
+          "lengthPlaceholder": "E.g.: 5.45",
+          "width": "Width",
+          "widthPlaceholder": "E.g.: 4.20",
+          "height": "Height",
+          "heightPlaceholder": "E.g.: 3.50",
           "annexes": "Annexes"
         },
         "epigraphy": {

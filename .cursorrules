@@ -101,10 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.3.9: AUTH HARD-SYNC)**
-* **Focus:** Eliminating Authentication State Persistence Issues.
-* **Objective:** Force a global layout revalidation upon any Auth state change.
-* **Tasks:** 1. Update `Header.tsx` to use `router.refresh()` inside the `onAuthStateChange` callback for ALL events.
-    2. Add a `key` to the `Header` component in the root `layout.tsx` that changes based on session, or wrap the Auth section of the Header in a dedicated `AuthStatus` client component that forces its own re-render.
-    3. Ensure `signInWithPassword` in `auth.ts` explicitly calls `revalidatePath('/', 'layout')` before redirecting.
-* **Constraint:** Do not rely on `useEffect` alone. Use `router.push` + `router.refresh` to bridge the gap between Client State and Server Components.
+**CURRENT CONTEXT (PHASE 5.9.3.10: VOLUMETRIC DIMENSIONS)**
+* **Focus:** Physical Scale & Structural Data.
+* **Objective:** Add main exterior dimensions (Length, Width, Height) to the Mill data model.
+* **Tasks:** 1. Update `schema.ts` to include `length`, `width`, and `height` (all as `decimal` or `float`) in the `mills_data` table.
+    2. Update the 'Add/Edit Mill' form to include a "Dimensions" section in the Technical tab.
+    3. Update the public detail page to display these dimensions with the 'm' (meters) unit.
+* **Constraint:** Dimensions must be positive numbers. i18n keys must be used for all labels.

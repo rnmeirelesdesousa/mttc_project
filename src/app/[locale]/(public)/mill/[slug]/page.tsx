@@ -271,6 +271,21 @@ export default async function MillDetailPage({ params }: PageProps) {
                 </dd>
               </div>
             )}
+            {/* Physical Dimensions (Phase 5.9.3.10) */}
+            {(mill.length !== null || mill.width !== null || mill.height !== null) && (
+              <div>
+                <dt className="text-sm font-medium text-gray-600">{t('mill.detail.dimensionsTitle')}</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {[
+                    mill.length !== null ? `${mill.length}m` : null,
+                    mill.width !== null ? `${mill.width}m` : null,
+                    mill.height !== null ? `${mill.height}m` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' × ')}
+                </dd>
+              </div>
+            )}
           </dl>
         </div>
 

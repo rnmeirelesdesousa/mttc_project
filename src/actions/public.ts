@@ -207,6 +207,10 @@ export interface MillDetail extends PublishedMill {
   exteriorFinish: string | null;
   roofShape: string | null;
   roofMaterial: string | null;
+  // Physical Dimensions (Phase 5.9.3.10)
+  length: number | null;
+  width: number | null;
+  height: number | null;
   // Motive Systems - Hydraulic
   captationType: string | null;
   conductionType: string | null;
@@ -307,6 +311,10 @@ export async function getMillBySlug(
         exteriorFinish: millsData.exteriorFinish,
         roofShape: millsData.roofShape,
         roofMaterial: millsData.roofMaterial,
+        // Physical Dimensions (Phase 5.9.3.10)
+        length: millsData.length,
+        width: millsData.width,
+        height: millsData.height,
         // Motive Systems - Hydraulic
         captationType: millsData.captationType,
         conductionType: millsData.conductionType,
@@ -420,6 +428,10 @@ export async function getMillBySlug(
       exteriorFinish: row.exteriorFinish,
       roofShape: row.roofShape,
       roofMaterial: row.roofMaterial,
+      // Physical Dimensions (Phase 5.9.3.10)
+      length: row.length,
+      width: row.width,
+      height: row.height,
       // Motive Systems - Hydraulic
       captationType: row.captationType,
       conductionType: row.conductionType,

@@ -1,5 +1,5 @@
 // src/db/schema.ts
-import { pgEnum, pgTable, pgSchema, uuid, varchar, text, timestamp, boolean, integer, index, customType, primaryKey } from 'drizzle-orm/pg-core';
+import { pgEnum, pgTable, pgSchema, uuid, varchar, text, timestamp, boolean, integer, index, customType, primaryKey, real } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 
@@ -355,6 +355,11 @@ export const millsData = pgTable('mills_data', {
 
   // Phase 5.9.2: Hydraulic Infrastructure - Reference to water line
   waterLineId: uuid('water_line_id').references(() => waterLines.id),
+
+  // Phase 5.9.3.10: Physical Dimensions (meters)
+  length: real('length'), // Length in meters (e.g., 5.45m)
+  width: real('width'), // Width in meters
+  height: real('height'), // Height in meters
 });
 
 // ============================================================================
