@@ -1,8 +1,8 @@
 /**
- * Supabase Client Utilities
+ * Supabase Server Client Utility
  * 
  * Provides server-side Supabase client using @supabase/ssr for Next.js App Router.
- * This handles cookie-based session management for authentication.
+ * This handles cookie-based session management for authentication in Server Components and Server Actions.
  */
 
 import { createServerClient } from '@supabase/ssr';

@@ -510,5 +510,11 @@
     "exploreMap": "Explore the Map",
     "researcherPortal": "Researcher Portal",
     "footer": "Academic research project dedicated to the preservation and study of Portuguese milling heritage"
+  },
+  "header": {
+    "login": "Login",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "map": "Map"
   }
 }

@@ -105,6 +105,27 @@ export async function signOut(): Promise<void> {
 }
 
 /**
+ * Handle logout and redirect to home page
+ * 
+ * Clears the Supabase session and redirects to the home page.
+ * Used by the global Header component.
+ * 
+ * @param locale - Optional locale string (e.g., 'en', 'pt'). If provided, redirects to /{locale}, otherwise redirects to /.
+ */
+export async function handleLogout(locale?: string): Promise<void> {
+  try {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    const redirectPath = locale ? `/${locale}` : '/';
+    redirect(redirectPath);
+  } catch (error) {
+    console.error('[handleLogout]:', error);
+    const redirectPath = locale ? `/${locale}` : '/';
+    redirect(redirectPath);
+  }
+}
+
+/**
  * Get the current authenticated user's role
  * 
  * @returns User role ('admin' | 'researcher' | 'public'). Returns 'public' as fallback if not authenticated or profile not found.

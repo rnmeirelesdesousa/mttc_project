@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import { Header } from '@/components/features/Header';
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   return (
     <NextIntlClientProvider messages={messages}>
+      <Header locale={params.locale} />
       {children}
     </NextIntlClientProvider>
   );

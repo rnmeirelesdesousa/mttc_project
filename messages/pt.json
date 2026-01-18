@@ -510,5 +510,11 @@
     "exploreMap": "Explorar o Mapa",
     "researcherPortal": "Portal do Investigador",
     "footer": "Projeto de investigação académica dedicado à preservação e estudo do património moageiro português"
+  },
+  "header": {
+    "login": "Iniciar Sessão",
+    "logout": "Terminar Sessão",
+    "dashboard": "Painel",
+    "map": "Mapa"
   }
 }
