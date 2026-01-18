@@ -101,10 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.3.5: ADVANCED DISCOVERY)**
-* **Focus:** Deep Filtering for Academic Research.
-* **Objective:** Enhance the Map Sidebar to support multi-criteria scientific filtering.
-* **Tasks:** 1. Update `MillFilters` interface to include `material`, `mechanism`, and `status`.
-    2. Update the `MapSidebar` UI with Accordion or Checkbox groups for these new criteria.
-    3. Refactor `getMapData` server action to dynamically build the SQL `where` clause based on these filters.
-* **Constraint:** Filters must support "OR" logic within a category (e.g., 'Azenha' OR 'Rodizio') and "AND" logic between categories.
+**CURRENT CONTEXT (PHASE 5.9.3.6: ASSET CURATION)**
+* **Focus:** Researcher Ergonomics for Visual Documentation.
+* **Objective:** Enable drag-and-drop reordering of gallery images in the Mill Edit/Add form.
+* **Tasks:** 1. Update the `constructions` table or `mills_data` logic to store image order (or ensure the array index is preserved).
+    2. Implement a draggable gallery UI using a library like `@dnd-kit/sortable`.
+    3. Update the `updateMill` server action to handle the new image order.
+* **Constraint:** Binary files remain in Supabase Storage; we are only reordering the metadata/URLs in the database array.

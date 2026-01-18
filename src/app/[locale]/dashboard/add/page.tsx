@@ -12,8 +12,25 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { createMillConstruction } from '@/actions/admin';
 import { uploadStoneworkImage } from '@/actions/storage';
 import { getWaterLinesList, getMapData, type WaterLineListItem } from '@/actions/public';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, GripVertical } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Dynamically import LocationPickerMap to avoid SSR issues with Leaflet
 const DynamicLocationPickerMap = dynamic(
@@ -27,6 +44,68 @@ const DynamicLocationPickerMap = dynamic(
     ),
   }
 );
+
+/**
+ * Sortable Gallery Item Component
+ * 
+ * Wraps a gallery image with drag-and-drop functionality
+ */
+interface SortableGalleryItemProps {
+  id: string;
+  path: string;
+  index: number;
+  getImageUrl: (path: string) => string;
+  onRemove: (index: number) => void;
+}
+
+function SortableGalleryItem({ id, path, index, getImageUrl, onRemove }: SortableGalleryItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative group"
+    >
+      <img
+        src={getImageUrl(path)}
+        alt={`Gallery image ${index + 1}`}
+        className="w-full h-48 object-cover rounded-md border border-input"
+      />
+      {/* Drag Handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 left-2 p-1.5 bg-white/90 backdrop-blur-sm rounded cursor-grab active:cursor-grabbing hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="h-4 w-4 text-gray-600" />
+      </div>
+      {/* Remove Button */}
+      <button
+        type="button"
+        onClick={() => onRemove(index)}
+        className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label={`Remove gallery image ${index + 1}`}
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
 
 /**
  * Add New Mill Construction Page
@@ -271,6 +350,28 @@ export default function AddMillPage() {
 
   const removeGalleryImage = (index: number) => {
     setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Drag-and-drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end for gallery reordering
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setGalleryImages((items) => {
+        const oldIndex = items.findIndex((_, index) => `gallery-${index}` === active.id);
+        const newIndex = items.findIndex((_, index) => `gallery-${index}` === over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
   };
 
   // Generate public URL for image preview (client-side)
@@ -1598,27 +1699,31 @@ export default function AddMillPage() {
                   </p>
                 </div>
 
-                {/* Gallery Preview Grid */}
+                {/* Gallery Preview Grid with Drag-and-Drop */}
                 {galleryImages.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {galleryImages.map((path, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={getImageUrl(path)}
-                          alt={`Gallery image ${index + 1}`}
-                          className="w-full h-48 object-cover rounded-md border border-input"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeGalleryImage(index)}
-                          className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
-                          aria-label={`Remove gallery image ${index + 1}`}
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={galleryImages.map((_, index) => `gallery-${index}`)}
+                      strategy={rectSortingStrategy}
+                    >
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {galleryImages.map((path, index) => (
+                          <SortableGalleryItem
+                            key={`gallery-${index}`}
+                            id={`gallery-${index}`}
+                            path={path}
+                            index={index}
+                            getImageUrl={getImageUrl}
+                            onRemove={removeGalleryImage}
+                          />
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </SortableContext>
+                  </DndContext>
                 )}
 
                 {/* Gallery Upload Button */}
