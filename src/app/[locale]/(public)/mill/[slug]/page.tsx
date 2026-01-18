@@ -164,12 +164,12 @@ export default async function MillDetailPage({ params }: PageProps) {
         <div className="bg-gray-50 p-6 rounded-lg">
           <h2 className="text-lg font-semibold mb-4">{t('mill.detail.mechanism')}</h2>
           <dl className="space-y-3">
-            {mill.millstonesPairs !== null && (
+            {mill.millstoneQuantity !== null && (
               <div>
                 <dt className="text-sm font-medium text-gray-600">
                   {t('mill.detail.millstonesPairs')}
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900">{mill.millstonesPairs}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{mill.millstoneQuantity}</dd>
               </div>
             )}
             {mill.typology === 'rodizio' && mill.rodizioQty !== null && (
@@ -188,11 +188,27 @@ export default async function MillDetailPage({ params }: PageProps) {
                 </dd>
               </div>
             )}
-            {mill.waterCaptation && (
+            {mill.captationType && (
               <div>
                 <dt className="text-sm font-medium text-gray-600">{t('mill.detail.waterCaptation')}</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {getTranslatedValue('waterCaptation', mill.waterCaptation)}
+                  {getTranslatedValue('captationType', mill.captationType)}
+                </dd>
+              </div>
+            )}
+            {mill.conductionType && (
+              <div>
+                <dt className="text-sm font-medium text-gray-600">{t('add.form.mechanism.hydraulic.conductionType')}</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {getTranslatedValue('conductionType', mill.conductionType)}
+                </dd>
+              </div>
+            )}
+            {mill.waterLineName && (
+              <div>
+                <dt className="text-sm font-medium text-gray-600">{t('add.form.mechanism.hydraulic.infrastructure.waterLine')}</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {mill.waterLineName}
                 </dd>
               </div>
             )}
