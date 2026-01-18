@@ -101,8 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.3: UX & PERFORMANCE REFINEMENT)**
-* **Focus:** Improving the creator experience and map readability.
-* **Objective 1 (Contextual Creation):** Update 'Add Mill' and 'Add Levada' maps to show existing features as read-only layers.
-* **Objective 2 (Clustering):** Implement `react-leaflet-cluster` on the main map to handle high-density data areas.
-* **Constraint:** Do not allow the user to edit existing background features; they are for visual reference only. Use a lighter opacity for background layers.
+**CURRENT CONTEXT (PHASE 5.9.3.5: ADVANCED DISCOVERY)**
+* **Focus:** Deep Filtering for Academic Research.
+* **Objective:** Enhance the Map Sidebar to support multi-criteria scientific filtering.
+* **Tasks:** 1. Update `MillFilters` interface to include `material`, `mechanism`, and `status`.
+    2. Update the `MapSidebar` UI with Accordion or Checkbox groups for these new criteria.
+    3. Refactor `getMapData` server action to dynamically build the SQL `where` clause based on these filters.
+* **Constraint:** Filters must support "OR" logic within a category (e.g., 'Azenha' OR 'Rodizio') and "AND" logic between categories.

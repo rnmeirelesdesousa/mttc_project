@@ -72,6 +72,11 @@
     "allDistricts": "All Districts",
     "backToMap": "Back to Map"
   },
+  "filter": {
+    "materials": "Roof Materials",
+    "mechanism": "Motive Apparatus",
+    "clearAll": "Clear All"
+  },
   "mill": {
     "detail": {
       "title": "Mill Detail",
@@ -459,5 +464,10 @@
       "submitting": "Creating...",
       "error": "Error creating water line"
     }
+  },
+  "levadaDetails": {
+    "map": "Map",
+    "fedMills": "Fed Mills",
+    "noMillsConnected": "No mills are currently connected to this levada."
   }
 }

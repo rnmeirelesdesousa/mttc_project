@@ -3,6 +3,8 @@
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 
 interface MapSidebarProps {
   availableDistricts: string[];
@@ -12,9 +14,12 @@ interface MapSidebarProps {
 /**
  * MapSidebar Component
  * 
- * Provides filter controls for the mill map:
+ * Provides advanced filter controls for the mill map:
  * - Typology checkboxes (azenha, rodizio, mare)
  * - District dropdown/select
+ * - Roof Material checkboxes
+ * - Motive Apparatus checkboxes
+ * - Clear Filters button
  * - Updates URL search params when filters change
  * 
  * @param availableDistricts - List of unique districts from published mills
@@ -29,9 +34,17 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
   // Get current filter values from URL
   const typologyParams = searchParams.getAll('typology');
   const districtParam = searchParams.get('district');
+  const roofMaterialParams = searchParams.getAll('roofMaterial');
+  const motiveApparatusParams = searchParams.getAll('motiveApparatus');
 
-  // Typology options (hydraulic mills only as per spec)
+  // Typology options (hydraulic mills only)
   const typologyOptions: Array<'azenha' | 'rodizio' | 'mare'> = ['azenha', 'rodizio', 'mare'];
+
+  // Roof material options
+  const roofMaterialOptions: Array<'tile' | 'zinc' | 'thatch' | 'slate'> = ['tile', 'zinc', 'thatch', 'slate'];
+
+  // Motive apparatus options
+  const motiveApparatusOptions: Array<'sails' | 'shells' | 'tail' | 'cap'> = ['sails', 'shells', 'tail', 'cap'];
 
   /**
    * Updates URL search params when a filter changes
@@ -40,8 +53,7 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
     const params = new URLSearchParams(searchParams.toString());
 
     if (isArray) {
-      // Handle array params (typology)
-      // value should never be null for array params - always pass the typology string
+      // Handle array params (typology, roofMaterial, motiveApparatus)
       if (!value) {
         return; // Safety check: should not happen
       }
@@ -73,12 +85,10 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
   };
 
   /**
-   * Toggles a typology checkbox
-   * Always passes the typology string (never null) to updateFilters
+   * Toggles a checkbox filter (typology, roofMaterial, or motiveApparatus)
    */
-  const handleTypologyToggle = (typology: 'azenha' | 'rodizio' | 'mare') => {
-    // Always pass the typology string - updateFilters will check if it exists and toggle accordingly
-    updateFilters('typology', typology, true);
+  const handleArrayFilterToggle = (key: string, value: string) => {
+    updateFilters(key, value, true);
   };
 
   /**
@@ -88,9 +98,35 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
     updateFilters('district', district === '' ? null : district, false);
   };
 
+  /**
+   * Clears all filters
+   */
+  const handleClearFilters = () => {
+    router.push(pathname, { scroll: false });
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = 
+    typologyParams.length > 0 ||
+    districtParam !== null ||
+    roofMaterialParams.length > 0 ||
+    motiveApparatusParams.length > 0;
+
   return (
     <div className="bg-white p-6 rounded-lg border border-gray-300 h-full overflow-y-auto">
-      <h2 className="text-lg font-semibold mb-4">{t('map.filters')}</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">{t('map.filters')}</h2>
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearFilters}
+            className="text-xs"
+          >
+            {t('filter.clearAll')}
+          </Button>
+        )}
+      </div>
 
       {/* Typology Section */}
       <div className="mb-6">
@@ -103,11 +139,9 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
                 key={typology}
                 className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
               >
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={isChecked}
-                  onChange={() => handleTypologyToggle(typology)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  onCheckedChange={() => handleArrayFilterToggle('typology', typology)}
                 />
                 <span className="text-sm">{t(`taxonomy.typology.${typology}`)}</span>
               </label>
@@ -137,6 +171,50 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
               </option>
             ))}
         </select>
+      </div>
+
+      {/* Roof Material Section */}
+      <div className="mb-6">
+        <Label className="text-sm font-medium mb-3 block">{t('filter.materials')}</Label>
+        <div className="space-y-2">
+          {roofMaterialOptions.map((material) => {
+            const isChecked = roofMaterialParams.includes(material);
+            return (
+              <label
+                key={material}
+                className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+              >
+                <Checkbox
+                  checked={isChecked}
+                  onCheckedChange={() => handleArrayFilterToggle('roofMaterial', material)}
+                />
+                <span className="text-sm">{t(`taxonomy.roofMaterial.${material}`)}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Motive Apparatus Section */}
+      <div className="mb-6">
+        <Label className="text-sm font-medium mb-3 block">{t('filter.mechanism')}</Label>
+        <div className="space-y-2">
+          {motiveApparatusOptions.map((apparatus) => {
+            const isChecked = motiveApparatusParams.includes(apparatus);
+            return (
+              <label
+                key={apparatus}
+                className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+              >
+                <Checkbox
+                  checked={isChecked}
+                  onCheckedChange={() => handleArrayFilterToggle('motiveApparatus', apparatus)}
+                />
+                <span className="text-sm">{t(`taxonomy.motiveApparatus.${apparatus}`)}</span>
+              </label>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

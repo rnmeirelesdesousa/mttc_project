@@ -72,6 +72,11 @@
     "allDistricts": "Todos os Distritos",
     "backToMap": "Voltar ao Mapa"
   },
+  "filter": {
+    "materials": "Materiais da Cobertura",
+    "mechanism": "Aparelho Motor",
+    "clearAll": "Limpar Tudo"
+  },
   "mill": {
     "detail": {
       "title": "Detalhe do Moinho",
@@ -109,8 +114,8 @@
     },
     "typology": {
       "label": "Tipologia",
-      "azenha": "Azenha (Roda de Água Vertical)",
-      "rodizio": "Rodízio (Roda de Água Horizontal)",
+      "azenha": "Azenha (Hidráulico - Roda Vertical)",
+      "rodizio": "Rodízio (Hidráulico - Roda Horizontal)",
       "mare": "Moinho de Maré",
       "torre_fixa": "Torre Fixa (Moinho de Vento)",
       "giratorio": "Torre Giratória (Moinho de Vento)",
@@ -459,5 +464,10 @@
       "submitting": "A criar...",
       "error": "Erro ao criar a levada"
     }
+  },
+  "levadaDetails": {
+    "map": "Mapa",
+    "fedMills": "Moinhos Alimentados",
+    "noMillsConnected": "Nenhum moinho está atualmente conectado a esta levada."
   }
 }

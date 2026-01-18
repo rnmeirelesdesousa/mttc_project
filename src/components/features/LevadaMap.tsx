@@ -1,9 +1,10 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect } from 'react';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -15,8 +16,6 @@ import { getPublicUrl } from '@/lib/storage';
 import { getMillIcon } from '@/lib/map-icons';
 
 // Fix Leaflet icon issue in Next.js/Webpack
-// Leaflet's default icon paths don't work correctly with Webpack bundling
-// We need to manually set the icon URLs to point to the correct paths
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -24,30 +23,66 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-interface MillMapProps {
+interface LevadaMapProps {
   mills: PublishedMill[];
   waterLines: MapWaterLine[];
   locale: string;
 }
 
 /**
- * MillMap Component
+ * Component to fit map bounds to show all water lines and mills
+ */
+function FitBounds({ waterLines, mills }: { waterLines: MapWaterLine[]; mills: PublishedMill[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    // Collect all coordinates from water lines and mills
+    const allCoords: [number, number][] = [];
+
+    // Add water line path coordinates
+    waterLines.forEach((waterLine) => {
+      if (waterLine.path && waterLine.path.length > 0) {
+        allCoords.push(...waterLine.path);
+      }
+    });
+
+    // Add mill coordinates
+    mills.forEach((mill) => {
+      if (mill.lat !== null && mill.lng !== null && !isNaN(mill.lat) && !isNaN(mill.lng)) {
+        allCoords.push([mill.lat, mill.lng]);
+      }
+    });
+
+    // If we have coordinates, fit bounds
+    if (allCoords.length > 0) {
+      const bounds = L.latLngBounds(allCoords);
+      map.fitBounds(bounds, {
+        padding: [50, 50], // Add padding around the bounds
+        maxZoom: 15, // Don't zoom in too much
+      });
+    }
+  }, [map, waterLines, mills]);
+
+  return null;
+}
+
+/**
+ * LevadaMap Component
  * 
- * Displays published mills and water lines on an interactive Leaflet map.
- * - Centers on Portugal (approx [39.5, -8.0])
- * - Shows markers for each mill (with custom icons if available)
- * - Shows polylines for each water line (levada) with their stored colors
- * - Popups display mill/water line information and links
- * - Uses OpenStreetMap tiles (no Google Maps)
+ * Specialized map component for displaying a single levada and its connected mills.
+ * - Automatically fits bounds to show the entire levada path and all connected mills
+ * - Shows the levada as a polyline (without popup)
+ * - Shows markers for connected mills (with popups and links)
+ * - Uses OpenStreetMap tiles
  * 
  * @param mills - Array of published mills to display
- * @param waterLines - Array of water lines to display
+ * @param waterLines - Array of water lines to display (typically just one)
  * @param locale - Current locale for i18n and link generation
  */
-export const MillMap = ({ mills, waterLines, locale }: MillMapProps) => {
+export const LevadaMap = ({ mills, waterLines, locale }: LevadaMapProps) => {
   const t = useTranslations();
 
-  // Center of Portugal (approximate geographic center)
+  // Center of Portugal (fallback if no bounds can be calculated)
   const portugalCenter: LatLngExpression = [39.5, -8.0];
   const defaultZoom = 7;
 
@@ -64,7 +99,10 @@ export const MillMap = ({ mills, waterLines, locale }: MillMapProps) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* Render water lines as polylines (Phase 5.9.2.4) */}
+      {/* Fit bounds to show all water lines and mills */}
+      <FitBounds waterLines={waterLines} mills={mills} />
+
+      {/* Render water lines as polylines (without popup on levada detail page) */}
       {waterLines.map((waterLine) => {
         if (!waterLine.path || waterLine.path.length < 2) {
           return null; // Skip invalid water lines
@@ -79,23 +117,12 @@ export const MillMap = ({ mills, waterLines, locale }: MillMapProps) => {
               weight: 4,
               opacity: 0.8,
             }}
-          >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold text-sm mb-2">{waterLine.name}</h3>
-                <Link
-                  href={`/${locale}/levada/${waterLine.slug}`}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
-                >
-                  {t('map.viewDetails')}
-                </Link>
-              </div>
-            </Popup>
-          </Polyline>
+            interactive={false} // Make the polyline non-interactive (no popup)
+          />
         );
       })}
 
-      {/* Render markers for each mill with clustering (Phase 5.9.3) */}
+      {/* Render markers for each mill with clustering */}
       <MarkerClusterGroup
         chunkedLoading
         iconCreateFunction={(cluster) => {
@@ -117,7 +144,7 @@ export const MillMap = ({ mills, waterLines, locale }: MillMapProps) => {
           const millTitle = mill.title || mill.slug; // Fallback to slug if title is null
           const imageUrl = getPublicUrl(mill.mainImage);
           
-          // Get custom icon if available (Phase 5.9.2.4)
+          // Get custom icon if available
           const customIcon = getMillIcon(mill.customIconUrl);
 
           return (
@@ -165,4 +192,3 @@ export const MillMap = ({ mills, waterLines, locale }: MillMapProps) => {
     </MapContainer>
   );
 };
-

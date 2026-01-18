@@ -24,6 +24,8 @@ interface PageProps {
   searchParams: {
     typology?: string | string[];
     district?: string;
+    roofMaterial?: string | string[];
+    motiveApparatus?: string | string[];
   };
 }
 
@@ -50,6 +52,20 @@ export default async function MapPage({ params, searchParams }: PageProps) {
   // Handle district
   if (searchParams.district) {
     filters.district = searchParams.district;
+  }
+
+  // Handle roof material (can be string or string[])
+  if (searchParams.roofMaterial) {
+    filters.roofMaterial = Array.isArray(searchParams.roofMaterial)
+      ? searchParams.roofMaterial
+      : [searchParams.roofMaterial];
+  }
+
+  // Handle motive apparatus (can be string or string[])
+  if (searchParams.motiveApparatus) {
+    filters.motiveApparatus = Array.isArray(searchParams.motiveApparatus)
+      ? searchParams.motiveApparatus
+      : [searchParams.motiveApparatus];
   }
 
   // Fetch unique districts for the sidebar

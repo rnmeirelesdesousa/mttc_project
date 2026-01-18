@@ -56,6 +56,8 @@ export interface MapWaterLine {
 export interface MillFilters {
   typology?: string[];
   district?: string;
+  roofMaterial?: string[];
+  motiveApparatus?: string[];
 }
 
 /**
@@ -93,6 +95,16 @@ export async function getPublishedMills(
     // Apply district filter (if provided)
     if (filters?.district) {
       whereConditions.push(eq(constructions.district, filters.district));
+    }
+
+    // Apply roof material filter (if provided)
+    if (filters?.roofMaterial && filters.roofMaterial.length > 0) {
+      whereConditions.push(inArray(millsData.roofMaterial, filters.roofMaterial));
+    }
+
+    // Apply motive apparatus filter (if provided)
+    if (filters?.motiveApparatus && filters.motiveApparatus.length > 0) {
+      whereConditions.push(inArray(millsData.motiveApparatus, filters.motiveApparatus));
     }
 
     // Query published mills with joins and PostGIS coordinate extraction
@@ -560,11 +572,184 @@ export async function getWaterLinesList(
 }
 
 /**
+ * Water line detail with translation and connected mills
+ */
+export interface WaterLineDetail {
+  id: string;
+  slug: string;
+  color: string;
+  path: [number, number][]; // Array of [lat, lng] coordinate pairs (Leaflet format)
+  name: string; // Translated name
+  description: string | null; // Translated description
+  connectedMills: PublishedMill[]; // Array of published mills linked to this water line
+}
+
+/**
  * Map data response containing both mills and water lines
  */
 export interface MapData {
   mills: PublishedMill[];
   waterLines: MapWaterLine[];
+}
+
+/**
+ * Fetches a single water line (Levada) by slug with its translation and connected mills
+ * 
+ * Security: Only returns published mills connected to the water line
+ * 
+ * @param slug - Water line slug identifier
+ * @param locale - Language code ('pt' | 'en')
+ * @returns Water line detail data or null if not found
+ */
+export async function getWaterLineBySlug(
+  slug: string,
+  locale: string
+): Promise<WaterLineDetail | null> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return null;
+    }
+
+    // Query water line by slug with translation
+    const waterLineResults = await db
+      .select({
+        id: waterLines.id,
+        slug: waterLines.slug,
+        pathText: sql<string>`ST_AsText(${waterLines.path})`.as('path_text'),
+        color: waterLines.color,
+        name: waterLineTranslations.name,
+        description: waterLineTranslations.description,
+      })
+      .from(waterLines)
+      .leftJoin(
+        waterLineTranslations,
+        and(
+          eq(waterLineTranslations.waterLineId, waterLines.id),
+          eq(waterLineTranslations.locale, locale)
+        )
+      )
+      .where(eq(waterLines.slug, slug))
+      .limit(1);
+
+    if (waterLineResults.length === 0) {
+      return null;
+    }
+
+    const waterLineRow = waterLineResults[0]!;
+
+    // Parse PostGIS LINESTRING format: LINESTRING(lng1 lat1, lng2 lat2, ...)
+    const match = waterLineRow.pathText.match(/LINESTRING\((.+)\)/);
+    if (!match) {
+      return null; // Skip invalid geometries
+    }
+
+    const coordsStr = match[1];
+    const coordPairs = coordsStr.split(',').map(coord => coord.trim());
+    
+    // Parse coordinates and convert from [lng, lat] to [lat, lng] for Leaflet
+    const leafletPath: [number, number][] = coordPairs.map(coord => {
+      const [lng, lat] = coord.split(/\s+/).map(parseFloat);
+      return [lat, lng] as [number, number];
+    });
+
+    if (leafletPath.length < 2) {
+      return null; // Skip invalid paths
+    }
+
+    // Fetch all published mills connected to this water line
+    const millsResults = await db
+      .select({
+        // Construction fields
+        id: constructions.id,
+        slug: constructions.slug,
+        district: constructions.district,
+        municipality: constructions.municipality,
+        parish: constructions.parish,
+        address: constructions.address,
+        drainageBasin: constructions.drainageBasin,
+        mainImage: constructions.mainImage,
+        galleryImages: constructions.galleryImages,
+        // PostGIS coordinate extraction
+        lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
+        lat: sql<number | null>`COALESCE(ST_Y(${constructions.geom}::geometry), NULL)`,
+        // Mills data fields
+        typology: millsData.typology,
+        access: millsData.access,
+        legalProtection: millsData.legalProtection,
+        propertyStatus: millsData.propertyStatus,
+        // Phase 5.9.2: Custom icon and water line reference
+        customIconUrl: constructions.customIconUrl,
+        waterLineId: millsData.waterLineId,
+        // Translation fields
+        title: constructionTranslations.title,
+        description: constructionTranslations.description,
+      })
+      .from(constructions)
+      .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
+      .leftJoin(
+        constructionTranslations,
+        and(
+          eq(constructionTranslations.constructionId, constructions.id),
+          eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .where(
+        and(
+          eq(constructions.status, 'published'),
+          eq(millsData.waterLineId, waterLineRow.id)
+        )
+      );
+
+    // Transform mills results
+    const connectedMills: PublishedMill[] = millsResults
+      .map((row) => {
+        const lat = row.lat !== null ? Number(row.lat) : null;
+        const lng = row.lng !== null ? Number(row.lng) : null;
+        
+        // Skip mills with invalid coordinates
+        if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          console.warn('[getWaterLineBySlug]: Skipping mill with invalid coordinates:', row.slug);
+          return null;
+        }
+        
+        return {
+          id: row.id,
+          slug: row.slug,
+          district: row.district,
+          municipality: row.municipality,
+          parish: row.parish,
+          address: row.address,
+          drainageBasin: row.drainageBasin,
+          mainImage: row.mainImage,
+          galleryImages: row.galleryImages,
+          lat,
+          lng,
+          typology: row.typology,
+          access: row.access,
+          legalProtection: row.legalProtection,
+          propertyStatus: row.propertyStatus,
+          customIconUrl: row.customIconUrl,
+          waterLineId: row.waterLineId,
+          title: row.title,
+          description: row.description,
+        };
+      })
+      .filter((mill): mill is PublishedMill => mill !== null);
+
+    return {
+      id: waterLineRow.id,
+      slug: waterLineRow.slug,
+      color: waterLineRow.color,
+      path: leafletPath,
+      name: waterLineRow.name || waterLineRow.slug, // Fallback to slug if name is null
+      description: waterLineRow.description,
+      connectedMills,
+    };
+  } catch (error) {
+    console.error('[getWaterLineBySlug]:', error);
+    return null;
+  }
 }
 
 /**
