@@ -156,7 +156,7 @@ export const Header = ({ locale }: HeaderProps) => {
   const dashboardPath = `/${locale}/dashboard`;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="fixed top-0 z-[1000] w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Left: Project Name */}
         <Link

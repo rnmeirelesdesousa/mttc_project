@@ -62,14 +62,15 @@ function FocusZoomHandler({
         const cardHeight = 400;
         const offsetX = 30;
         const offsetY = -cardHeight / 2;
-        const padding = 20;
+        // Increased left padding to account for filter button (80px button + 20px margin)
+        const padding = { top: 20, right: 20, bottom: 20, left: 100 };
         
         // Calculate where the card would be positioned
         let cardLeft = point.x + offsetX;
         let cardTop = point.y + offsetY;
         
         // Adjust if card would go off right edge
-        if (cardLeft + cardWidth > mapSize.x - padding) {
+        if (cardLeft + cardWidth > mapSize.x - padding.right) {
           cardLeft = point.x - cardWidth - offsetX;
         }
         
@@ -78,34 +79,34 @@ function FocusZoomHandler({
         let panY = 0;
         
         // Check right edge
-        if (cardLeft + cardWidth > mapSize.x - padding) {
-          panX = (mapSize.x - padding) - (cardLeft + cardWidth);
+        if (cardLeft + cardWidth > mapSize.x - padding.right) {
+          panX = (mapSize.x - padding.right) - (cardLeft + cardWidth);
         }
-        // Check left edge
-        if (cardLeft < padding) {
-          panX = padding - cardLeft;
+        // Check left edge (account for filter button)
+        if (cardLeft < padding.left) {
+          panX = padding.left - cardLeft;
         }
         // Check bottom edge
-        if (cardTop + cardHeight > mapSize.y - padding) {
-          panY = (mapSize.y - padding) - (cardTop + cardHeight);
+        if (cardTop + cardHeight > mapSize.y - padding.bottom) {
+          panY = (mapSize.y - padding.bottom) - (cardTop + cardHeight);
         }
         // Check top edge
-        if (cardTop < padding) {
-          panY = padding - cardTop;
+        if (cardTop < padding.top) {
+          panY = padding.top - cardTop;
         }
         
         // Also ensure marker is visible with padding
-        if (point.x < padding) {
-          panX = Math.max(panX, padding - point.x);
+        if (point.x < padding.left) {
+          panX = Math.max(panX, padding.left - point.x);
         }
-        if (point.x > mapSize.x - padding) {
-          panX = Math.min(panX, (mapSize.x - padding) - point.x);
+        if (point.x > mapSize.x - padding.right) {
+          panX = Math.min(panX, (mapSize.x - padding.right) - point.x);
         }
-        if (point.y < padding) {
-          panY = Math.max(panY, padding - point.y);
+        if (point.y < padding.top) {
+          panY = Math.max(panY, padding.top - point.y);
         }
-        if (point.y > mapSize.y - padding) {
-          panY = Math.min(panY, (mapSize.y - padding) - point.y);
+        if (point.y > mapSize.y - padding.bottom) {
+          panY = Math.min(panY, (mapSize.y - padding.bottom) - point.y);
         }
         
         // Apply pan if needed
@@ -144,22 +145,23 @@ function FocusZoomHandler({
       const cardHeight = 400;
       const offsetX = 30;
       const offsetY = -cardHeight / 2;
+      // Increased left padding to account for filter button (80px button + 20px margin)
+      const padding = { top: 20, right: 20, bottom: 20, left: 100 };
 
       let left = point.x + offsetX;
       let top = point.y + offsetY;
 
-      const padding = 20;
-      if (left + cardWidth > mapRect.width) {
+      if (left + cardWidth > mapRect.width - padding.right) {
         left = point.x - cardWidth - offsetX;
       }
-      if (left < padding) {
-        left = padding;
+      if (left < padding.left) {
+        left = padding.left;
       }
-      if (top < padding) {
-        top = padding;
+      if (top < padding.top) {
+        top = padding.top;
       }
-      if (top + cardHeight > mapRect.height - padding) {
-        top = mapRect.height - cardHeight - padding;
+      if (top + cardHeight > mapRect.height - padding.bottom) {
+        top = mapRect.height - cardHeight - padding.bottom;
       }
 
       onCardPositionUpdate({

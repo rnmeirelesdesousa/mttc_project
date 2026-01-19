@@ -77,7 +77,7 @@ export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSideb
     return (
       <Card
         ref={cardRef}
-        className="absolute w-[600px] max-h-[80vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 overflow-y-auto z-[1000]"
+        className="absolute w-[600px] max-h-[80vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 overflow-y-auto z-[999]"
         style={positionStyle}
       >
         <CardContent className="p-6">
@@ -113,12 +113,12 @@ export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSideb
     ? { top: `${cardPosition.top}px`, left: `${cardPosition.left}px` }
     : { top: '20px', left: '20px' };
 
-  return (
-    <Card
-      ref={cardRef}
-      className="absolute w-[600px] max-h-[80vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 overflow-y-auto z-[1000]"
-      style={positionStyle}
-    >
+    return (
+      <Card
+        ref={cardRef}
+        className="absolute w-[600px] max-h-[80vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 overflow-y-auto z-[999]"
+        style={positionStyle}
+      >
       {/* General Info Section */}
       <CardHeader className="p-0 border-b">
         {imageUrl && (

@@ -101,9 +101,11 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.4.5: THE SPATIAL ID CARD)**
-* **Focus:** UI Refinement of the Mill ID Card (Map Page).
-* **Goal:** Break the "Tall Tower" look by establishing a wider, proportional card (Target 3:2 ratio).
-* **Placement:** The card must appear to the side of the clicked mill marker (Spatial Anchoring). It should NOT be fixed to the screen edge or centered.
-* **Constraint (STRICT):** Do NOT change the data fields or content logic inside the card. Keep all existing scientific data points as they are.
-* **Tech:** Use Leaflet's custom `Popup` or a floating `framer-motion` div anchored to the marker's lat/lng coordinates. Ensure it is responsive for smaller screens (standardizing to a bottom-sheet on mobile).
+**CURRENT CONTEXT (PHASE 5.9.5: FULL-PAGE GIS UX)**
+* **Focus:** UI Layout Overhaul.
+* **Goal:** Transform the map page into a full-viewport experience.
+* **Structure:** 1. Fixed Header at the top (Z-index 50+).
+    2. Map fills 100% of the remaining viewport height (h-[calc(100vh-headerHeight)]).
+    3. The Filter Pane should be a hidden "Left Sidebar" that toggles open over the map.
+    4. The Mill ID Card (Postal Card) remains spatially anchored to markers.
+* **Constraints:** DO NOT remove the Header. The map must not "scroll" away; it is the page background.
