@@ -101,8 +101,9 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.4.3: PROPORTIONAL REFINEMENT)**
-* **Focus:** Visual balance of the Scientific ID Card.
-* **Goal:** Adjust the width to achieve a "Portrait Document" ratio (approx. 600px width).
-* **Constraints:** Maintain `max-h-[90vh]` to ensure the card feels like a vertical dossier. 
-* **UI Refinement:** Improve the internal "Information Density" to utilize the extra horizontal space, possibly moving some 1-column items to 2-columns.
+**CURRENT CONTEXT (PHASE 5.9.4.4: THE ANCHORED DOSSIER)**
+* **Focus:** Spatial connection between the Focused Mill and the ID Card.
+* **Goal:** 1. Break the "Tall Tower" look by increasing width to 720px.
+    2. Move the card away from the page borders. Position it to the right of the center.
+    3. Ensure the height (88vh) and width (720px) create a professional "Portrait Page" aspect.
+* **Interaction:** The map 'flyTo' (Scale 18) must work in sync with this card appearing as a focused "specimen sheet."

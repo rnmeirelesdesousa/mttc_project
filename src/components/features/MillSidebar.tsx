@@ -65,7 +65,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
 
   if (loading) {
     return (
-      <div className="fixed top-4 right-4 max-w-[620px] h-[88vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto p-4 z-[1000]">
+      <div className="fixed right-4 top-4 max-w-[450px] xl:top-1/2 xl:-translate-y-1/2 xl:left-[calc(50%+40px)] xl:right-auto xl:max-w-[720px] h-[88vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto p-6 z-[1000]">
         <p className="text-xs text-gray-600">{t('common.loading')}</p>
       </div>
     );
@@ -94,7 +94,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
   };
 
   return (
-    <div className="fixed top-4 right-4 max-w-[620px] h-[88vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto z-[1000]">
+    <div className="fixed right-4 top-4 max-w-[450px] xl:top-1/2 xl:-translate-y-1/2 xl:left-[calc(50%+40px)] xl:right-auto xl:max-w-[720px] h-[88vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto z-[1000]">
       {/* General Info Section */}
       <div className="border-b">
         {imageUrl && (
@@ -107,7 +107,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
             />
           </div>
         )}
-        <div className="p-3">
+        <div className="p-6">
           <h2 className="text-sm font-semibold mb-2">{millTitle}</h2>
           {mill.description && (
             <p className="text-xs text-gray-700 leading-relaxed">{mill.description}</p>
@@ -122,7 +122,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
         </div>
       </div>
 
-      <div className="p-3 space-y-4">
+      <div className="p-6 space-y-4">
         {/* Coordinates - Prominent display near top with mono font */}
         <div className="bg-blue-50 border border-blue-200 rounded p-2.5">
           <span className="text-[10px] font-semibold text-gray-600 uppercase">{t('mill.sidebar.coordinates')}:</span>
@@ -267,13 +267,13 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
           </div>
         )}
 
-        {/* Dimensions Section */}
+        {/* Dimensions Section - Full width Metric Profile */}
         {(mill.length || mill.width || mill.height) && (
           <div>
             <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
               {t('mill.sidebar.dimensions')}
             </h3>
-            <div className="bg-slate-50/50 border border-slate-200 rounded p-2">
+            <div className="bg-slate-50/50 border border-slate-200 rounded p-3 w-full">
               <p className="text-xs font-bold text-slate-900">
                 {t('mill.sidebar.metricProfile')}:{' '}
                 {mill.length && `${t('mill.sidebar.length')}: ${mill.length}m`}
