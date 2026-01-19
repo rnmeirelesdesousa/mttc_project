@@ -101,9 +101,8 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.4.2: SPATIAL & VISUAL INTEGRATION)**
-* **Focus:** Deep-linking the Map View with the Scientific ID Card.
-* **Goal:** 1. Move the ID Card from `bottom-4` to `top-4 right-4` (or centered top).
-    2. Increase card scale to `max-w-[550px]` for better data readability.
-    3. Implement "Auto-Focus Zoom" (Zoom level 18) when a mill is selected.
-* **Visual Connection:** The map must `flyTo` the coordinates of the selected mill to "connect" the data to the geography.
+**CURRENT CONTEXT (PHASE 5.9.4.3: PROPORTIONAL REFINEMENT)**
+* **Focus:** Visual balance of the Scientific ID Card.
+* **Goal:** Adjust the width to achieve a "Portrait Document" ratio (approx. 600px width).
+* **Constraints:** Maintain `max-h-[90vh]` to ensure the card feels like a vertical dossier. 
+* **UI Refinement:** Improve the internal "Information Density" to utilize the extra horizontal space, possibly moving some 1-column items to 2-columns.

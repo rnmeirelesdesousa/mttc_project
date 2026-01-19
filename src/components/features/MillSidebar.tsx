@@ -65,7 +65,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
 
   if (loading) {
     return (
-      <div className="fixed top-4 right-4 max-w-[550px] max-h-[85vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto p-4 z-[1000]">
+      <div className="fixed top-4 right-4 max-w-[620px] h-[88vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto p-4 z-[1000]">
         <p className="text-xs text-gray-600">{t('common.loading')}</p>
       </div>
     );
@@ -94,11 +94,11 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
   };
 
   return (
-    <div className="fixed top-4 right-4 max-w-[550px] max-h-[85vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto z-[1000]">
+    <div className="fixed top-4 right-4 max-w-[620px] h-[88vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto z-[1000]">
       {/* General Info Section */}
       <div className="border-b">
         {imageUrl && (
-          <div className="relative w-full h-48">
+          <div className="relative w-full aspect-video">
             <Image
               src={imageUrl}
               alt={millTitle}
@@ -112,6 +112,13 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
           {mill.description && (
             <p className="text-xs text-gray-700 leading-relaxed">{mill.description}</p>
           )}
+          {/* See Details Button */}
+          <Link
+            href={`/${locale}/mill/${mill.slug}`}
+            className="inline-block mt-2 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-200 transition-colors"
+          >
+            {t('map.viewDetails')}
+          </Link>
         </div>
       </div>
 
@@ -157,12 +164,12 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
           </div>
         </div>
 
-        {/* Classification Section */}
+        {/* Classification Section - 2-column grid */}
         <div>
           <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
             {t('mill.sidebar.classification')}
           </h3>
-          <div className="space-y-1.5 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-xs">
             {mill.typology && (
               <div>
                 <span className="text-[10px] text-gray-500">{t('mill.sidebar.typology')}:</span>
@@ -176,7 +183,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
               </div>
             )}
             {mill.ratingOverall && (
-              <div>
+              <div className="col-span-2">
                 <span className="text-[10px] text-gray-500">{t('mill.sidebar.conservationRating')}:</span>
                 <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${getConservationColor(mill.ratingOverall)}`}>
                   {t(`taxonomy.conservation.${mill.ratingOverall}`)}
@@ -186,73 +193,74 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
           </div>
         </div>
 
-        {/* Construction Technique Section */}
-        {mill.constructionTechnique && (
+        {/* Technical Section - Construction Technique & Roof Detail in 2-column grid */}
+        {(mill.constructionTechnique || mill.roofShape) && (
           <div>
             <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
-              {t('mill.sidebar.constructionTechnique')}
+              {t('mill.sidebar.constructionTechnique')} / {t('mill.sidebar.roofDetail')}
             </h3>
-            <div className="space-y-1.5 text-xs">
-              <p className="font-medium">{t(`taxonomy.constructionTechnique.${mill.constructionTechnique}`)}</p>
-              {/* Show stone materials if a stone technique is selected */}
-              {(mill.constructionTechnique === 'dry_stone' || mill.constructionTechnique === 'mortared_stone') && (
-                <div className="mt-1.5">
-                  <span className="text-[10px] text-gray-500">{t('mill.sidebar.stoneMaterials')}:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {mill.stoneTypeGranite && (
-                      <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                        {t('taxonomy.stoneType.granite')}
-                      </span>
-                    )}
-                    {mill.stoneTypeSchist && (
-                      <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                        {t('taxonomy.stoneType.schist')}
-                      </span>
-                    )}
-                    {mill.stoneTypeOther && (
-                      <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                        {t('taxonomy.stoneType.other')}
-                      </span>
-                    )}
-                  </div>
-                  {mill.stoneTypeOther && mill.stoneMaterialDescription && (
-                    <p className="text-[10px] text-gray-600 mt-1 italic">{mill.stoneMaterialDescription}</p>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              {/* Construction Technique Column */}
+              {mill.constructionTechnique && (
+                <div>
+                  <span className="text-[10px] text-gray-500">{t('mill.sidebar.constructionTechnique')}:</span>
+                  <p className="font-medium mt-0.5">{t(`taxonomy.constructionTechnique.${mill.constructionTechnique}`)}</p>
+                  {/* Show stone materials if a stone technique is selected */}
+                  {(mill.constructionTechnique === 'dry_stone' || mill.constructionTechnique === 'mortared_stone') && (
+                    <div className="mt-1.5">
+                      <span className="text-[10px] text-gray-500">{t('mill.sidebar.stoneMaterials')}:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {mill.stoneTypeGranite && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
+                            {t('taxonomy.stoneType.granite')}
+                          </span>
+                        )}
+                        {mill.stoneTypeSchist && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
+                            {t('taxonomy.stoneType.schist')}
+                          </span>
+                        )}
+                        {mill.stoneTypeOther && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
+                            {t('taxonomy.stoneType.other')}
+                          </span>
+                        )}
+                      </div>
+                      {mill.stoneTypeOther && mill.stoneMaterialDescription && (
+                        <p className="text-[10px] text-gray-600 mt-1 italic">{mill.stoneMaterialDescription}</p>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Roof Detail Section */}
-        {mill.roofShape && (
-          <div>
-            <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
-              {t('mill.sidebar.roofDetail')}
-            </h3>
-            <div className="space-y-1.5 text-xs">
-              <p className="font-medium">{t(`taxonomy.roofShape.${mill.roofShape}`)}</p>
-              {/* Show gable materials if Gable is selected */}
-              {mill.roofShape === 'gable' && (
-                <div className="mt-1.5">
-                  <span className="text-[10px] text-gray-500">{t('mill.sidebar.gableMaterials')}:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {mill.gableMaterialLusa && (
-                      <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                        {t('taxonomy.gableMaterial.lusa')}
-                      </span>
-                    )}
-                    {mill.gableMaterialMarselha && (
-                      <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                        {t('taxonomy.gableMaterial.marselha')}
-                      </span>
-                    )}
-                    {mill.gableMaterialMeiaCana && (
-                      <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                        {t('taxonomy.gableMaterial.meiaCana')}
-                      </span>
-                    )}
-                  </div>
+              {/* Roof Detail Column */}
+              {mill.roofShape && (
+                <div>
+                  <span className="text-[10px] text-gray-500">{t('mill.sidebar.roofDetail')}:</span>
+                  <p className="font-medium mt-0.5">{t(`taxonomy.roofShape.${mill.roofShape}`)}</p>
+                  {/* Show gable materials if Gable is selected */}
+                  {mill.roofShape === 'gable' && (
+                    <div className="mt-1.5">
+                      <span className="text-[10px] text-gray-500">{t('mill.sidebar.gableMaterials')}:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {mill.gableMaterialLusa && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
+                            {t('taxonomy.gableMaterial.lusa')}
+                          </span>
+                        )}
+                        {mill.gableMaterialMarselha && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
+                            {t('taxonomy.gableMaterial.marselha')}
+                          </span>
+                        )}
+                        {mill.gableMaterialMeiaCana && (
+                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
+                            {t('taxonomy.gableMaterial.meiaCana')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -265,8 +273,8 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
             <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
               {t('mill.sidebar.dimensions')}
             </h3>
-            <div className="bg-blue-50 border border-blue-200 rounded p-2">
-              <p className="text-xs font-bold text-blue-900">
+            <div className="bg-slate-50/50 border border-slate-200 rounded p-2">
+              <p className="text-xs font-bold text-slate-900">
                 {t('mill.sidebar.metricProfile')}:{' '}
                 {mill.length && `${t('mill.sidebar.length')}: ${mill.length}m`}
                 {mill.length && mill.width && ' | '}
@@ -320,14 +328,23 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
         </div>
       </div>
 
-      {/* Close button */}
+      {/* Close button - Professional software suite styling */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-600 hover:text-gray-800 shadow-sm"
+          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-md bg-white/90 hover:bg-white text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-150"
           aria-label="Close"
         >
-          ×
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       )}
     </div>
