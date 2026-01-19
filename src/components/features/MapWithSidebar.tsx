@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { MillMap } from './MillMap';
 import { MillSidebar } from './MillSidebar';
 import { MapSidebar } from './MapSidebar';
-import { Filter } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -68,7 +68,7 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
     : null;
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full overflow-hidden">
       <DynamicMillMap
         mills={mills}
         waterLines={waterLines}
@@ -93,11 +93,10 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
             <Button
               variant="default"
               size="sm"
-              className="bg-white/95 hover:bg-white text-gray-900 shadow-lg border border-gray-200"
+              className="bg-white/95 hover:bg-white text-gray-900 shadow-lg border border-gray-200 p-2"
               aria-label="Open filters"
             >
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
+              <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[400px] sm:w-[540px] overflow-y-auto">

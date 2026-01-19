@@ -101,11 +101,11 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.5: FULL-PAGE GIS UX)**
-* **Focus:** UI Layout Overhaul.
-* **Goal:** Transform the map page into a full-viewport experience.
-* **Structure:** 1. Fixed Header at the top (Z-index 50+).
-    2. Map fills 100% of the remaining viewport height (h-[calc(100vh-headerHeight)]).
-    3. The Filter Pane should be a hidden "Left Sidebar" that toggles open over the map.
-    4. The Mill ID Card (Postal Card) remains spatially anchored to markers.
-* **Constraints:** DO NOT remove the Header. The map must not "scroll" away; it is the page background.
+**CURRENT CONTEXT (PHASE 5.9.5.1: GIS UI POLISH)**
+* **Focus:** Control Layout & Interaction lockdown.
+* **Map Controls:** Move Leaflet Zoom controls to 'topright'.
+* **Interaction:** - Lock the page body: `overflow: hidden` on the main container to prevent the whole page from scrolling.
+    - Ensure scrolling ONLY happens inside the ID Card's `CardContent`.
+* **Menu UI:** Replace the "Filters" button with a simple `Menu` icon (three dashes/Lucide Menu).
+* **Card Placement:** - The Mill ID Card should be centered vertically on the screen.
+    - It should be positioned in the space between the centered mill marker and the right edge of the screen, with a 20px padding from the edge.

@@ -77,7 +77,7 @@ export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSideb
     return (
       <Card
         ref={cardRef}
-        className="absolute w-[600px] max-h-[80vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 overflow-y-auto z-[999]"
+        className="absolute w-[600px] max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col z-[999]"
         style={positionStyle}
       >
         <CardContent className="p-6">
@@ -116,7 +116,7 @@ export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSideb
     return (
       <Card
         ref={cardRef}
-        className="absolute w-[600px] max-h-[80vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 overflow-y-auto z-[999]"
+        className="absolute w-[600px] max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col z-[999]"
         style={positionStyle}
       >
       {/* General Info Section */}
@@ -146,7 +146,7 @@ export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSideb
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="p-6 space-y-4 overflow-y-auto flex-1">
         {/* Coordinates - Prominent display near top with mono font */}
         <div className="bg-blue-50 border border-blue-200 rounded p-2.5">
           <span className="text-[10px] font-semibold text-gray-600 uppercase">{t('mill.sidebar.coordinates')}:</span>

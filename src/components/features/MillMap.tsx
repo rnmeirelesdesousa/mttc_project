@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap, ZoomControl } from 'react-leaflet';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -52,66 +52,63 @@ function FocusZoomHandler({
         duration: 1.5,
       });
       
-      // After animation completes, check if we need to pan to show the card
+      // After animation completes, pan to center marker in left half and position card on right
       const checkAndPan = () => {
         const point = map.latLngToContainerPoint([lat, lng]);
         const mapSize = map.getSize();
         
-        // Card dimensions and positioning
+        // Card dimensions (3:2 ratio, max 90vh)
         const cardWidth = 600;
-        const cardHeight = 400;
-        const offsetX = 30;
-        const offsetY = -cardHeight / 2;
-        // Increased left padding to account for filter button (80px button + 20px margin)
-        const padding = { top: 20, right: 20, bottom: 20, left: 100 };
+        const maxCardHeight = Math.min(400, mapSize.y * 0.9);
+        const cardHeight = maxCardHeight;
         
-        // Calculate where the card would be positioned
-        let cardLeft = point.x + offsetX;
-        let cardTop = point.y + offsetY;
+        // Goal: Center marker in left half of screen
+        // Left half center is at mapSize.x / 4
+        const targetMarkerX = mapSize.x / 4;
+        
+        // Calculate pan needed to center marker in left half
+        const panX = targetMarkerX - point.x;
+        
+        // Position card on right half, vertically centered
+        // Card should be on the right side, starting around mapSize.x / 2
+        const cardLeft = mapSize.x / 2 + 20; // Start card at middle + small margin
+        const cardTop = (mapSize.y - cardHeight) / 2; // Vertically centered
+        
+        // Ensure card doesn't go off screen
+        const padding = { top: 20, right: 20, bottom: 20, left: 100 };
+        let finalPanX = panX;
+        let finalPanY = 0;
         
         // Adjust if card would go off right edge
-        if (cardLeft + cardWidth > mapSize.x - padding.right) {
-          cardLeft = point.x - cardWidth - offsetX;
+        const adjustedCardLeft = cardLeft + panX; // Account for pan
+        if (adjustedCardLeft + cardWidth > mapSize.x - padding.right) {
+          finalPanX = (mapSize.x - padding.right) - (cardLeft + cardWidth);
         }
         
-        // Check if we need to pan
-        let panX = 0;
-        let panY = 0;
-        
-        // Check right edge
-        if (cardLeft + cardWidth > mapSize.x - padding.right) {
-          panX = (mapSize.x - padding.right) - (cardLeft + cardWidth);
-        }
-        // Check left edge (account for filter button)
-        if (cardLeft < padding.left) {
-          panX = padding.left - cardLeft;
-        }
-        // Check bottom edge
-        if (cardTop + cardHeight > mapSize.y - padding.bottom) {
-          panY = (mapSize.y - padding.bottom) - (cardTop + cardHeight);
-        }
-        // Check top edge
-        if (cardTop < padding.top) {
-          panY = padding.top - cardTop;
+        // Ensure marker stays visible (with padding for filter button)
+        if (point.x + finalPanX < padding.left) {
+          finalPanX = padding.left - point.x;
         }
         
-        // Also ensure marker is visible with padding
-        if (point.x < padding.left) {
-          panX = Math.max(panX, padding.left - point.x);
+        // Vertically center the card, but ensure it doesn't go off screen
+        const adjustedCardTop = cardTop; // Card top is already centered
+        if (adjustedCardTop < padding.top) {
+          finalPanY = padding.top - adjustedCardTop;
+        } else if (adjustedCardTop + cardHeight > mapSize.y - padding.bottom) {
+          finalPanY = (mapSize.y - padding.bottom) - (adjustedCardTop + cardHeight);
         }
-        if (point.x > mapSize.x - padding.right) {
-          panX = Math.min(panX, (mapSize.x - padding.right) - point.x);
-        }
-        if (point.y < padding.top) {
-          panY = Math.max(panY, padding.top - point.y);
-        }
-        if (point.y > mapSize.y - padding.bottom) {
-          panY = Math.min(panY, (mapSize.y - padding.bottom) - point.y);
+        
+        // Also ensure marker is vertically visible
+        const markerYAfterPan = point.y + finalPanY;
+        if (markerYAfterPan < padding.top) {
+          finalPanY = Math.max(finalPanY, padding.top - point.y);
+        } else if (markerYAfterPan > mapSize.y - padding.bottom) {
+          finalPanY = Math.min(finalPanY, (mapSize.y - padding.bottom) - point.y);
         }
         
         // Apply pan if needed
-        if (panX !== 0 || panY !== 0) {
-          map.panBy([panX, panY], { animate: true, duration: 0.5 });
+        if (finalPanX !== 0 || finalPanY !== 0) {
+          map.panBy([finalPanX, finalPanY], { animate: true, duration: 0.5 });
           // Position will be updated via the move event listener in the other useEffect
         }
       };
@@ -137,22 +134,27 @@ function FocusZoomHandler({
       const mapElement = mapContainer.querySelector('.leaflet-container') as HTMLElement;
       if (!mapElement) return;
 
-      const point = map.latLngToContainerPoint([lat, lng]);
       const mapRect = mapElement.getBoundingClientRect();
       const containerRect = mapContainer.getBoundingClientRect();
 
+      // Card dimensions (3:2 ratio, max 90vh)
       const cardWidth = 600;
-      const cardHeight = 400;
-      const offsetX = 30;
-      const offsetY = -cardHeight / 2;
-      // Increased left padding to account for filter button (80px button + 20px margin)
+      const maxCardHeight = Math.min(400, mapRect.height * 0.9);
+      const cardHeight = maxCardHeight;
+
+      // Position card on right half, vertically centered
+      const cardLeft = mapRect.width / 2 + 20; // Start at middle + small margin
+      const cardTop = (mapRect.height - cardHeight) / 2; // Vertically centered
+
+      // Ensure card doesn't go off screen
       const padding = { top: 20, right: 20, bottom: 20, left: 100 };
+      
+      let left = cardLeft;
+      let top = cardTop;
 
-      let left = point.x + offsetX;
-      let top = point.y + offsetY;
-
+      // Clamp to screen bounds
       if (left + cardWidth > mapRect.width - padding.right) {
-        left = point.x - cardWidth - offsetX;
+        left = mapRect.width - cardWidth - padding.right;
       }
       if (left < padding.left) {
         left = padding.left;
@@ -241,7 +243,11 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
         zoom={defaultZoom}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
+        zoomControl={false}
       >
+        {/* Manual Zoom Control at top-right */}
+        <ZoomControl position="topright" />
+
         {/* OpenStreetMap tile layer */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
