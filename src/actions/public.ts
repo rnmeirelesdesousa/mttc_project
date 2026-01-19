@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { constructions, millsData, constructionTranslations, waterLines, waterLineTranslations } from '@/db/schema';
-import { eq, and, sql, inArray, or } from 'drizzle-orm';
+import { eq, and, sql, inArray, or, ne } from 'drizzle-orm';
 
 /**
  * Public Server Actions
@@ -255,6 +255,15 @@ export interface MillDetail extends PublishedMill {
   // Phase 5.9.2: Water line information
   waterLineName: string | null;
   waterLineSlug: string | null;
+  // Phase 5.9.4: Stone material boolean flags
+  stoneTypeGranite: boolean;
+  stoneTypeSchist: boolean;
+  stoneTypeOther: boolean;
+  stoneMaterialDescription: string | null;
+  // Phase 5.9.4: Gable roof material boolean flags
+  gableMaterialLusa: boolean;
+  gableMaterialMarselha: boolean;
+  gableMaterialMeiaCana: boolean;
 }
 
 /**
@@ -354,6 +363,15 @@ export async function getMillBySlug(
         hasFullingMill: millsData.hasFullingMill,
         // Phase 5.9.2: Water line reference
         waterLineId: millsData.waterLineId,
+        // Phase 5.9.4: Stone material boolean flags
+        stoneTypeGranite: millsData.stoneTypeGranite,
+        stoneTypeSchist: millsData.stoneTypeSchist,
+        stoneTypeOther: millsData.stoneTypeOther,
+        stoneMaterialDescription: millsData.stoneMaterialDescription,
+        // Phase 5.9.4: Gable roof material boolean flags
+        gableMaterialLusa: millsData.gableMaterialLusa,
+        gableMaterialMarselha: millsData.gableMaterialMarselha,
+        gableMaterialMeiaCana: millsData.gableMaterialMeiaCana,
         // Translation fields
         title: constructionTranslations.title,
         description: constructionTranslations.description,
@@ -476,10 +494,394 @@ export async function getMillBySlug(
       // Phase 5.9.3: Water line information
       waterLineName: row.waterLineName,
       waterLineSlug: row.waterLineSlug,
+      // Phase 5.9.4: Stone material boolean flags
+      stoneTypeGranite: row.stoneTypeGranite,
+      stoneTypeSchist: row.stoneTypeSchist,
+      stoneTypeOther: row.stoneTypeOther,
+      stoneMaterialDescription: row.stoneMaterialDescription,
+      // Phase 5.9.4: Gable roof material boolean flags
+      gableMaterialLusa: row.gableMaterialLusa,
+      gableMaterialMarselha: row.gableMaterialMarselha,
+      gableMaterialMeiaCana: row.gableMaterialMeiaCana,
     };
   } catch (error) {
     console.error('[getMillBySlug]:', error);
     return null;
+  }
+}
+
+/**
+ * Fetches a single published mill by ID
+ * 
+ * Security: Only returns constructions with status = 'published'
+ * Returns null if mill doesn't exist or is not published (caller should handle 404)
+ * 
+ * @param id - Mill UUID identifier
+ * @param locale - Language code ('pt' | 'en')
+ * @returns Mill detail data or null if not found/not published
+ */
+export async function getMillById(
+  id: string,
+  locale: string
+): Promise<MillDetail | null> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return null;
+    }
+
+    // Query single mill by ID with all joins
+    // Use COALESCE and NULL handling for coordinate extraction to handle malformed geometries
+    const results = await db
+      .select({
+        // Construction fields
+        id: constructions.id,
+        slug: constructions.slug,
+        district: constructions.district,
+        municipality: constructions.municipality,
+        parish: constructions.parish,
+        address: constructions.address,
+        drainageBasin: constructions.drainageBasin,
+        mainImage: constructions.mainImage,
+        galleryImages: constructions.galleryImages,
+        customIconUrl: constructions.customIconUrl,
+        // PostGIS coordinate extraction with error handling
+        lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
+        lat: sql<number | null>`COALESCE(ST_Y(${constructions.geom}::geometry), NULL)`,
+        // Mills data fields - Characterization
+        typology: millsData.typology,
+        epoch: millsData.epoch,
+        setting: millsData.setting,
+        currentUse: millsData.currentUse,
+        // Access & Legal
+        access: millsData.access,
+        legalProtection: millsData.legalProtection,
+        propertyStatus: millsData.propertyStatus,
+        // Architecture
+        planShape: millsData.planShape,
+        volumetry: millsData.volumetry,
+        constructionTechnique: millsData.constructionTechnique,
+        exteriorFinish: millsData.exteriorFinish,
+        roofShape: millsData.roofShape,
+        roofMaterial: millsData.roofMaterial,
+        // Physical Dimensions (Phase 5.9.3.10)
+        length: millsData.length,
+        width: millsData.width,
+        height: millsData.height,
+        // Motive Systems - Hydraulic
+        captationType: millsData.captationType,
+        conductionType: millsData.conductionType,
+        conductionState: millsData.conductionState,
+        admissionRodizio: millsData.admissionRodizio,
+        admissionAzenha: millsData.admissionAzenha,
+        wheelTypeRodizio: millsData.wheelTypeRodizio,
+        wheelTypeAzenha: millsData.wheelTypeAzenha,
+        rodizioQty: millsData.rodizioQty,
+        azenhaQty: millsData.azenhaQty,
+        // Motive Systems - Wind
+        motiveApparatus: millsData.motiveApparatus,
+        // Grinding Mechanism
+        millstoneQuantity: millsData.millstoneQuantity,
+        millstoneDiameter: millsData.millstoneDiameter,
+        millstoneState: millsData.millstoneState,
+        hasTremonha: millsData.hasTremonha,
+        hasQuelha: millsData.hasQuelha,
+        hasUrreiro: millsData.hasUrreiro,
+        hasAliviadouro: millsData.hasAliviadouro,
+        hasFarinaleiro: millsData.hasFarinaleiro,
+        // Epigraphy
+        epigraphyPresence: millsData.epigraphyPresence,
+        epigraphyLocation: millsData.epigraphyLocation,
+        epigraphyType: millsData.epigraphyType,
+        epigraphyDescription: millsData.epigraphyDescription,
+        // Conservation Ratings
+        ratingStructure: millsData.ratingStructure,
+        ratingRoof: millsData.ratingRoof,
+        ratingHydraulic: millsData.ratingHydraulic,
+        ratingMechanism: millsData.ratingMechanism,
+        ratingOverall: millsData.ratingOverall,
+        // Annexes
+        hasOven: millsData.hasOven,
+        hasMillerHouse: millsData.hasMillerHouse,
+        hasStable: millsData.hasStable,
+        hasFullingMill: millsData.hasFullingMill,
+        // Phase 5.9.2: Water line reference
+        waterLineId: millsData.waterLineId,
+        // Phase 5.9.4: Stone material boolean flags
+        stoneTypeGranite: millsData.stoneTypeGranite,
+        stoneTypeSchist: millsData.stoneTypeSchist,
+        stoneTypeOther: millsData.stoneTypeOther,
+        stoneMaterialDescription: millsData.stoneMaterialDescription,
+        // Phase 5.9.4: Gable roof material boolean flags
+        gableMaterialLusa: millsData.gableMaterialLusa,
+        gableMaterialMarselha: millsData.gableMaterialMarselha,
+        gableMaterialMeiaCana: millsData.gableMaterialMeiaCana,
+        // Translation fields
+        title: constructionTranslations.title,
+        description: constructionTranslations.description,
+        // Phase 5.9.3: Water line translation (for connected levada)
+        waterLineName: waterLineTranslations.name,
+        waterLineSlug: waterLines.slug,
+      })
+      .from(constructions)
+      .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
+      .leftJoin(
+        constructionTranslations,
+        and(
+          eq(constructionTranslations.constructionId, constructions.id),
+          eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .leftJoin(
+        waterLines,
+        eq(waterLines.id, millsData.waterLineId)
+      )
+      .leftJoin(
+        waterLineTranslations,
+        and(
+          eq(waterLineTranslations.waterLineId, waterLines.id),
+          eq(waterLineTranslations.locale, locale)
+        )
+      )
+      .where(and(eq(constructions.id, id), eq(constructions.status, 'published')))
+      .limit(1);
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    const row = results[0]!;
+
+    // Validate and extract coordinates with error handling
+    const lat = row.lat !== null ? Number(row.lat) : null;
+    const lng = row.lng !== null ? Number(row.lng) : null;
+    
+    // Return null if coordinates are invalid
+    if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      console.error('[getMillById]: Invalid coordinates for id:', id);
+      return null;
+    }
+
+    // Transform result to MillDetail
+    return {
+      id: row.id,
+      slug: row.slug,
+      district: row.district,
+      municipality: row.municipality,
+      parish: row.parish,
+      address: row.address,
+      drainageBasin: row.drainageBasin,
+      mainImage: row.mainImage,
+      galleryImages: row.galleryImages,
+      lat,
+      lng,
+      typology: row.typology,
+      access: row.access,
+      legalProtection: row.legalProtection,
+      propertyStatus: row.propertyStatus,
+      customIconUrl: row.customIconUrl,
+      waterLineId: row.waterLineId,
+      title: row.title,
+      description: row.description,
+      // Architecture
+      planShape: row.planShape,
+      volumetry: row.volumetry,
+      constructionTechnique: row.constructionTechnique,
+      exteriorFinish: row.exteriorFinish,
+      roofShape: row.roofShape,
+      roofMaterial: row.roofMaterial,
+      // Physical Dimensions (Phase 5.9.3.10)
+      length: row.length,
+      width: row.width,
+      height: row.height,
+      // Motive Systems - Hydraulic
+      captationType: row.captationType,
+      conductionType: row.conductionType,
+      conductionState: row.conductionState,
+      admissionRodizio: row.admissionRodizio,
+      admissionAzenha: row.admissionAzenha,
+      wheelTypeRodizio: row.wheelTypeRodizio,
+      wheelTypeAzenha: row.wheelTypeAzenha,
+      rodizioQty: row.rodizioQty,
+      azenhaQty: row.azenhaQty,
+      // Motive Systems - Wind
+      motiveApparatus: row.motiveApparatus,
+      // Grinding Mechanism
+      millstoneQuantity: row.millstoneQuantity,
+      millstoneDiameter: row.millstoneDiameter,
+      millstoneState: row.millstoneState,
+      hasTremonha: row.hasTremonha,
+      hasQuelha: row.hasQuelha,
+      hasUrreiro: row.hasUrreiro,
+      hasAliviadouro: row.hasAliviadouro,
+      hasFarinaleiro: row.hasFarinaleiro,
+      // Epigraphy
+      epigraphyPresence: row.epigraphyPresence,
+      epigraphyLocation: row.epigraphyLocation,
+      epigraphyType: row.epigraphyType,
+      epigraphyDescription: row.epigraphyDescription,
+      // Conservation Ratings
+      ratingStructure: row.ratingStructure,
+      ratingRoof: row.ratingRoof,
+      ratingHydraulic: row.ratingHydraulic,
+      ratingMechanism: row.ratingMechanism,
+      ratingOverall: row.ratingOverall,
+      // Annexes
+      hasOven: row.hasOven,
+      hasMillerHouse: row.hasMillerHouse,
+      hasStable: row.hasStable,
+      hasFullingMill: row.hasFullingMill,
+      // Characterization
+      epoch: row.epoch,
+      setting: row.setting,
+      currentUse: row.currentUse,
+      // Phase 5.9.3: Water line information
+      waterLineName: row.waterLineName,
+      waterLineSlug: row.waterLineSlug,
+      // Phase 5.9.4: Stone material boolean flags
+      stoneTypeGranite: row.stoneTypeGranite,
+      stoneTypeSchist: row.stoneTypeSchist,
+      stoneTypeOther: row.stoneTypeOther,
+      stoneMaterialDescription: row.stoneMaterialDescription,
+      // Phase 5.9.4: Gable roof material boolean flags
+      gableMaterialLusa: row.gableMaterialLusa,
+      gableMaterialMarselha: row.gableMaterialMarselha,
+      gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+    };
+  } catch (error) {
+    console.error('[getMillById]:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetches all published mills connected to the same water line as the given mill
+ * 
+ * Security: Only returns published mills
+ * 
+ * @param millId - UUID of the mill to find connected mills for
+ * @param locale - Language code ('pt' | 'en')
+ * @returns Array of connected mills (excluding the mill itself) or empty array
+ */
+export async function getConnectedMills(
+  millId: string,
+  locale: string
+): Promise<
+  | { success: true; data: PublishedMill[] }
+  | { success: false; error: string }
+> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
+    }
+
+    // First, get the waterLineId for the given mill
+    const millResult = await db
+      .select({
+        waterLineId: millsData.waterLineId,
+      })
+      .from(constructions)
+      .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
+      .where(and(eq(constructions.id, millId), eq(constructions.status, 'published')))
+      .limit(1);
+
+    if (millResult.length === 0 || !millResult[0]!.waterLineId) {
+      // Mill not found or has no water line connection
+      return { success: true, data: [] };
+    }
+
+    const waterLineId = millResult[0]!.waterLineId;
+
+    // Fetch all published mills connected to the same water line (excluding the mill itself)
+    const results = await db
+      .select({
+        // Construction fields
+        id: constructions.id,
+        slug: constructions.slug,
+        district: constructions.district,
+        municipality: constructions.municipality,
+        parish: constructions.parish,
+        address: constructions.address,
+        drainageBasin: constructions.drainageBasin,
+        mainImage: constructions.mainImage,
+        galleryImages: constructions.galleryImages,
+        // PostGIS coordinate extraction
+        lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
+        lat: sql<number | null>`COALESCE(ST_Y(${constructions.geom}::geometry), NULL)`,
+        // Mills data fields
+        typology: millsData.typology,
+        access: millsData.access,
+        legalProtection: millsData.legalProtection,
+        propertyStatus: millsData.propertyStatus,
+        // Phase 5.9.2: Custom icon and water line reference
+        customIconUrl: constructions.customIconUrl,
+        waterLineId: millsData.waterLineId,
+        // Translation fields
+        title: constructionTranslations.title,
+        description: constructionTranslations.description,
+      })
+      .from(constructions)
+      .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
+      .leftJoin(
+        constructionTranslations,
+        and(
+          eq(constructionTranslations.constructionId, constructions.id),
+          eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .where(
+        and(
+          eq(constructions.status, 'published'),
+          eq(millsData.waterLineId, waterLineId),
+          ne(constructions.id, millId) // Exclude the mill itself
+        )
+      );
+
+    // Transform results to ensure lat/lng are numbers
+    // Filter out mills with invalid coordinates
+    const connectedMills: PublishedMill[] = results
+      .map((row) => {
+        const lat = row.lat !== null ? Number(row.lat) : null;
+        const lng = row.lng !== null ? Number(row.lng) : null;
+        
+        // Skip mills with invalid coordinates
+        if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          console.warn('[getConnectedMills]: Skipping mill with invalid coordinates:', row.slug);
+          return null;
+        }
+        
+        return {
+          id: row.id,
+          slug: row.slug,
+          district: row.district,
+          municipality: row.municipality,
+          parish: row.parish,
+          address: row.address,
+          drainageBasin: row.drainageBasin,
+          mainImage: row.mainImage,
+          galleryImages: row.galleryImages,
+          lat,
+          lng,
+          typology: row.typology,
+          access: row.access,
+          legalProtection: row.legalProtection,
+          propertyStatus: row.propertyStatus,
+          customIconUrl: row.customIconUrl,
+          waterLineId: row.waterLineId,
+          title: row.title,
+          description: row.description,
+        };
+      })
+      .filter((mill): mill is PublishedMill => mill !== null);
+
+    return { success: true, data: connectedMills };
+  } catch (error) {
+    console.error('[getConnectedMills]:', error);
+    return {
+      success: false,
+      error: 'An error occurred while fetching connected mills',
+    };
   }
 }
 

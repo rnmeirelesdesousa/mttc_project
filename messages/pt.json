@@ -107,6 +107,34 @@
       "noImage": "Sem imagem disponível",
       "editEntry": "Editar Esta Entrada",
       "dimensionsTitle": "Dimensões"
+    },
+    "sidebar": {
+      "generalInfo": "Informação Geral",
+      "locationInfo": "Localização",
+      "classification": "Classificação",
+      "constructionTechnique": "Técnica de Construção",
+      "roofDetail": "Cobertura",
+      "dimensions": "Dimensões",
+      "connectivity": "Conectividade",
+      "district": "Distrito",
+      "municipality": "Concelho",
+      "parish": "Freguesia",
+      "coordinates": "Coordenadas",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "drainageBasin": "Bacia Hidrográfica",
+      "typology": "Tipologia",
+      "currentUse": "Uso Atual",
+      "conservationRating": "Classificação de Conservação",
+      "metricProfile": "Perfil Métrico",
+      "length": "L",
+      "width": "W",
+      "height": "H",
+      "linkedLevada": "Levada Ligada",
+      "connectedMills": "Moinhos Conectados",
+      "noConnectedMills": "Nenhum moinho conectado",
+      "stoneMaterials": "Materiais de Pedra",
+      "gableMaterials": "Materiais da Cobertura de Duas Águas"
     }
   },
   "taxonomy": {
@@ -268,6 +296,16 @@
       "oven": "Forno",
       "stable": "Estrebaria",
       "fulling_mill": "Pisão"
+    },
+    "stoneType": {
+      "granite": "Granito",
+      "schist": "Xisto",
+      "other": "Outro"
+    },
+    "gableMaterial": {
+      "lusa": "Lusa",
+      "marselha": "Marselha",
+      "meiaCana": "Meia-cana"
     }
   },
   "add": {

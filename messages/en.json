@@ -107,6 +107,34 @@
       "noImage": "No image available",
       "editEntry": "Edit This Entry",
       "dimensionsTitle": "Dimensions"
+    },
+    "sidebar": {
+      "generalInfo": "General Info",
+      "locationInfo": "Location",
+      "classification": "Classification",
+      "constructionTechnique": "Construction Technique",
+      "roofDetail": "Roof",
+      "dimensions": "Dimensions",
+      "connectivity": "Connectivity",
+      "district": "District",
+      "municipality": "Municipality",
+      "parish": "Parish",
+      "coordinates": "Coordinates",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "drainageBasin": "Drainage Basin",
+      "typology": "Typology",
+      "currentUse": "Current Use",
+      "conservationRating": "Conservation Rating",
+      "metricProfile": "Metric Profile",
+      "length": "L",
+      "width": "W",
+      "height": "H",
+      "linkedLevada": "Linked Levada",
+      "connectedMills": "Connected Mills",
+      "noConnectedMills": "No connected mills",
+      "stoneMaterials": "Stone Materials",
+      "gableMaterials": "Gable Roof Materials"
     }
   },
   "taxonomy": {
@@ -268,6 +296,16 @@
       "oven": "Oven",
       "stable": "Stable",
       "fulling_mill": "Fulling Mill"
+    },
+    "stoneType": {
+      "granite": "Granite",
+      "schist": "Schist",
+      "other": "Other"
+    },
+    "gableMaterial": {
+      "lusa": "Lusa",
+      "marselha": "Marselha",
+      "meiaCana": "Meia-cana"
     }
   },
   "add": {
