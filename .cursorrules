@@ -101,10 +101,9 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.3.10: VOLUMETRIC DIMENSIONS)**
-* **Focus:** Physical Scale & Structural Data.
-* **Objective:** Add main exterior dimensions (Length, Width, Height) to the Mill data model.
-* **Tasks:** 1. Update `schema.ts` to include `length`, `width`, and `height` (all as `decimal` or `float`) in the `mills_data` table.
-    2. Update the 'Add/Edit Mill' form to include a "Dimensions" section in the Technical tab.
-    3. Update the public detail page to display these dimensions with the 'm' (meters) unit.
-* **Constraint:** Dimensions must be positive numbers. i18n keys must be used for all labels.
+**CURRENT CONTEXT (PHASE 5.9.4.2: SPATIAL & VISUAL INTEGRATION)**
+* **Focus:** Deep-linking the Map View with the Scientific ID Card.
+* **Goal:** 1. Move the ID Card from `bottom-4` to `top-4 right-4` (or centered top).
+    2. Increase card scale to `max-w-[550px]` for better data readability.
+    3. Implement "Auto-Focus Zoom" (Zoom level 18) when a mill is selected.
+* **Visual Connection:** The map must `flyTo` the coordinates of the selected mill to "connect" the data to the geography.

@@ -14,10 +14,10 @@ interface MillSidebarProps {
 }
 
 /**
- * MillSidebar Component (Floating Postal Card)
+ * MillSidebar Component (Floating Postal Card - Scientist's Command Center)
  * 
  * Displays a floating ID card for a selected mill with scientific layout.
- * Positioned at bottom-4 right-4 of the map container.
+ * Positioned at top-4 right-4 of the map container with prominent dossier styling.
  * 
  * @param millId - UUID of the mill to display (null to hide)
  * @param locale - Current locale for i18n
@@ -65,7 +65,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
 
   if (loading) {
     return (
-      <div className="fixed bottom-4 right-4 max-w-[420px] max-h-[85vh] bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border overflow-y-auto p-4">
+      <div className="fixed top-4 right-4 max-w-[550px] max-h-[85vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto p-4 z-[1000]">
         <p className="text-xs text-gray-600">{t('common.loading')}</p>
       </div>
     );
@@ -94,7 +94,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 max-w-[420px] max-h-[85vh] bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border overflow-y-auto z-50">
+    <div className="fixed top-4 right-4 max-w-[550px] max-h-[85vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto z-[1000]">
       {/* General Info Section */}
       <div className="border-b">
         {imageUrl && (
@@ -116,6 +116,14 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
       </div>
 
       <div className="p-3 space-y-4">
+        {/* Coordinates - Prominent display near top with mono font */}
+        <div className="bg-blue-50 border border-blue-200 rounded p-2.5">
+          <span className="text-[10px] font-semibold text-gray-600 uppercase">{t('mill.sidebar.coordinates')}:</span>
+          <p className="font-mono text-sm font-bold text-blue-900 mt-1">
+            {mill.lat.toFixed(6)}, {mill.lng.toFixed(6)}
+          </p>
+        </div>
+
         {/* Location Info Section */}
         <div>
           <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
@@ -146,12 +154,6 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
                 <p className="font-medium">{mill.drainageBasin}</p>
               </div>
             )}
-            <div className="col-span-2">
-              <span className="text-[10px] text-gray-500">{t('mill.sidebar.coordinates')}:</span>
-              <p className="font-medium text-xs">
-                {mill.lat.toFixed(6)}, {mill.lng.toFixed(6)}
-              </p>
-            </div>
           </div>
         </div>
 

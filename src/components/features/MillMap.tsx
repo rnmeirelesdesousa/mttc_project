@@ -1,8 +1,9 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useEffect } from 'react';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -26,6 +27,27 @@ function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
   return null;
 }
 
+/**
+ * FocusZoomHandler Component
+ * 
+ * Handles automatic map zoom and centering when a mill is selected.
+ * Uses flyTo animation for smooth transition.
+ */
+function FocusZoomHandler({ lat, lng }: { lat: number | null; lng: number | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+      map.flyTo([lat, lng], 18, {
+        animate: true,
+        duration: 1.5,
+      });
+    }
+  }, [map, lat, lng]);
+
+  return null;
+}
+
 // Fix Leaflet icon issue in Next.js/Webpack
 // Leaflet's default icon paths don't work correctly with Webpack bundling
 // We need to manually set the icon URLs to point to the correct paths
@@ -42,6 +64,7 @@ interface MillMapProps {
   locale: string;
   onMillClick?: (millId: string) => void;
   onMapClick?: () => void;
+  selectedMillCoords?: { lat: number; lng: number } | null;
 }
 
 /**
@@ -61,7 +84,7 @@ interface MillMapProps {
  * @param onMillClick - Callback when a mill marker is clicked
  * @param onMapClick - Callback when map background is clicked
  */
-export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick }: MillMapProps) => {
+export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, selectedMillCoords }: MillMapProps) => {
   const t = useTranslations();
 
   // Center of Portugal (approximate geographic center)
@@ -83,6 +106,11 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick }: 
 
       {/* Map click handler for closing postal card */}
       {onMapClick && <MapClickHandler onMapClick={onMapClick} />}
+
+      {/* Focus zoom handler - automatically centers and zooms to selected mill */}
+      {selectedMillCoords && (
+        <FocusZoomHandler lat={selectedMillCoords.lat} lng={selectedMillCoords.lng} />
+      )}
 
       {/* Render water lines as polylines (Phase 5.9.2.4) */}
       {waterLines.map((waterLine) => {

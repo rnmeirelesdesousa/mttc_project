@@ -46,6 +46,12 @@ export const MapWithSidebar = ({ mills, waterLines, locale }: MapWithSidebarProp
     setSelectedMillId(null);
   };
 
+  // Find the selected mill's coordinates for focus zoom
+  const selectedMill = mills.find((mill) => mill.id === selectedMillId);
+  const selectedMillCoords = selectedMill
+    ? { lat: selectedMill.lat, lng: selectedMill.lng }
+    : null;
+
   return (
     <div className="relative h-full w-full">
       <DynamicMillMap
@@ -54,6 +60,7 @@ export const MapWithSidebar = ({ mills, waterLines, locale }: MapWithSidebarProp
         locale={locale}
         onMillClick={handleMillClick}
         onMapClick={handleMapClick}
+        selectedMillCoords={selectedMillCoords}
       />
       <MillSidebar
         millId={selectedMillId}
