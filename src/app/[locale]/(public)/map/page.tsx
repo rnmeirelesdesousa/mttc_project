@@ -3,10 +3,10 @@ import { getTranslations } from 'next-intl/server';
 import dynamic from 'next/dynamic';
 import { MapSidebar } from '@/components/features/MapSidebar';
 
-// Dynamically import MillMap to avoid SSR issues with Leaflet
+// Dynamically import MapWithSidebar to avoid SSR issues with Leaflet
 // Leaflet requires window object which is not available during SSR
-const DynamicMillMap = dynamic(
-  () => import('@/components/features/MillMap').then((mod) => ({ default: mod.MillMap })),
+const DynamicMapWithSidebar = dynamic(
+  () => import('@/components/features/MapWithSidebar').then((mod) => ({ default: mod.MapWithSidebar })),
   {
     ssr: false,
     loading: () => (
@@ -101,8 +101,8 @@ export default async function MapPage({ params, searchParams }: PageProps) {
         </div>
         
         {/* Map - 1 column on mobile, 3 columns on large screens */}
-        <div className="lg:col-span-3 h-[600px] w-full rounded-lg overflow-hidden border border-gray-300">
-          <DynamicMillMap mills={mills} waterLines={waterLines} locale={params.locale} />
+        <div className="lg:col-span-3 h-[600px] w-full rounded-lg overflow-hidden border border-gray-300 relative">
+          <DynamicMapWithSidebar mills={mills} waterLines={waterLines} locale={params.locale} />
         </div>
       </div>
     </div>
