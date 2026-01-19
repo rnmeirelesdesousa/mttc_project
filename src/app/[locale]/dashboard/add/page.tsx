@@ -634,39 +634,27 @@ function AddMillPageContent() {
         ratingHydraulic: ratingHydraulic || undefined,
         ratingMechanism: ratingMechanism || undefined,
         ratingOverall: ratingOverall || undefined,
+        // Data Transition: Stone Material - Direct mapping to new boolean columns
+        stoneTypeGranite,
+        stoneTypeSchist,
+        stoneTypeOther,
+        stoneMaterialDescription: materialDescription.trim() || undefined,
+        // Data Transition: Gable Roof Materials - Direct mapping to new boolean columns
+        gableMaterialLusa: gableRoofMaterialLusa,
+        gableMaterialMarselha: gableRoofMaterialMarselha,
+        gableMaterialMeiaCana: gableRoofMaterialMeiaCana,
+        // Observations now only store actual text from textareas (no packing)
         observationsStructure: (() => {
           // Include construction technique "other" description if provided
           const techniqueNote = constructionTechnique === 'mixed_other' && otherTechniqueDescription.trim()
             ? `Construction Technique (Other): ${otherTechniqueDescription.trim()}. ` 
             : '';
           
-          // Include stone material info in structure observations if provided
-          const stoneMaterialParts: string[] = [];
-          if (stoneTypeGranite) stoneMaterialParts.push('Granite');
-          if (stoneTypeSchist) stoneMaterialParts.push('Schist');
-          if (stoneTypeOther && materialDescription) {
-            stoneMaterialParts.push(`Other: ${materialDescription}`);
-          }
-          const stoneMaterialNote = stoneMaterialParts.length > 0 
-            ? `Stone Material: ${stoneMaterialParts.join(', ')}. ` 
-            : '';
-          
           const existingObs = observationsStructure.trim();
-          const combined = (techniqueNote + stoneMaterialNote + existingObs).trim();
+          const combined = (techniqueNote + existingObs).trim();
           return combined || undefined;
         })(),
-        observationsRoof: (() => {
-          // Include gable roof material details if provided
-          const gableMaterials: string[] = [];
-          if (gableRoofMaterialLusa) gableMaterials.push('Lusa');
-          if (gableRoofMaterialMarselha) gableMaterials.push('Marselha');
-          if (gableRoofMaterialMeiaCana) gableMaterials.push('Meia-cana');
-          const gableMaterialNote = gableMaterials.length > 0 
-            ? `Gable Roof Materials: ${gableMaterials.join(', ')}. ` 
-            : '';
-          const existingObs = observationsRoof.trim();
-          return (gableMaterialNote + existingObs) || undefined;
-        })(),
+        observationsRoof: observationsRoof.trim() || undefined,
         observationsHydraulic: observationsHydraulic.trim() || undefined,
         observationsMechanism: observationsMechanism.trim() || undefined,
         observationsGeneral: observationsGeneral.trim() || undefined,

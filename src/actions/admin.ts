@@ -519,6 +519,17 @@ const createMillConstructionSchema = z.object({
   width: z.number().min(0).optional(),
   height: z.number().min(0).optional(),
   
+  // Data Transition: Stone Material (replacing packed strings in observations)
+  stoneTypeGranite: z.boolean().optional(),
+  stoneTypeSchist: z.boolean().optional(),
+  stoneTypeOther: z.boolean().optional(),
+  stoneMaterialDescription: z.string().optional(),
+  
+  // Data Transition: Gable Roof Materials (replacing packed strings in observations)
+  gableMaterialLusa: z.boolean().optional(),
+  gableMaterialMarselha: z.boolean().optional(),
+  gableMaterialMeiaCana: z.boolean().optional(),
+  
   // Motive Systems - Hydraulic (Section IV)
   captationType: z.enum(['weir', 'pool', 'direct']).optional(),
   conductionType: z.enum(['levada', 'modern_pipe']).optional(),
@@ -700,6 +711,15 @@ export async function createMillConstruction(
         length: validated.length || null,
         width: validated.width || null,
         height: validated.height || null,
+        // Data Transition: Stone Material
+        stoneTypeGranite: validated.stoneTypeGranite || false,
+        stoneTypeSchist: validated.stoneTypeSchist || false,
+        stoneTypeOther: validated.stoneTypeOther || false,
+        stoneMaterialDescription: validated.stoneMaterialDescription || null,
+        // Data Transition: Gable Roof Materials
+        gableMaterialLusa: validated.gableMaterialLusa || false,
+        gableMaterialMarselha: validated.gableMaterialMarselha || false,
+        gableMaterialMeiaCana: validated.gableMaterialMeiaCana || false,
         // Motive Systems - Hydraulic (Section IV)
         captationType: validated.captationType || null,
         conductionType: validated.conductionType || null,
@@ -1649,6 +1669,15 @@ export async function updateMillConstruction(
           length: validated.length || null,
           width: validated.width || null,
           height: validated.height || null,
+          // Data Transition: Stone Material
+          stoneTypeGranite: validated.stoneTypeGranite || false,
+          stoneTypeSchist: validated.stoneTypeSchist || false,
+          stoneTypeOther: validated.stoneTypeOther || false,
+          stoneMaterialDescription: validated.stoneMaterialDescription || null,
+          // Data Transition: Gable Roof Materials
+          gableMaterialLusa: validated.gableMaterialLusa || false,
+          gableMaterialMarselha: validated.gableMaterialMarselha || false,
+          gableMaterialMeiaCana: validated.gableMaterialMeiaCana || false,
           // Motive Systems - Hydraulic (Section IV)
           captationType: validated.captationType || null,
           conductionType: validated.conductionType || null,

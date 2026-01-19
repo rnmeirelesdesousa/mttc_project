@@ -360,6 +360,17 @@ export const millsData = pgTable('mills_data', {
   length: real('length'), // Length in meters (e.g., 5.45m)
   width: real('width'), // Width in meters
   height: real('height'), // Height in meters
+
+  // Data Transition: Stone Material (replacing packed strings in observations)
+  stoneTypeGranite: boolean('stone_type_granite').default(false),
+  stoneTypeSchist: boolean('stone_type_schist').default(false),
+  stoneTypeOther: boolean('stone_type_other').default(false),
+  stoneMaterialDescription: text('stone_material_description'),
+
+  // Data Transition: Gable Roof Materials (replacing packed strings in observations)
+  gableMaterialLusa: boolean('gable_material_lusa').default(false),
+  gableMaterialMarselha: boolean('gable_material_marselha').default(false),
+  gableMaterialMeiaCana: boolean('gable_material_meia_cana').default(false),
 });
 
 // ============================================================================
