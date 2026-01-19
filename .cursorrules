@@ -101,11 +101,13 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.5.3: STABLE DASHBOARD UI)**
-* **Focus:** Fixed UI Positioning (The "Scientific Console" feel).
-* **Visibility:** The ID Card is HIDDEN by default. It only appears when `selectedMillId` is not null.
-* **Map Behavior:** On mill click, `flyTo` the coordinates, but offset the center so the marker sits at 25% of the viewport width (left-center).
-* **Card Behavior:** The ID Card must occupy a FIXED position on the right side of the viewport. 
-    * CSS: `fixed`, `right-8`, `top-1/2`, `-translate-y-1/2`.
-    * Dimensions: Width 600px, Max-height 90% viewport.
-* **UX Lockdown:** Ensure clicking the map background still closes the card (visibility = off).
+**CURRENT CONTEXT (PHASE 5.9.5.4: THE STABLE OFFSET)**
+* **Focus:** Smooth, single-animation centering.
+* **Goal:** Eliminate the "double jump" where the marker moves toward the card after zooming.
+* **Logic:** Calculate a 'Visual Center' LatLng that is offset to the right of the actual Mill LatLng. 
+* **Math:** When a mill is clicked:
+    1. Project the Mill LatLng to Container Pixels.
+    2. Add [Viewport Width * 0.25] to the X-coordinate.
+    3. Unproject that new pixel point back to LatLng.
+    4. Perform ONE `flyTo` to that new LatLng.
+* **Result:** The marker lands perfectly on the left 25% of the screen in one smooth motion, staying far from the card.

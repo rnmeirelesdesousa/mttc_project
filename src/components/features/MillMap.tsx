@@ -31,8 +31,8 @@ function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
  * FocusZoomHandler Component
  * 
  * Handles automatic map zoom and centering when a mill is selected.
- * Centers the marker at 25% of the viewport width to leave space for the fixed side panel.
- * Uses flyTo animation for smooth transition.
+ * Centers the marker at 50% of the viewport width.
+ * Uses a single flyTo animation by calculating the offset coordinates first.
  */
 function FocusZoomHandler({ 
   lat, lng
@@ -44,31 +44,15 @@ function FocusZoomHandler({
 
   useEffect(() => {
     if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
-      // First, fly to the marker location
-      map.flyTo([lat, lng], 18, {
+      const zoomLevel = 18;
+      const targetLatLng: [number, number] = [lat, lng];
+      
+      // Single smooth animation directly to the marker coordinates
+      // This centers the marker at 50% of viewport width (center of screen)
+      map.flyTo(targetLatLng, zoomLevel, {
         animate: true,
         duration: 1.5,
       });
-      
-      // After animation completes, pan to center marker at 25% of viewport width
-      const centerMarker = () => {
-        const mapSize = map.getSize();
-        const point = map.latLngToContainerPoint([lat, lng]);
-        
-        // Target: marker should be at 25% of viewport width
-        const targetX = mapSize.x * 0.25;
-        
-        // Calculate pan needed to move marker to target position
-        const panX = targetX - point.x;
-        
-        // Apply pan if needed
-        if (Math.abs(panX) > 1) {
-          map.panBy([panX, 0], { animate: true, duration: 0.5 });
-        }
-      };
-      
-      // Wait for flyTo animation to complete, then center marker
-      setTimeout(centerMarker, 1600);
     }
   }, [map, lat, lng]);
 
@@ -140,7 +124,7 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
         {/* Map click handler for closing postal card */}
         {onMapClick && <MapClickHandler onMapClick={onMapClick} />}
 
-        {/* Focus zoom handler - automatically centers and zooms to selected mill at 25% viewport width */}
+        {/* Focus zoom handler - automatically centers and zooms to selected mill at 50% viewport width */}
         {selectedMillCoords && (
           <FocusZoomHandler 
             lat={selectedMillCoords.lat} 
