@@ -43,7 +43,6 @@ interface MapWithSidebarProps {
  */
 export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }: MapWithSidebarProps) => {
   const [selectedMillId, setSelectedMillId] = useState<string | null>(null);
-  const [cardPosition, setCardPosition] = useState<{ top: number; left: number } | null>(null);
   const [filterSidebarOpen, setFilterSidebarOpen] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
@@ -53,12 +52,10 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
 
   const handleMapClick = () => {
     setSelectedMillId(null);
-    setCardPosition(null);
   };
 
   const handleCloseSidebar = () => {
     setSelectedMillId(null);
-    setCardPosition(null);
   };
 
   // Find the selected mill's coordinates for focus zoom
@@ -76,14 +73,12 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
         onMillClick={handleMillClick}
         onMapClick={handleMapClick}
         selectedMillCoords={selectedMillCoords}
-        onCardPositionUpdate={setCardPosition}
         mapContainerRef={mapContainerRef}
       />
       <MillSidebar
         millId={selectedMillId}
         locale={locale}
         onClose={handleCloseSidebar}
-        cardPosition={cardPosition}
       />
       
       {/* Filter Menu Icon - Fixed position on left side */}

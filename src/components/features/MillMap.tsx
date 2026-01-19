@@ -31,16 +31,14 @@ function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
  * FocusZoomHandler Component
  * 
  * Handles automatic map zoom and centering when a mill is selected.
+ * Centers the marker at 25% of the viewport width to leave space for the fixed side panel.
  * Uses flyTo animation for smooth transition.
- * Also calculates card position.
  */
 function FocusZoomHandler({ 
-  lat, lng, onCardPositionUpdate, mapContainerRef 
+  lat, lng
 }: { 
   lat: number | null; 
   lng: number | null; 
-  onCardPositionUpdate?: (position: { top: number; left: number } | null) => void; 
-  mapContainerRef?: React.RefObject<HTMLDivElement> 
 }) {
   const map = useMap();
 
@@ -52,141 +50,27 @@ function FocusZoomHandler({
         duration: 1.5,
       });
       
-      // After animation completes, pan to center marker in left half and position card on right
-      const checkAndPan = () => {
-        const point = map.latLngToContainerPoint([lat, lng]);
+      // After animation completes, pan to center marker at 25% of viewport width
+      const centerMarker = () => {
         const mapSize = map.getSize();
+        const point = map.latLngToContainerPoint([lat, lng]);
         
-        // Card dimensions (3:2 ratio, max 90vh)
-        const cardWidth = 600;
-        const maxCardHeight = Math.min(400, mapSize.y * 0.9);
-        const cardHeight = maxCardHeight;
+        // Target: marker should be at 25% of viewport width
+        const targetX = mapSize.x * 0.25;
         
-        // Goal: Center marker in left half of screen
-        // Left half center is at mapSize.x / 4
-        const targetMarkerX = mapSize.x / 4;
-        
-        // Calculate pan needed to center marker in left half
-        const panX = targetMarkerX - point.x;
-        
-        // Position card on right half, vertically centered
-        // Card should be on the right side, starting around mapSize.x / 2
-        const cardLeft = mapSize.x / 2 + 20; // Start card at middle + small margin
-        const cardTop = (mapSize.y - cardHeight) / 2; // Vertically centered
-        
-        // Ensure card doesn't go off screen
-        const padding = { top: 20, right: 20, bottom: 20, left: 100 };
-        let finalPanX = panX;
-        let finalPanY = 0;
-        
-        // Adjust if card would go off right edge
-        const adjustedCardLeft = cardLeft + panX; // Account for pan
-        if (adjustedCardLeft + cardWidth > mapSize.x - padding.right) {
-          finalPanX = (mapSize.x - padding.right) - (cardLeft + cardWidth);
-        }
-        
-        // Ensure marker stays visible (with padding for filter button)
-        if (point.x + finalPanX < padding.left) {
-          finalPanX = padding.left - point.x;
-        }
-        
-        // Vertically center the card, but ensure it doesn't go off screen
-        const adjustedCardTop = cardTop; // Card top is already centered
-        if (adjustedCardTop < padding.top) {
-          finalPanY = padding.top - adjustedCardTop;
-        } else if (adjustedCardTop + cardHeight > mapSize.y - padding.bottom) {
-          finalPanY = (mapSize.y - padding.bottom) - (adjustedCardTop + cardHeight);
-        }
-        
-        // Also ensure marker is vertically visible
-        const markerYAfterPan = point.y + finalPanY;
-        if (markerYAfterPan < padding.top) {
-          finalPanY = Math.max(finalPanY, padding.top - point.y);
-        } else if (markerYAfterPan > mapSize.y - padding.bottom) {
-          finalPanY = Math.min(finalPanY, (mapSize.y - padding.bottom) - point.y);
-        }
+        // Calculate pan needed to move marker to target position
+        const panX = targetX - point.x;
         
         // Apply pan if needed
-        if (finalPanX !== 0 || finalPanY !== 0) {
-          map.panBy([finalPanX, finalPanY], { animate: true, duration: 0.5 });
-          // Position will be updated via the move event listener in the other useEffect
+        if (Math.abs(panX) > 1) {
+          map.panBy([panX, 0], { animate: true, duration: 0.5 });
         }
       };
       
-      // Wait for flyTo animation to complete, then check and pan
-      setTimeout(checkAndPan, 1600);
+      // Wait for flyTo animation to complete, then center marker
+      setTimeout(centerMarker, 1600);
     }
   }, [map, lat, lng]);
-
-  // Calculate and update card position
-  useEffect(() => {
-    if (!onCardPositionUpdate || !mapContainerRef?.current) return;
-    
-    const updatePosition = () => {
-      if (lat === null || lng === null || isNaN(lat) || isNaN(lng)) {
-        onCardPositionUpdate(null);
-        return;
-      }
-
-      const mapContainer = mapContainerRef.current;
-      if (!mapContainer) return;
-
-      const mapElement = mapContainer.querySelector('.leaflet-container') as HTMLElement;
-      if (!mapElement) return;
-
-      const mapRect = mapElement.getBoundingClientRect();
-      const containerRect = mapContainer.getBoundingClientRect();
-
-      // Card dimensions (3:2 ratio, max 90vh)
-      const cardWidth = 600;
-      const maxCardHeight = Math.min(400, mapRect.height * 0.9);
-      const cardHeight = maxCardHeight;
-
-      // Position card on right half, vertically centered
-      const cardLeft = mapRect.width / 2 + 20; // Start at middle + small margin
-      const cardTop = (mapRect.height - cardHeight) / 2; // Vertically centered
-
-      // Ensure card doesn't go off screen
-      const padding = { top: 20, right: 20, bottom: 20, left: 100 };
-      
-      let left = cardLeft;
-      let top = cardTop;
-
-      // Clamp to screen bounds
-      if (left + cardWidth > mapRect.width - padding.right) {
-        left = mapRect.width - cardWidth - padding.right;
-      }
-      if (left < padding.left) {
-        left = padding.left;
-      }
-      if (top < padding.top) {
-        top = padding.top;
-      }
-      if (top + cardHeight > mapRect.height - padding.bottom) {
-        top = mapRect.height - cardHeight - padding.bottom;
-      }
-
-      onCardPositionUpdate({
-        top: top + (mapRect.top - containerRect.top),
-        left: left + (mapRect.left - containerRect.left),
-      });
-    };
-
-    updatePosition();
-    
-    map.on('move', updatePosition);
-    map.on('zoom', updatePosition);
-    map.on('resize', updatePosition);
-    
-    const timeoutId = setTimeout(updatePosition, 100);
-
-    return () => {
-      clearTimeout(timeoutId);
-      map.off('move', updatePosition);
-      map.off('zoom', updatePosition);
-      map.off('resize', updatePosition);
-    };
-  }, [map, lat, lng, onCardPositionUpdate, mapContainerRef]);
 
   return null;
 }
@@ -208,7 +92,6 @@ interface MillMapProps {
   onMillClick?: (millId: string) => void;
   onMapClick?: () => void;
   selectedMillCoords?: { lat: number; lng: number } | null;
-  onCardPositionUpdate?: (position: { top: number; left: number } | null) => void;
   mapContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
@@ -229,7 +112,7 @@ interface MillMapProps {
  * @param onMillClick - Callback when a mill marker is clicked
  * @param onMapClick - Callback when map background is clicked
  */
-export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, selectedMillCoords, onCardPositionUpdate, mapContainerRef }: MillMapProps) => {
+export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, selectedMillCoords, mapContainerRef }: MillMapProps) => {
   const t = useTranslations();
 
   // Center of Portugal (approximate geographic center)
@@ -257,13 +140,11 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
         {/* Map click handler for closing postal card */}
         {onMapClick && <MapClickHandler onMapClick={onMapClick} />}
 
-        {/* Focus zoom handler - automatically centers and zooms to selected mill */}
+        {/* Focus zoom handler - automatically centers and zooms to selected mill at 25% viewport width */}
         {selectedMillCoords && (
           <FocusZoomHandler 
             lat={selectedMillCoords.lat} 
             lng={selectedMillCoords.lng}
-            onCardPositionUpdate={onCardPositionUpdate}
-            mapContainerRef={mapContainerRef}
           />
         )}
 

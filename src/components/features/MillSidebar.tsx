@@ -12,23 +12,19 @@ interface MillSidebarProps {
   millId: string | null;
   locale: string;
   onClose?: () => void;
-  millCoords?: { lat: number; lng: number } | null;
-  cardPosition?: { top: number; left: number } | null;
 }
 
 /**
- * MillSidebar Component (Floating Postal Card - Scientist's Command Center)
+ * MillSidebar Component (Fixed Side Panel - Scientist's Command Center)
  * 
- * Displays a floating ID card for a selected mill with scientific layout.
- * Positioned spatially adjacent to the clicked mill marker.
+ * Displays a fixed ID card for a selected mill with scientific layout.
+ * Positioned as a fixed side panel on the right side of the screen.
  * 
  * @param millId - UUID of the mill to display (null to hide)
  * @param locale - Current locale for i18n
  * @param onClose - Optional callback when sidebar is closed
- * @param millCoords - Coordinates of the mill marker for spatial positioning
- * @param mapContainerRef - Reference to the map container for coordinate conversion
  */
-export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSidebarProps) => {
+export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
   const t = useTranslations();
   const [mill, setMill] = useState<MillDetail | null>(null);
   const [connectedMills, setConnectedMills] = useState<PublishedMill[]>([]);
@@ -65,26 +61,27 @@ export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSideb
     fetchMillData();
   }, [millId, locale]);
 
-  if (!millId || !mill) {
+  if (!millId) {
     return null;
   }
 
   if (loading) {
-    const positionStyle = cardPosition
-      ? { top: `${cardPosition.top}px`, left: `${cardPosition.left}px` }
-      : { top: '20px', left: '20px' };
-    
     return (
-      <Card
-        ref={cardRef}
-        className="absolute w-[600px] max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col z-[999]"
-        style={positionStyle}
-      >
-        <CardContent className="p-6">
-          <p className="text-xs text-gray-600">{t('common.loading')}</p>
-        </CardContent>
-      </Card>
+      <div className="fixed right-8 top-1/2 -translate-y-1/2 z-[999] w-[600px] pointer-events-auto">
+        <Card
+          ref={cardRef}
+          className="w-full max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col"
+        >
+          <CardContent className="p-6">
+            <p className="text-xs text-gray-600">{t('common.loading')}</p>
+          </CardContent>
+        </Card>
+      </div>
     );
+  }
+
+  if (!mill) {
+    return null;
   }
 
   const imageUrl = getPublicUrl(mill.mainImage);
@@ -109,15 +106,11 @@ export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSideb
     }
   };
 
-  const positionStyle = cardPosition
-    ? { top: `${cardPosition.top}px`, left: `${cardPosition.left}px` }
-    : { top: '20px', left: '20px' };
-
-    return (
+  return (
+    <div className="fixed right-8 top-1/2 -translate-y-1/2 z-[999] w-[600px] pointer-events-auto">
       <Card
         ref={cardRef}
-        className="absolute w-[600px] max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col z-[999]"
-        style={positionStyle}
+        className="w-full max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col"
       >
       {/* General Info Section */}
       <CardHeader className="p-0 border-b">
@@ -371,6 +364,7 @@ export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSideb
           </svg>
         </button>
       )}
-    </Card>
+      </Card>
+    </div>
   );
 };
