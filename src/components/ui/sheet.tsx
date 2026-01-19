@@ -17,7 +17,7 @@ const SheetOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className = '', ...props }, ref) => (
   <DialogPrimitive.Overlay
-    className={`fixed inset-0 z-50 bg-black/80 transition-opacity data-[state=open]:opacity-100 data-[state=closed]:opacity-0 ${className}`}
+    className={`fixed inset-0 z-[1000] bg-black/10 transition-opacity data-[state=open]:opacity-100 data-[state=closed]:opacity-0 ${className}`}
     {...props}
     ref={ref}
   />
@@ -37,7 +37,7 @@ const SheetContent = React.forwardRef<
     <SheetOverlay />
     <DialogPrimitive.Content
       ref={ref}
-      className={`fixed z-50 gap-4 bg-background p-6 shadow-lg ${
+      className={`fixed z-[1000] gap-4 bg-white/95 backdrop-blur-md p-6 shadow-lg ${
         side === 'top' &&
         'inset-x-0 top-0 border-b data-[state=closed]:animate-slide-out-to-top data-[state=open]:animate-slide-in-from-top'
       } ${
@@ -45,7 +45,7 @@ const SheetContent = React.forwardRef<
         'inset-x-0 bottom-0 border-t data-[state=closed]:animate-slide-out-to-bottom data-[state=open]:animate-slide-in-from-bottom'
       } ${
         side === 'left' &&
-        'inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:animate-slide-out-to-left data-[state=open]:animate-slide-in-from-left sm:max-w-sm'
+        'top-16 left-0 h-[calc(100vh-4rem)] w-3/4 data-[state=closed]:animate-slide-out-to-left data-[state=open]:animate-slide-in-from-left sm:max-w-sm'
       } ${
         side === 'right' &&
         'inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:animate-slide-out-to-right data-[state=open]:animate-slide-in-from-right sm:max-w-sm'

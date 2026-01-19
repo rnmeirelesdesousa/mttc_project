@@ -113,7 +113,7 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
     motiveApparatusParams.length > 0;
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-300 h-full overflow-y-auto">
+    <div className="bg-white p-6 rounded-lg h-full overflow-y-auto">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">{t('map.filters')}</h2>
         {hasActiveFilters && (

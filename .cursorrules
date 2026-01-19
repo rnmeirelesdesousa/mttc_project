@@ -101,13 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.5.4: THE STABLE OFFSET)**
-* **Focus:** Smooth, single-animation centering.
-* **Goal:** Eliminate the "double jump" where the marker moves toward the card after zooming.
-* **Logic:** Calculate a 'Visual Center' LatLng that is offset to the right of the actual Mill LatLng. 
-* **Math:** When a mill is clicked:
-    1. Project the Mill LatLng to Container Pixels.
-    2. Add [Viewport Width * 0.25] to the X-coordinate.
-    3. Unproject that new pixel point back to LatLng.
-    4. Perform ONE `flyTo` to that new LatLng.
-* **Result:** The marker lands perfectly on the left 25% of the screen in one smooth motion, staying far from the card.
+**CURRENT CONTEXT (PHASE 5.9.5.5: CONTROL PANEL INTEGRATION)**
+* **Focus:** Refining the Filter Sidebar (Sheet) behavior.
+* **Backdrop UI:** Soften or remove the Sheet overlay. It shouldn't turn the map pitch black. Use `bg-black/20` or `backdrop-blur-[2px]`.
+* **Sizing & Positioning:** * The Filter Sidebar must start *below* the Header.
+    * Height: `h-[calc(100vh-headerHeight)]`.
+    * Ensure the Header (Z-index 1000+) remains visible and interactive even when the sidebar is open.
+* **Stability:** The map and the Mill ID Card should remain visible and "stable" behind the filter pane.

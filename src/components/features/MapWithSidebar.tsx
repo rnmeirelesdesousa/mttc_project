@@ -82,7 +82,7 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
       />
       
       {/* Filter Menu Icon - Fixed position on left side */}
-      <div className="absolute top-4 left-4 z-[500]">
+      <div className="absolute top-4 left-4 z-[1002]">
         <Sheet open={filterSidebarOpen} onOpenChange={setFilterSidebarOpen}>
           <SheetTrigger asChild>
             <Button
