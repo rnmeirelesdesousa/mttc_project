@@ -101,9 +101,9 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.4.4: THE ANCHORED DOSSIER)**
-* **Focus:** Spatial connection between the Focused Mill and the ID Card.
-* **Goal:** 1. Break the "Tall Tower" look by increasing width to 720px.
-    2. Move the card away from the page borders. Position it to the right of the center.
-    3. Ensure the height (88vh) and width (720px) create a professional "Portrait Page" aspect.
-* **Interaction:** The map 'flyTo' (Scale 18) must work in sync with this card appearing as a focused "specimen sheet."
+**CURRENT CONTEXT (PHASE 5.9.4.5: THE SPATIAL ID CARD)**
+* **Focus:** UI Refinement of the Mill ID Card (Map Page).
+* **Goal:** Break the "Tall Tower" look by establishing a wider, proportional card (Target 3:2 ratio).
+* **Placement:** The card must appear to the side of the clicked mill marker (Spatial Anchoring). It should NOT be fixed to the screen edge or centered.
+* **Constraint (STRICT):** Do NOT change the data fields or content logic inside the card. Keep all existing scientific data points as they are.
+* **Tech:** Use Leaflet's custom `Popup` or a floating `framer-motion` div anchored to the marker's lat/lng coordinates. Ensure it is responsive for smaller screens (standardizing to a bottom-sheet on mobile).

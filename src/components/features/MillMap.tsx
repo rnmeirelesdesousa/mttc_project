@@ -32,18 +32,157 @@ function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
  * 
  * Handles automatic map zoom and centering when a mill is selected.
  * Uses flyTo animation for smooth transition.
+ * Also calculates card position.
  */
-function FocusZoomHandler({ lat, lng }: { lat: number | null; lng: number | null }) {
+function FocusZoomHandler({ 
+  lat, lng, onCardPositionUpdate, mapContainerRef 
+}: { 
+  lat: number | null; 
+  lng: number | null; 
+  onCardPositionUpdate?: (position: { top: number; left: number } | null) => void; 
+  mapContainerRef?: React.RefObject<HTMLDivElement> 
+}) {
   const map = useMap();
 
   useEffect(() => {
     if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+      // First, fly to the marker location
       map.flyTo([lat, lng], 18, {
         animate: true,
         duration: 1.5,
       });
+      
+      // After animation completes, check if we need to pan to show the card
+      const checkAndPan = () => {
+        const point = map.latLngToContainerPoint([lat, lng]);
+        const mapSize = map.getSize();
+        
+        // Card dimensions and positioning
+        const cardWidth = 600;
+        const cardHeight = 400;
+        const offsetX = 30;
+        const offsetY = -cardHeight / 2;
+        const padding = 20;
+        
+        // Calculate where the card would be positioned
+        let cardLeft = point.x + offsetX;
+        let cardTop = point.y + offsetY;
+        
+        // Adjust if card would go off right edge
+        if (cardLeft + cardWidth > mapSize.x - padding) {
+          cardLeft = point.x - cardWidth - offsetX;
+        }
+        
+        // Check if we need to pan
+        let panX = 0;
+        let panY = 0;
+        
+        // Check right edge
+        if (cardLeft + cardWidth > mapSize.x - padding) {
+          panX = (mapSize.x - padding) - (cardLeft + cardWidth);
+        }
+        // Check left edge
+        if (cardLeft < padding) {
+          panX = padding - cardLeft;
+        }
+        // Check bottom edge
+        if (cardTop + cardHeight > mapSize.y - padding) {
+          panY = (mapSize.y - padding) - (cardTop + cardHeight);
+        }
+        // Check top edge
+        if (cardTop < padding) {
+          panY = padding - cardTop;
+        }
+        
+        // Also ensure marker is visible with padding
+        if (point.x < padding) {
+          panX = Math.max(panX, padding - point.x);
+        }
+        if (point.x > mapSize.x - padding) {
+          panX = Math.min(panX, (mapSize.x - padding) - point.x);
+        }
+        if (point.y < padding) {
+          panY = Math.max(panY, padding - point.y);
+        }
+        if (point.y > mapSize.y - padding) {
+          panY = Math.min(panY, (mapSize.y - padding) - point.y);
+        }
+        
+        // Apply pan if needed
+        if (panX !== 0 || panY !== 0) {
+          map.panBy([panX, panY], { animate: true, duration: 0.5 });
+          // Position will be updated via the move event listener in the other useEffect
+        }
+      };
+      
+      // Wait for flyTo animation to complete, then check and pan
+      setTimeout(checkAndPan, 1600);
     }
   }, [map, lat, lng]);
+
+  // Calculate and update card position
+  useEffect(() => {
+    if (!onCardPositionUpdate || !mapContainerRef?.current) return;
+    
+    const updatePosition = () => {
+      if (lat === null || lng === null || isNaN(lat) || isNaN(lng)) {
+        onCardPositionUpdate(null);
+        return;
+      }
+
+      const mapContainer = mapContainerRef.current;
+      if (!mapContainer) return;
+
+      const mapElement = mapContainer.querySelector('.leaflet-container') as HTMLElement;
+      if (!mapElement) return;
+
+      const point = map.latLngToContainerPoint([lat, lng]);
+      const mapRect = mapElement.getBoundingClientRect();
+      const containerRect = mapContainer.getBoundingClientRect();
+
+      const cardWidth = 600;
+      const cardHeight = 400;
+      const offsetX = 30;
+      const offsetY = -cardHeight / 2;
+
+      let left = point.x + offsetX;
+      let top = point.y + offsetY;
+
+      const padding = 20;
+      if (left + cardWidth > mapRect.width) {
+        left = point.x - cardWidth - offsetX;
+      }
+      if (left < padding) {
+        left = padding;
+      }
+      if (top < padding) {
+        top = padding;
+      }
+      if (top + cardHeight > mapRect.height - padding) {
+        top = mapRect.height - cardHeight - padding;
+      }
+
+      onCardPositionUpdate({
+        top: top + (mapRect.top - containerRect.top),
+        left: left + (mapRect.left - containerRect.left),
+      });
+    };
+
+    updatePosition();
+    
+    map.on('move', updatePosition);
+    map.on('zoom', updatePosition);
+    map.on('resize', updatePosition);
+    
+    const timeoutId = setTimeout(updatePosition, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      map.off('move', updatePosition);
+      map.off('zoom', updatePosition);
+      map.off('resize', updatePosition);
+    };
+  }, [map, lat, lng, onCardPositionUpdate, mapContainerRef]);
 
   return null;
 }
@@ -65,6 +204,8 @@ interface MillMapProps {
   onMillClick?: (millId: string) => void;
   onMapClick?: () => void;
   selectedMillCoords?: { lat: number; lng: number } | null;
+  onCardPositionUpdate?: (position: { top: number; left: number } | null) => void;
+  mapContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
 /**
@@ -84,7 +225,7 @@ interface MillMapProps {
  * @param onMillClick - Callback when a mill marker is clicked
  * @param onMapClick - Callback when map background is clicked
  */
-export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, selectedMillCoords }: MillMapProps) => {
+export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, selectedMillCoords, onCardPositionUpdate, mapContainerRef }: MillMapProps) => {
   const t = useTranslations();
 
   // Center of Portugal (approximate geographic center)
@@ -92,25 +233,31 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
   const defaultZoom = 7;
 
   return (
-    <MapContainer
-      center={portugalCenter}
-      zoom={defaultZoom}
-      style={{ height: '100%', width: '100%' }}
-      scrollWheelZoom={true}
-    >
-      {/* OpenStreetMap tile layer */}
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <div ref={mapContainerRef} className="relative h-full w-full">
+      <MapContainer
+        center={portugalCenter}
+        zoom={defaultZoom}
+        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={true}
+      >
+        {/* OpenStreetMap tile layer */}
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
 
-      {/* Map click handler for closing postal card */}
-      {onMapClick && <MapClickHandler onMapClick={onMapClick} />}
+        {/* Map click handler for closing postal card */}
+        {onMapClick && <MapClickHandler onMapClick={onMapClick} />}
 
-      {/* Focus zoom handler - automatically centers and zooms to selected mill */}
-      {selectedMillCoords && (
-        <FocusZoomHandler lat={selectedMillCoords.lat} lng={selectedMillCoords.lng} />
-      )}
+        {/* Focus zoom handler - automatically centers and zooms to selected mill */}
+        {selectedMillCoords && (
+          <FocusZoomHandler 
+            lat={selectedMillCoords.lat} 
+            lng={selectedMillCoords.lng}
+            onCardPositionUpdate={onCardPositionUpdate}
+            mapContainerRef={mapContainerRef}
+          />
+        )}
 
       {/* Render water lines as polylines (Phase 5.9.2.4) */}
       {waterLines.map((waterLine) => {
@@ -185,7 +332,8 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
           );
         })}
       </MarkerClusterGroup>
-    </MapContainer>
+      </MapContainer>
+    </div>
   );
 };
 

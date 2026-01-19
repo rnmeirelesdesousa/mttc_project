@@ -3,31 +3,37 @@
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getPublicUrl } from '@/lib/storage';
 import { getMillById, getConnectedMills, type MillDetail, type PublishedMill } from '@/actions/public';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 interface MillSidebarProps {
   millId: string | null;
   locale: string;
   onClose?: () => void;
+  millCoords?: { lat: number; lng: number } | null;
+  cardPosition?: { top: number; left: number } | null;
 }
 
 /**
  * MillSidebar Component (Floating Postal Card - Scientist's Command Center)
  * 
  * Displays a floating ID card for a selected mill with scientific layout.
- * Positioned at top-4 right-4 of the map container with prominent dossier styling.
+ * Positioned spatially adjacent to the clicked mill marker.
  * 
  * @param millId - UUID of the mill to display (null to hide)
  * @param locale - Current locale for i18n
  * @param onClose - Optional callback when sidebar is closed
+ * @param millCoords - Coordinates of the mill marker for spatial positioning
+ * @param mapContainerRef - Reference to the map container for coordinate conversion
  */
-export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
+export const MillSidebar = ({ millId, locale, onClose, cardPosition }: MillSidebarProps) => {
   const t = useTranslations();
   const [mill, setMill] = useState<MillDetail | null>(null);
   const [connectedMills, setConnectedMills] = useState<PublishedMill[]>([]);
   const [loading, setLoading] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!millId) {
@@ -64,10 +70,20 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
   }
 
   if (loading) {
+    const positionStyle = cardPosition
+      ? { top: `${cardPosition.top}px`, left: `${cardPosition.left}px` }
+      : { top: '20px', left: '20px' };
+    
     return (
-      <div className="fixed right-4 top-4 max-w-[450px] xl:top-1/2 xl:-translate-y-1/2 xl:left-[calc(50%+40px)] xl:right-auto xl:max-w-[720px] h-[88vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto p-6 z-[1000]">
-        <p className="text-xs text-gray-600">{t('common.loading')}</p>
-      </div>
+      <Card
+        ref={cardRef}
+        className="absolute w-[600px] max-h-[80vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 overflow-y-auto z-[1000]"
+        style={positionStyle}
+      >
+        <CardContent className="p-6">
+          <p className="text-xs text-gray-600">{t('common.loading')}</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -93,12 +109,20 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
     }
   };
 
+  const positionStyle = cardPosition
+    ? { top: `${cardPosition.top}px`, left: `${cardPosition.left}px` }
+    : { top: '20px', left: '20px' };
+
   return (
-    <div className="fixed right-4 top-4 max-w-[450px] xl:top-1/2 xl:-translate-y-1/2 xl:left-[calc(50%+40px)] xl:right-auto xl:max-w-[720px] h-[88vh] bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-l-4 border-l-blue-600 overflow-y-auto z-[1000]">
+    <Card
+      ref={cardRef}
+      className="absolute w-[600px] max-h-[80vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 overflow-y-auto z-[1000]"
+      style={positionStyle}
+    >
       {/* General Info Section */}
-      <div className="border-b">
+      <CardHeader className="p-0 border-b">
         {imageUrl && (
-          <div className="relative w-full aspect-video">
+          <div className="relative w-full" style={{ aspectRatio: '3/2' }}>
             <Image
               src={imageUrl}
               alt={millTitle}
@@ -120,9 +144,9 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
             {t('map.viewDetails')}
           </Link>
         </div>
-      </div>
+      </CardHeader>
 
-      <div className="p-6 space-y-4">
+      <CardContent className="p-6 space-y-4">
         {/* Coordinates - Prominent display near top with mono font */}
         <div className="bg-blue-50 border border-blue-200 rounded p-2.5">
           <span className="text-[10px] font-semibold text-gray-600 uppercase">{t('mill.sidebar.coordinates')}:</span>
@@ -326,13 +350,13 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
             </div>
           </div>
         </div>
-      </div>
+      </CardContent>
 
       {/* Close button - Professional software suite styling */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-md bg-white/90 hover:bg-white text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-150"
+          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-md bg-white/90 hover:bg-white text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-150 z-10"
           aria-label="Close"
         >
           <svg
@@ -347,6 +371,6 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
           </svg>
         </button>
       )}
-    </div>
+    </Card>
   );
 };

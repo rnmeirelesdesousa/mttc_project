@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { MillMap } from './MillMap';
 import { MillSidebar } from './MillSidebar';
@@ -33,6 +33,8 @@ interface MapWithSidebarProps {
  */
 export const MapWithSidebar = ({ mills, waterLines, locale }: MapWithSidebarProps) => {
   const [selectedMillId, setSelectedMillId] = useState<string | null>(null);
+  const [cardPosition, setCardPosition] = useState<{ top: number; left: number } | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const handleMillClick = (millId: string) => {
     setSelectedMillId(millId);
@@ -40,10 +42,12 @@ export const MapWithSidebar = ({ mills, waterLines, locale }: MapWithSidebarProp
 
   const handleMapClick = () => {
     setSelectedMillId(null);
+    setCardPosition(null);
   };
 
   const handleCloseSidebar = () => {
     setSelectedMillId(null);
+    setCardPosition(null);
   };
 
   // Find the selected mill's coordinates for focus zoom
@@ -61,11 +65,14 @@ export const MapWithSidebar = ({ mills, waterLines, locale }: MapWithSidebarProp
         onMillClick={handleMillClick}
         onMapClick={handleMapClick}
         selectedMillCoords={selectedMillCoords}
+        onCardPositionUpdate={setCardPosition}
+        mapContainerRef={mapContainerRef}
       />
       <MillSidebar
         millId={selectedMillId}
         locale={locale}
         onClose={handleCloseSidebar}
+        cardPosition={cardPosition}
       />
     </div>
   );
