@@ -101,9 +101,7 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.20.6: DATA PERSISTENCE & SUB-FIELD FIX)**
-* **The Bug:** Specific boolean fields are not saving to the DB.
-* **Affected Fields:** 1. Stone Types: `stoneTypeGranite`, `stoneTypeSchist`, `stoneTypeOther`.
-    2. Gable Materials: `gableMaterialLusa`, `gableMaterialMarselha`, `gableMaterialMeiaCana`.
-* **The Cause:** Discrepancy between the UI Form state (checkboxes/conditionals) and the Admin Server Action validation/mapping.
-* **Objective:** Ensure all boolean flags for materials and techniques are captured, validated by Zod, and successfully inserted/updated in `mills_data`.
+**CURRENT CONTEXT (PHASE 5.9.20.8: REVIEW PAGE UI DEBUGGING)**
+* **The Problem:** Stone Type and Gable Material badges are NOT appearing on the Review Page (`review/[slug]/page.tsx`), even though the data is in the DB.
+* **Audit Findings:** The conditional rendering logic is likely blocking the display or the data object mapping from `admin.ts` to `page.tsx` is incomplete.
+* **Objective:** Ensure the badges for Granite, Schist, Other, and Gable Materials are visible whenever their boolean value is true, regardless of other field states.

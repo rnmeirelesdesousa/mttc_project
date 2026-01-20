@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface PageProps {
   params: {
@@ -53,6 +54,18 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
   const construction = result.data;
 
+  // Debug: Log construction data to verify stone types and gable materials
+  console.log('[ReviewDetailPage] Construction data:', {
+    slug: construction.slug,
+    stoneTypeGranite: construction.stoneTypeGranite,
+    stoneTypeSchist: construction.stoneTypeSchist,
+    stoneTypeOther: construction.stoneTypeOther,
+    roofShape: construction.roofShape,
+    gableMaterialLusa: construction.gableMaterialLusa,
+    gableMaterialMarselha: construction.gableMaterialMarselha,
+    gableMaterialMeiaCana: construction.gableMaterialMeiaCana,
+  });
+
   // Helper function to get translated enum value
   const getTranslatedValue = (category: string, key: string | null | undefined): string => {
     if (!key) return t('mill.detail.notAvailable');
@@ -85,12 +98,6 @@ export default async function ReviewDetailPage({ params }: PageProps) {
   // Get image URL
   const imageUrl = getPublicUrl(construction.mainImage);
   const galleryUrls = construction.galleryImages?.map(img => getPublicUrl(img)) || [];
-
-  // Build stone types array
-  const stoneTypes: string[] = [];
-  if (construction.stoneTypeGranite) stoneTypes.push(t('taxonomy.stoneType.granite'));
-  if (construction.stoneTypeSchist) stoneTypes.push(t('taxonomy.stoneType.schist'));
-  if (construction.stoneTypeOther) stoneTypes.push(t('taxonomy.stoneType.other'));
 
   return (
     <div className="container mx-auto py-8 max-w-6xl">
@@ -167,6 +174,18 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                   <p className="font-medium">{construction.parish}</p>
                 </div>
               )}
+              {construction.address && (
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('add.form.location.address')}</p>
+                  <p className="font-medium">{construction.address}</p>
+                </div>
+              )}
+              {construction.drainageBasin && (
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('add.form.location.drainageBasin')}</p>
+                  <p className="font-medium">{construction.drainageBasin}</p>
+                </div>
+              )}
               <div>
                 <p className="text-sm text-muted-foreground">{t('mill.detail.coordinates')}</p>
                 <p className="font-medium font-mono text-sm">{construction.lat.toFixed(6)}, {construction.lng.toFixed(6)}</p>
@@ -201,19 +220,6 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                         <span className="font-medium">{construction.height}m</span>
                       </div>
                     )}
-                  </div>
-                </div>
-              )}
-              {/* Stone Types */}
-              {stoneTypes.length > 0 && (
-                <div className="md:col-span-2">
-                  <p className="text-sm text-muted-foreground mb-2">{t('mill.sidebar.stoneMaterials')}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {stoneTypes.map((type, idx) => (
-                      <span key={idx} className="inline-block px-2 py-1 rounded bg-blue-100 text-blue-800 text-sm">
-                        {type}
-                      </span>
-                    ))}
                   </div>
                 </div>
               )}
@@ -264,16 +270,54 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                   <p className="font-medium">{getTranslatedValue('roofMaterial', construction.roofMaterial)}</p>
                 </div>
               )}
-              {construction.volumetry && (
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('add.form.technical.architecture.volumetry')}</p>
-                  <p className="font-medium">{getTranslatedValue('volumetry', construction.volumetry)}</p>
+              {/* Gable Materials - Show ALL options when roofShape is 'gable', even if false */}
+              {construction.roofShape === 'gable' && (
+                <div className="md:col-span-2">
+                  <p className="text-sm text-muted-foreground mb-2">{t('add.form.technical.architecture.gableRoofMaterials')}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant={construction.gableMaterialLusa ? "secondary" : "outline"}>
+                      {t('taxonomy.gableMaterial.lusa')} {construction.gableMaterialLusa ? '✓' : ''}
+                    </Badge>
+                    <Badge variant={construction.gableMaterialMarselha ? "secondary" : "outline"}>
+                      {t('taxonomy.gableMaterial.marselha')} {construction.gableMaterialMarselha ? '✓' : ''}
+                    </Badge>
+                    <Badge variant={construction.gableMaterialMeiaCana ? "secondary" : "outline"}>
+                      {t('taxonomy.gableMaterial.meiaCana')} {construction.gableMaterialMeiaCana ? '✓' : ''}
+                    </Badge>
+                  </div>
                 </div>
               )}
               {construction.constructionTechnique && (
                 <div>
                   <p className="text-sm text-muted-foreground">{t('mill.detail.constructionTechnique')}</p>
                   <p className="font-medium">{getTranslatedValue('constructionTechnique', construction.constructionTechnique)}</p>
+                </div>
+              )}
+              {/* Stone Types - Show ALL options, even if false */}
+              <div className="md:col-span-2">
+                <p className="text-sm text-muted-foreground mb-2">{t('add.form.technical.architecture.stoneType')}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={construction.stoneTypeGranite ? "secondary" : "outline"}>
+                    {t('taxonomy.stoneType.granite')} {construction.stoneTypeGranite ? '✓' : ''}
+                  </Badge>
+                  <Badge variant={construction.stoneTypeSchist ? "secondary" : "outline"}>
+                    {t('taxonomy.stoneType.schist')} {construction.stoneTypeSchist ? '✓' : ''}
+                  </Badge>
+                  <Badge variant={construction.stoneTypeOther ? "secondary" : "outline"}>
+                    {t('taxonomy.stoneType.other')} {construction.stoneTypeOther ? '✓' : ''}
+                  </Badge>
+                </div>
+                {/* Stone Material Description if "Other" is selected */}
+                {construction.stoneTypeOther && construction.stoneMaterialDescription && (
+                  <p className="text-sm text-muted-foreground mt-2 italic">
+                    {t('add.form.technical.architecture.stoneMaterialDescription')}: {construction.stoneMaterialDescription}
+                  </p>
+                )}
+              </div>
+              {construction.volumetry && (
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('add.form.technical.architecture.volumetry')}</p>
+                  <p className="font-medium">{getTranslatedValue('volumetry', construction.volumetry)}</p>
                 </div>
               )}
               {construction.exteriorFinish && (
@@ -440,22 +484,189 @@ export default async function ReviewDetailPage({ params }: PageProps) {
             </div>
           </Card>
 
-          {/* Mechanism Info */}
-          {(construction.captationType || construction.millstoneQuantity !== null) && (
+          {/* Mechanism Info - Comprehensive Display */}
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">{t('mill.detail.mechanism')}</h2>
+            <div className="space-y-4">
+              {/* Hydraulic System */}
+              {(construction.captationType || construction.conductionType || construction.conductionState || 
+                construction.admissionRodizio || construction.admissionAzenha || 
+                construction.wheelTypeRodizio || construction.wheelTypeAzenha ||
+                construction.rodizioQty !== null || construction.azenhaQty !== null) && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground">{t('add.form.mechanism.hydraulic.title')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4">
+                    {construction.captationType && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.captationType')}</p>
+                        <p className="font-medium">{getTranslatedValue('captationType', construction.captationType)}</p>
+                      </div>
+                    )}
+                    {construction.conductionType && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.conductionType')}</p>
+                        <p className="font-medium">{getTranslatedValue('conductionType', construction.conductionType)}</p>
+                      </div>
+                    )}
+                    {construction.conductionState && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.conductionState')}</p>
+                        <p className="font-medium">{getTranslatedValue('conductionState', construction.conductionState)}</p>
+                      </div>
+                    )}
+                    {construction.admissionRodizio && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.admissionRodizio')}</p>
+                        <p className="font-medium">{getTranslatedValue('admissionRodizio', construction.admissionRodizio)}</p>
+                      </div>
+                    )}
+                    {construction.admissionAzenha && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.admissionAzenha')}</p>
+                        <p className="font-medium">{getTranslatedValue('admissionAzenha', construction.admissionAzenha)}</p>
+                      </div>
+                    )}
+                    {construction.wheelTypeRodizio && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.wheelTypeRodizio')}</p>
+                        <p className="font-medium">{getTranslatedValue('wheelTypeRodizio', construction.wheelTypeRodizio)}</p>
+                      </div>
+                    )}
+                    {construction.wheelTypeAzenha && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.wheelTypeAzenha')}</p>
+                        <p className="font-medium">{getTranslatedValue('wheelTypeAzenha', construction.wheelTypeAzenha)}</p>
+                      </div>
+                    )}
+                    {construction.rodizioQty !== null && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.rodizioQty')}</p>
+                        <p className="font-medium">{construction.rodizioQty}</p>
+                      </div>
+                    )}
+                    {construction.azenhaQty !== null && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.azenhaQty')}</p>
+                        <p className="font-medium">{construction.azenhaQty}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Wind System */}
+              {construction.motiveApparatus && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground">{t('add.form.mechanism.wind.title')}</h3>
+                  <div className="pl-4">
+                    <p className="text-sm text-muted-foreground">{t('add.form.mechanism.wind.motiveApparatus')}</p>
+                    <p className="font-medium">{getTranslatedValue('motiveApparatus', construction.motiveApparatus)}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Grinding Mechanism */}
+              {(construction.millstoneQuantity !== null || construction.millstoneDiameter || construction.millstoneState ||
+                construction.hasTremonha || construction.hasQuelha || construction.hasUrreiro || 
+                construction.hasAliviadouro || construction.hasFarinaleiro) && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground">{t('add.form.mechanism.grinding.title')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4">
+                    {construction.millstoneQuantity !== null && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneQuantity')}</p>
+                        <p className="font-medium">{construction.millstoneQuantity}</p>
+                      </div>
+                    )}
+                    {construction.millstoneDiameter && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneDiameter')}</p>
+                        <p className="font-medium">{construction.millstoneDiameter} cm</p>
+                      </div>
+                    )}
+                    {construction.millstoneState && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneState')}</p>
+                        <p className="font-medium">{getTranslatedValue('millstoneState', construction.millstoneState)}</p>
+                      </div>
+                    )}
+                    {/* Grinding Components */}
+                    {(construction.hasTremonha || construction.hasQuelha || construction.hasUrreiro || 
+                      construction.hasAliviadouro || construction.hasFarinaleiro) && (
+                      <div className="md:col-span-2">
+                        <p className="text-sm text-muted-foreground mb-2">{t('add.form.mechanism.grinding.components')}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {construction.hasTremonha && (
+                            <Badge variant="secondary">{t('taxonomy.grindingComponent.tremonha')}</Badge>
+                          )}
+                          {construction.hasQuelha && (
+                            <Badge variant="secondary">{t('taxonomy.grindingComponent.quelha')}</Badge>
+                          )}
+                          {construction.hasUrreiro && (
+                            <Badge variant="secondary">{t('taxonomy.grindingComponent.urreiro')}</Badge>
+                          )}
+                          {construction.hasAliviadouro && (
+                            <Badge variant="secondary">{t('taxonomy.grindingComponent.aliviadouro')}</Badge>
+                          )}
+                          {construction.hasFarinaleiro && (
+                            <Badge variant="secondary">{t('taxonomy.grindingComponent.farinaleiro')}</Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Epigraphy Section */}
+          {(construction.epigraphyPresence || construction.epigraphyLocation || construction.epigraphyType || construction.epigraphyDescription) && (
             <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">{t('mill.detail.mechanism')}</h2>
+              <h2 className="text-xl font-semibold mb-4">{t('add.form.epigraphy.title')}</h2>
               <div className="space-y-4">
-                {construction.captationType && (
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('add.form.epigraphy.presence')}</p>
+                  <p className="font-medium">{construction.epigraphyPresence ? 'Yes' : 'No'}</p>
+                </div>
+                {construction.epigraphyLocation && (
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.captationType')}</p>
-                    <p className="font-medium">{getTranslatedValue('captationType', construction.captationType)}</p>
+                    <p className="text-sm text-muted-foreground">{t('add.form.epigraphy.location')}</p>
+                    <p className="font-medium">{getTranslatedValue('epigraphyLocation', construction.epigraphyLocation)}</p>
                   </div>
                 )}
-                {construction.millstoneQuantity !== null && (
+                {construction.epigraphyType && (
                   <div>
-                    <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneQuantity')}</p>
-                    <p className="font-medium">{construction.millstoneQuantity}</p>
+                    <p className="text-sm text-muted-foreground">{t('add.form.epigraphy.type')}</p>
+                    <p className="font-medium">{getTranslatedValue('epigraphyType', construction.epigraphyType)}</p>
                   </div>
+                )}
+                {construction.epigraphyDescription && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">{t('add.form.epigraphy.description')}</p>
+                    <p className="text-sm whitespace-pre-wrap">{construction.epigraphyDescription}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Annexes Section */}
+          {(construction.hasOven || construction.hasMillerHouse || construction.hasStable || construction.hasFullingMill) && (
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">{t('add.form.annexes.title')}</h2>
+              <div className="flex flex-wrap gap-2">
+                {construction.hasOven && (
+                  <Badge variant="secondary">{t('taxonomy.annex.oven')}</Badge>
+                )}
+                {construction.hasMillerHouse && (
+                  <Badge variant="secondary">{t('taxonomy.annex.miller_house')}</Badge>
+                )}
+                {construction.hasStable && (
+                  <Badge variant="secondary">{t('taxonomy.annex.stable')}</Badge>
+                )}
+                {construction.hasFullingMill && (
+                  <Badge variant="secondary">{t('taxonomy.annex.fulling_mill')}</Badge>
                 )}
               </div>
             </Card>

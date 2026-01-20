@@ -602,6 +602,9 @@ export async function getConstructionForReview(
         stoneTypeGranite: boolean;
         stoneTypeSchist: boolean;
         stoneTypeOther: boolean;
+        gableMaterialLusa: boolean;
+        gableMaterialMarselha: boolean;
+        gableMaterialMeiaCana: boolean;
         captationType: string | null;
         conductionType: string | null;
         conductionState: string | null;
@@ -696,6 +699,10 @@ export async function getConstructionForReview(
         stoneTypeGranite: millsData.stoneTypeGranite,
         stoneTypeSchist: millsData.stoneTypeSchist,
         stoneTypeOther: millsData.stoneTypeOther,
+        stoneMaterialDescription: millsData.stoneMaterialDescription,
+        gableMaterialLusa: millsData.gableMaterialLusa,
+        gableMaterialMarselha: millsData.gableMaterialMarselha,
+        gableMaterialMeiaCana: millsData.gableMaterialMeiaCana,
         captationType: millsData.captationType,
         conductionType: millsData.conductionType,
         conductionState: millsData.conductionState,
@@ -792,6 +799,10 @@ export async function getConstructionForReview(
         stoneTypeGranite: row.stoneTypeGranite,
         stoneTypeSchist: row.stoneTypeSchist,
         stoneTypeOther: row.stoneTypeOther,
+        stoneMaterialDescription: row.stoneMaterialDescription,
+        gableMaterialLusa: row.gableMaterialLusa,
+        gableMaterialMarselha: row.gableMaterialMarselha,
+        gableMaterialMeiaCana: row.gableMaterialMeiaCana,
         captationType: row.captationType,
         conductionType: row.conductionType,
         conductionState: row.conductionState,
