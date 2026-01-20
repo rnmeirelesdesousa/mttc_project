@@ -57,6 +57,8 @@ export interface MillFilters {
   typology?: string[];
   district?: string;
   roofMaterial?: string[];
+  roofShape?: string[];
+  access?: string[];
   motiveApparatus?: string[];
 }
 
@@ -100,6 +102,16 @@ export async function getPublishedMills(
     // Apply roof material filter (if provided)
     if (filters?.roofMaterial && filters.roofMaterial.length > 0) {
       whereConditions.push(inArray(millsData.roofMaterial, filters.roofMaterial));
+    }
+
+    // Apply roof shape filter (if provided)
+    if (filters?.roofShape && filters.roofShape.length > 0) {
+      whereConditions.push(inArray(millsData.roofShape, filters.roofShape));
+    }
+
+    // Apply access filter (if provided)
+    if (filters?.access && filters.access.length > 0) {
+      whereConditions.push(inArray(millsData.access, filters.access));
     }
 
     // Apply motive apparatus filter (if provided)
@@ -264,6 +276,12 @@ export interface MillDetail extends PublishedMill {
   gableMaterialLusa: boolean;
   gableMaterialMarselha: boolean;
   gableMaterialMeiaCana: boolean;
+  // Phase 5.9.20: Conservation observations
+  observationsStructure: string | null;
+  observationsRoof: string | null;
+  observationsHydraulic: string | null;
+  observationsMechanism: string | null;
+  observationsGeneral: string | null;
 }
 
 /**
@@ -375,6 +393,12 @@ export async function getMillBySlug(
         // Translation fields
         title: constructionTranslations.title,
         description: constructionTranslations.description,
+        // Phase 5.9.20: Conservation observations
+        observationsStructure: constructionTranslations.observationsStructure,
+        observationsRoof: constructionTranslations.observationsRoof,
+        observationsHydraulic: constructionTranslations.observationsHydraulic,
+        observationsMechanism: constructionTranslations.observationsMechanism,
+        observationsGeneral: constructionTranslations.observationsGeneral,
         // Phase 5.9.3: Water line translation (for connected levada)
         waterLineName: waterLineTranslations.name,
         waterLineSlug: waterLines.slug,
@@ -503,6 +527,12 @@ export async function getMillBySlug(
       gableMaterialLusa: row.gableMaterialLusa,
       gableMaterialMarselha: row.gableMaterialMarselha,
       gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+      // Phase 5.9.20: Conservation observations
+      observationsStructure: row.observationsStructure,
+      observationsRoof: row.observationsRoof,
+      observationsHydraulic: row.observationsHydraulic,
+      observationsMechanism: row.observationsMechanism,
+      observationsGeneral: row.observationsGeneral,
     };
   } catch (error) {
     console.error('[getMillBySlug]:', error);
@@ -619,6 +649,12 @@ export async function getMillById(
         // Translation fields
         title: constructionTranslations.title,
         description: constructionTranslations.description,
+        // Phase 5.9.20: Conservation observations
+        observationsStructure: constructionTranslations.observationsStructure,
+        observationsRoof: constructionTranslations.observationsRoof,
+        observationsHydraulic: constructionTranslations.observationsHydraulic,
+        observationsMechanism: constructionTranslations.observationsMechanism,
+        observationsGeneral: constructionTranslations.observationsGeneral,
         // Phase 5.9.3: Water line translation (for connected levada)
         waterLineName: waterLineTranslations.name,
         waterLineSlug: waterLines.slug,
@@ -747,6 +783,12 @@ export async function getMillById(
       gableMaterialLusa: row.gableMaterialLusa,
       gableMaterialMarselha: row.gableMaterialMarselha,
       gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+      // Phase 5.9.20: Conservation observations
+      observationsStructure: row.observationsStructure,
+      observationsRoof: row.observationsRoof,
+      observationsHydraulic: row.observationsHydraulic,
+      observationsMechanism: row.observationsMechanism,
+      observationsGeneral: row.observationsGeneral,
     };
   } catch (error) {
     console.error('[getMillById]:', error);

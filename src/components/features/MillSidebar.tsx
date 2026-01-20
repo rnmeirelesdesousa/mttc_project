@@ -255,6 +255,9 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
                 <div>
                   <span className="text-[10px] text-gray-500">{t('mill.sidebar.roofDetail')}:</span>
                   <p className="font-medium mt-0.5">{t(`taxonomy.roofShape.${mill.roofShape}`)}</p>
+                  {mill.roofMaterial && (
+                    <p className="text-[10px] text-gray-600 mt-0.5">{t(`taxonomy.roofMaterial.${mill.roofMaterial}`)}</p>
+                  )}
                   {/* Show gable materials if Gable is selected */}
                   {mill.roofShape === 'gable' && (
                     <div className="mt-1.5">
@@ -284,22 +287,62 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
           </div>
         )}
 
-        {/* Dimensions Section - Full width Metric Profile */}
-        {(mill.length || mill.width || mill.height) && (
+        {/* Technical Specifications Section */}
+        {(mill.length || mill.width || mill.height || mill.observationsStructure || mill.observationsRoof || mill.observationsHydraulic || mill.observationsMechanism || mill.observationsGeneral) && (
           <div>
             <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
-              {t('mill.sidebar.dimensions')}
+              {t('mill.sidebar.technicalSpecs')}
             </h3>
-            <div className="bg-slate-50/50 border border-slate-200 rounded p-3 w-full">
-              <p className="text-xs font-bold text-slate-900">
-                {t('mill.sidebar.metricProfile')}:{' '}
-                {mill.length && `${t('mill.sidebar.length')}: ${mill.length}m`}
-                {mill.length && mill.width && ' | '}
-                {mill.width && `${t('mill.sidebar.width')}: ${mill.width}m`}
-                {(mill.length || mill.width) && mill.height && ' | '}
-                {mill.height && `${t('mill.sidebar.height')}: ${mill.height}m`}
-              </p>
-            </div>
+            {/* Dimensions */}
+            {(mill.length || mill.width || mill.height) && (
+              <div className="mb-3">
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.dimensions')}:</span>
+                <div className="bg-slate-50/50 border border-slate-200 rounded p-2 mt-1">
+                  <p className="text-xs font-medium text-slate-900">
+                    {mill.length && `${mill.length}m`}
+                    {mill.length && mill.width && ' × '}
+                    {mill.width && `${mill.width}m`}
+                    {(mill.length || mill.width) && mill.height && ' × '}
+                    {mill.height && `${mill.height}m`}
+                  </p>
+                </div>
+              </div>
+            )}
+            {/* Observations */}
+            {(mill.observationsStructure || mill.observationsRoof || mill.observationsHydraulic || mill.observationsMechanism || mill.observationsGeneral) && (
+              <div className="space-y-2">
+                {mill.observationsStructure && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsStructure')}:</span>
+                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsStructure}</p>
+                  </div>
+                )}
+                {mill.observationsRoof && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsRoof')}:</span>
+                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsRoof}</p>
+                  </div>
+                )}
+                {mill.observationsHydraulic && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsHydraulic')}:</span>
+                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsHydraulic}</p>
+                  </div>
+                )}
+                {mill.observationsMechanism && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsMechanism')}:</span>
+                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsMechanism}</p>
+                  </div>
+                )}
+                {mill.observationsGeneral && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsGeneral')}:</span>
+                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsGeneral}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

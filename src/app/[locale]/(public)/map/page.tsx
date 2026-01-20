@@ -8,6 +8,8 @@ interface PageProps {
     typology?: string | string[];
     district?: string;
     roofMaterial?: string | string[];
+    roofShape?: string | string[];
+    access?: string | string[];
     motiveApparatus?: string | string[];
     millId?: string;
   };
@@ -39,6 +41,20 @@ export default async function MapPage({ params, searchParams }: PageProps) {
       ? searchParams.roofMaterial
       : [searchParams.roofMaterial];
     materials.forEach((m) => queryParams.append('roofMaterial', m));
+  }
+  
+  if (searchParams.roofShape) {
+    const shapes = Array.isArray(searchParams.roofShape)
+      ? searchParams.roofShape
+      : [searchParams.roofShape];
+    shapes.forEach((s) => queryParams.append('roofShape', s));
+  }
+  
+  if (searchParams.access) {
+    const accesses = Array.isArray(searchParams.access)
+      ? searchParams.access
+      : [searchParams.access];
+    accesses.forEach((a) => queryParams.append('access', a));
   }
   
   if (searchParams.motiveApparatus) {

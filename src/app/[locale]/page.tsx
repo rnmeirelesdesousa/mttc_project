@@ -24,6 +24,8 @@ interface RootLocalePageProps {
     typology?: string | string[];
     district?: string;
     roofMaterial?: string | string[];
+    roofShape?: string | string[];
+    access?: string | string[];
     motiveApparatus?: string | string[];
     millId?: string;
   };
@@ -60,6 +62,20 @@ export default async function RootLocalePage({ params, searchParams }: RootLocal
     filters.roofMaterial = Array.isArray(searchParams.roofMaterial)
       ? searchParams.roofMaterial
       : [searchParams.roofMaterial];
+  }
+
+  // Handle roof shape (can be string or string[])
+  if (searchParams.roofShape) {
+    filters.roofShape = Array.isArray(searchParams.roofShape)
+      ? searchParams.roofShape
+      : [searchParams.roofShape];
+  }
+
+  // Handle access (can be string or string[])
+  if (searchParams.access) {
+    filters.access = Array.isArray(searchParams.access)
+      ? searchParams.access
+      : [searchParams.access];
   }
 
   // Handle motive apparatus (can be string or string[])

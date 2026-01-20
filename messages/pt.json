@@ -102,6 +102,8 @@
   },
   "filter": {
     "materials": "Materiais da Cobertura",
+    "roofShape": "Tipo de Cobertura",
+    "access": "Acesso",
     "mechanism": "Aparelho Motor",
     "clearAll": "Limpar Tudo"
   },
@@ -142,6 +144,7 @@
       "constructionTechnique": "Técnica de Construção",
       "roofDetail": "Cobertura",
       "dimensions": "Dimensões",
+      "technicalSpecs": "Especificações Técnicas",
       "connectivity": "Conectividade",
       "district": "Distrito",
       "municipality": "Concelho",
@@ -161,7 +164,12 @@
       "connectedMills": "Moinhos Conectados",
       "noConnectedMills": "Nenhum moinho conectado",
       "stoneMaterials": "Materiais de Pedra",
-      "gableMaterials": "Materiais da Cobertura de Duas Águas"
+      "gableMaterials": "Materiais da Cobertura de Duas Águas",
+      "observationsStructure": "Observações - Estrutura",
+      "observationsRoof": "Observações - Cobertura",
+      "observationsHydraulic": "Observações - Sistema Hidráulico",
+      "observationsMechanism": "Observações - Mecanismo",
+      "observationsGeneral": "Observações - Estado Geral"
     }
   },
   "taxonomy": {

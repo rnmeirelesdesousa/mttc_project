@@ -35,13 +35,21 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
   const typologyParams = searchParams.getAll('typology');
   const districtParam = searchParams.get('district');
   const roofMaterialParams = searchParams.getAll('roofMaterial');
+  const roofShapeParams = searchParams.getAll('roofShape');
+  const accessParams = searchParams.getAll('access');
   const motiveApparatusParams = searchParams.getAll('motiveApparatus');
 
   // Typology options (hydraulic mills only)
   const typologyOptions: Array<'azenha' | 'rodizio' | 'mare'> = ['azenha', 'rodizio', 'mare'];
 
   // Roof material options
-  const roofMaterialOptions: Array<'tile' | 'zinc' | 'thatch' | 'slate'> = ['tile', 'zinc', 'thatch', 'slate'];
+  const roofMaterialOptions: Array<'tile' | 'zinc' | 'thatch' | 'slate' | 'stone'> = ['tile', 'zinc', 'thatch', 'slate', 'stone'];
+
+  // Roof shape options
+  const roofShapeOptions: Array<'conical' | 'gable' | 'lean_to' | 'inexistent' | 'false_dome'> = ['conical', 'gable', 'lean_to', 'inexistent', 'false_dome'];
+
+  // Access options
+  const accessOptions: Array<'pedestrian' | 'car' | 'difficult_none' | 'traditional_track'> = ['pedestrian', 'car', 'difficult_none', 'traditional_track'];
 
   // Motive apparatus options
   const motiveApparatusOptions: Array<'sails' | 'shells' | 'tail' | 'cap'> = ['sails', 'shells', 'tail', 'cap'];
@@ -110,6 +118,8 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
     typologyParams.length > 0 ||
     districtParam !== null ||
     roofMaterialParams.length > 0 ||
+    roofShapeParams.length > 0 ||
+    accessParams.length > 0 ||
     motiveApparatusParams.length > 0;
 
   return (
@@ -188,6 +198,50 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
                   onCheckedChange={() => handleArrayFilterToggle('roofMaterial', material)}
                 />
                 <span className="text-sm">{t(`taxonomy.roofMaterial.${material}`)}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Roof Shape Section */}
+      <div className="mb-6">
+        <Label className="text-sm font-medium mb-3 block">{t('filter.roofShape')}</Label>
+        <div className="space-y-2">
+          {roofShapeOptions.map((shape) => {
+            const isChecked = roofShapeParams.includes(shape);
+            return (
+              <label
+                key={shape}
+                className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+              >
+                <Checkbox
+                  checked={isChecked}
+                  onCheckedChange={() => handleArrayFilterToggle('roofShape', shape)}
+                />
+                <span className="text-sm">{t(`taxonomy.roofShape.${shape}`)}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Access Section */}
+      <div className="mb-6">
+        <Label className="text-sm font-medium mb-3 block">{t('filter.access')}</Label>
+        <div className="space-y-2">
+          {accessOptions.map((access) => {
+            const isChecked = accessParams.includes(access);
+            return (
+              <label
+                key={access}
+                className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+              >
+                <Checkbox
+                  checked={isChecked}
+                  onCheckedChange={() => handleArrayFilterToggle('access', access)}
+                />
+                <span className="text-sm">{t(`taxonomy.access.${access}`)}</span>
               </label>
             );
           })}

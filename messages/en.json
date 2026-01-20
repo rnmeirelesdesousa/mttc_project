@@ -102,6 +102,8 @@
   },
   "filter": {
     "materials": "Roof Materials",
+    "roofShape": "Roof Shape",
+    "access": "Access",
     "mechanism": "Motive Apparatus",
     "clearAll": "Clear All"
   },
@@ -142,6 +144,7 @@
       "constructionTechnique": "Construction Technique",
       "roofDetail": "Roof",
       "dimensions": "Dimensions",
+      "technicalSpecs": "Technical Specifications",
       "connectivity": "Connectivity",
       "district": "District",
       "municipality": "Municipality",
@@ -161,7 +164,12 @@
       "connectedMills": "Connected Mills",
       "noConnectedMills": "No connected mills",
       "stoneMaterials": "Stone Materials",
-      "gableMaterials": "Gable Roof Materials"
+      "gableMaterials": "Gable Roof Materials",
+      "observationsStructure": "Observations - Structure",
+      "observationsRoof": "Observations - Roof",
+      "observationsHydraulic": "Observations - Hydraulic System",
+      "observationsMechanism": "Observations - Mechanism",
+      "observationsGeneral": "Observations - General State"
     }
   },
   "taxonomy": {
