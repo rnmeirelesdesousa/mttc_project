@@ -226,10 +226,11 @@ export async function getDashboardStats(): Promise<
 
     const totalMills = totalMillsResult[0]?.count || 0;
 
-    // Count total levadas (water lines)
+    // Count total levadas (water lines) - count from constructions with typeCategory = 'water_line'
     const totalLevadasResult = await db
       .select({ count: sql<number>`count(*)::int` })
-      .from(waterLines);
+      .from(constructions)
+      .where(eq(constructions.typeCategory, 'water_line'));
 
     const totalLevadas = totalLevadasResult[0]?.count || 0;
 
@@ -948,8 +949,9 @@ const createWaterLineSchema = z.object({
  * Security: Verifies that the performing user has 'researcher' or 'admin' role
  * 
  * This action uses a database transaction to ensure atomicity:
- * 1. Inserts into water_lines (core data including PostGIS LineString geometry)
- * 2. Inserts into water_line_translations (name/description for locale)
+ * 1. Inserts into constructions (parent record with type_category: 'water_line' and geom from first point of path)
+ * 2. Inserts into water_lines (core data including PostGIS LineString geometry, linked to construction)
+ * 3. Inserts into water_line_translations (name/description for locale)
  * 
  * @param data - Form data containing water line information
  * @returns Standardized response: { success: true, data?: { id: string, slug: string } } or { success: false, error: string }
@@ -967,6 +969,12 @@ export async function createWaterLine(
       return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
     }
 
+    // Get current user ID for audit trail
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
     // Validate input with Zod
     const validationResult = createWaterLineSchema.safeParse(data);
     if (!validationResult.success) {
@@ -976,15 +984,20 @@ export async function createWaterLine(
 
     const validated = validationResult.data;
 
+    // Validate path has at least 2 points
+    if (!validated.path || validated.path.length < 2) {
+      return { success: false, error: 'Path must have at least 2 points' };
+    }
+
     // Generate unique slug from name
     const baseSlug = generateSlug(validated.name);
     
-    // Check if slug exists
+    // Check if slug exists in constructions (since water lines now use construction slugs)
     const slugExists = async (slug: string): Promise<boolean> => {
       const existing = await db
-        .select({ id: waterLines.id })
-        .from(waterLines)
-        .where(eq(waterLines.slug, slug))
+        .select({ id: constructions.id })
+        .from(constructions)
+        .where(eq(constructions.slug, slug))
         .limit(1);
       return existing.length > 0;
     };
@@ -993,13 +1006,34 @@ export async function createWaterLine(
 
     // Use database transaction to ensure atomicity
     const result = await db.transaction(async (tx) => {
-      // Step 1: Insert into water_lines (core data with PostGIS LineString)
-      // The path is already in GeoJSON format [lng, lat] from the component
-      // The geometryLineString custom type expects [lng, lat][] format
+      // Step 1: Insert into constructions (parent record)
+      // Use the first point of the path as the representative location
+      // Path is in [lng, lat] format (PostGIS format), which is what constructions.geom expects
+      const firstPoint = validated.path[0]!;
+      const [lng, lat] = firstPoint; // Already in [lng, lat] format
+      
+      const [newConstruction] = await tx
+        .insert(constructions)
+        .values({
+          slug: uniqueSlug,
+          typeCategory: 'water_line',
+          geom: [lng, lat] as [number, number], // PostGIS: [lng, lat]
+          status: 'published', // Water lines are always considered published
+          createdBy: userId,
+        })
+        .returning({ id: constructions.id, slug: constructions.slug });
+
+      if (!newConstruction) {
+        throw new Error('Failed to create construction for water line');
+      }
+
+      // Step 2: Insert into water_lines (core data with PostGIS LineString, linked to construction)
+      // The path is already in [lng, lat] format (PostGIS format)
       const [newWaterLine] = await tx
         .insert(waterLines)
         .values({
-          slug: uniqueSlug,
+          constructionId: newConstruction.id,
+          slug: uniqueSlug, // Use same slug as construction
           path: validated.path as [number, number][], // PostGIS: array of [lng, lat] tuples
           color: validated.color,
         })
@@ -1009,7 +1043,7 @@ export async function createWaterLine(
         throw new Error('Failed to create water line');
       }
 
-      // Step 2: Insert into water_line_translations (i18n)
+      // Step 3: Insert into water_line_translations (i18n)
       await tx.insert(waterLineTranslations).values({
         waterLineId: newWaterLine.id,
         locale: validated.locale,
@@ -1279,10 +1313,12 @@ export async function getInventoryItems(
       );
     }
 
-    // Fetch water lines (levadas)
+    // Fetch water lines (levadas) - using INNER JOIN with constructions
     if (!filters?.type || filters.type === 'LEVADA' || filters.type === 'ALL') {
       // Note: Water lines don't have status, so we only filter by search query
-      const whereConditions = [];
+      const whereConditions = [
+        eq(constructions.typeCategory, 'water_line'), // Only water_line constructions
+      ];
       
       // Apply search query (searches in name)
       if (searchQuery && searchQuery.trim()) {
@@ -1295,12 +1331,16 @@ export async function getInventoryItems(
       const waterLinesQuery = db
         .select({
           id: waterLines.id,
-          slug: waterLines.slug,
-          createdAt: waterLines.createdAt,
-          updatedAt: waterLines.updatedAt,
+          slug: constructions.slug, // Use construction slug
+          createdAt: constructions.createdAt,
+          updatedAt: constructions.updatedAt,
           name: waterLineTranslations.name,
         })
-        .from(waterLines)
+        .from(constructions)
+        .innerJoin(
+          waterLines,
+          eq(waterLines.constructionId, constructions.id)
+        )
         .leftJoin(
           waterLineTranslations,
           and(
@@ -1313,7 +1353,7 @@ export async function getInventoryItems(
             ? and(...whereConditions)
             : undefined
         )
-        .orderBy(desc(waterLines.updatedAt));
+        .orderBy(desc(constructions.updatedAt));
 
       const waterLinesResults = await waterLinesQuery;
 
@@ -1366,7 +1406,7 @@ export async function getItemTypeById(
       return { success: false, error: 'Item ID is required' };
     }
 
-    // Try to find in constructions table
+    // Try to find in constructions table (includes MILL, POCA, and water_line)
     const construction = await db
       .select({
         id: constructions.id,
@@ -1378,11 +1418,16 @@ export async function getItemTypeById(
       .limit(1);
 
     if (construction.length > 0) {
-      const type = construction[0]!.typeCategory === 'POCA' ? 'POCA' : 'MILL';
+      const typeCategory = construction[0]!.typeCategory;
+      if (typeCategory === 'water_line') {
+        return { success: true, data: { type: 'LEVADA', slug: construction[0]!.slug } };
+      }
+      const type = typeCategory === 'POCA' ? 'POCA' : 'MILL';
       return { success: true, data: { type, slug: construction[0]!.slug } };
     }
 
-    // Try to find in water_lines table
+    // If not found in constructions, it might be an old water_line without a parent
+    // Try to find in water_lines table (for backward compatibility during migration)
     const waterLine = await db
       .select({
         id: waterLines.id,
@@ -1739,16 +1784,21 @@ export async function getWaterLineByIdForEdit(
     }
 
     // Query water line by ID with translation
+    // Use INNER JOIN with constructions to ensure valid parent-child relationship
     const results = await db
       .select({
         id: waterLines.id,
-        slug: waterLines.slug,
+        slug: constructions.slug, // Use construction slug
         pathText: sql<string>`ST_AsText(${waterLines.path})`.as('path_text'),
         color: waterLines.color,
         name: waterLineTranslations.name,
         description: waterLineTranslations.description,
       })
-      .from(waterLines)
+      .from(constructions)
+      .innerJoin(
+        waterLines,
+        eq(waterLines.constructionId, constructions.id)
+      )
       .leftJoin(
         waterLineTranslations,
         and(
@@ -1756,7 +1806,12 @@ export async function getWaterLineByIdForEdit(
           eq(waterLineTranslations.locale, locale)
         )
       )
-      .where(eq(waterLines.id, id))
+      .where(
+        and(
+          eq(waterLines.id, id),
+          eq(constructions.typeCategory, 'water_line')
+        )
+      )
       .limit(1);
 
     if (results.length === 0) {
@@ -2101,9 +2156,18 @@ export async function updateWaterLine(
 
     const validated = validationResult.data;
 
-    // Check if water line exists
+    // Validate path has at least 2 points
+    if (!validated.path || validated.path.length < 2) {
+      return { success: false, error: 'Path must have at least 2 points' };
+    }
+
+    // Check if water line exists and get its constructionId
     const existing = await db
-      .select({ id: waterLines.id, slug: waterLines.slug })
+      .select({ 
+        id: waterLines.id, 
+        slug: waterLines.slug,
+        constructionId: waterLines.constructionId,
+      })
       .from(waterLines)
       .where(eq(waterLines.id, validated.id))
       .limit(1);
@@ -2112,9 +2176,24 @@ export async function updateWaterLine(
       return { success: false, error: 'Water line not found' };
     }
 
+    const existingWaterLine = existing[0]!;
+
     // Use database transaction to ensure atomicity
     const result = await db.transaction(async (tx) => {
-      // Step 1: Update water_lines (core data with PostGIS LineString)
+      // Step 1: Update constructions (update geom from first point of path)
+      // Use the first point of the path as the representative location
+      const firstPoint = validated.path[0]!;
+      const [lng, lat] = firstPoint; // Already in [lng, lat] format
+      
+      await tx
+        .update(constructions)
+        .set({
+          geom: [lng, lat] as [number, number], // PostGIS: [lng, lat]
+          updatedAt: new Date(),
+        })
+        .where(eq(constructions.id, existingWaterLine.constructionId));
+
+      // Step 2: Update water_lines (core data with PostGIS LineString)
       const [updatedWaterLine] = await tx
         .update(waterLines)
         .set({
@@ -2129,7 +2208,7 @@ export async function updateWaterLine(
         throw new Error('Failed to update water line');
       }
 
-      // Step 2: Update or insert water_line_translations (i18n)
+      // Step 3: Update or insert water_line_translations (i18n)
       const existingTranslation = await tx
         .select({ waterLineId: waterLineTranslations.waterLineId })
         .from(waterLineTranslations)

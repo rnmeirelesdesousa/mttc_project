@@ -951,14 +951,19 @@ export async function getWaterLinesList(
     }
 
     // Query all water lines with their translations
+    // Use INNER JOIN with constructions to ensure valid parent-child relationship
     // Use inner join to only get water lines that have translations for the locale
     const results = await db
       .select({
         id: waterLines.id,
-        slug: waterLines.slug,
+        slug: constructions.slug, // Use construction slug
         name: waterLineTranslations.name,
       })
-      .from(waterLines)
+      .from(constructions)
+      .innerJoin(
+        waterLines,
+        eq(waterLines.constructionId, constructions.id)
+      )
       .innerJoin(
         waterLineTranslations,
         and(
@@ -966,6 +971,7 @@ export async function getWaterLinesList(
           eq(waterLineTranslations.locale, locale)
         )
       )
+      .where(eq(constructions.typeCategory, 'water_line'))
       .orderBy(waterLineTranslations.name);
 
     // Transform results
@@ -1026,16 +1032,21 @@ export async function getWaterLineBySlug(
     }
 
     // Query water line by slug with translation
+    // Use INNER JOIN with constructions to ensure valid parent-child relationship
     const waterLineResults = await db
       .select({
         id: waterLines.id,
-        slug: waterLines.slug,
+        slug: constructions.slug, // Use construction slug
         pathText: sql<string>`ST_AsText(${waterLines.path})`.as('path_text'),
         color: waterLines.color,
         name: waterLineTranslations.name,
         description: waterLineTranslations.description,
       })
-      .from(waterLines)
+      .from(constructions)
+      .innerJoin(
+        waterLines,
+        eq(waterLines.constructionId, constructions.id)
+      )
       .leftJoin(
         waterLineTranslations,
         and(
@@ -1043,7 +1054,12 @@ export async function getWaterLineBySlug(
           eq(waterLineTranslations.locale, locale)
         )
       )
-      .where(eq(waterLines.slug, slug))
+      .where(
+        and(
+          eq(constructions.slug, slug),
+          eq(constructions.typeCategory, 'water_line')
+        )
+      )
       .limit(1);
 
     if (waterLineResults.length === 0) {
@@ -1202,16 +1218,22 @@ export async function getMapData(
     }
 
     // Fetch water line geometries and colors
+    // Use INNER JOIN with constructions to ensure valid parent-child relationship
     // Use ST_AsText to get the raw PostGIS text, then parse it manually
     // since Drizzle custom types may not always parse correctly in selects
     const waterLinesWithGeometry = await db
       .select({
         id: waterLines.id,
-        slug: waterLines.slug,
+        slug: constructions.slug, // Use construction slug
         pathText: sql<string>`ST_AsText(${waterLines.path})`.as('path_text'),
         color: waterLines.color,
       })
-      .from(waterLines);
+      .from(constructions)
+      .innerJoin(
+        waterLines,
+        eq(waterLines.constructionId, constructions.id)
+      )
+      .where(eq(constructions.typeCategory, 'water_line'));
 
     // Combine water line data with translations
     const mapWaterLines: MapWaterLine[] = waterLinesWithGeometry

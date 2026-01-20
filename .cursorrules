@@ -101,14 +101,12 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.7.1: WORKFLOW & PERMISSIONS)**
-* **Focus:** Distinguishing between 'Draft' (Private) and 'Review' (Admin Queue).
-* **Logic:** - **Draft:** Visible only to the Author in "My Projects". Only Author/Admin can delete.
-    - **Review:** Visible in the "Review Queue" for Admins.
-    - **Published:** Visible to everyone.
+**CURRENT CONTEXT (PHASE 5.9.7.1c: CRITICAL DATA LINKAGE FIX)**
+* **The Problem:** Water Lines are being created as "orphans". They exist in `water_lines` but are missing from the `constructions` parent table.
+* **Database Fact:** The column in `constructions` is `type_category`, not `type`.
 * **Key Tasks:**
-    - **Creator UI:** Add two distinct buttons to creation forms: "Save as Draft" (status: draft) and "Submit for Review" (status: review).
-    - **Redirects:** Successful submission must redirect to `/dashboard`.
-    - **Review Queue:** Filter `src/app/[locale]/dashboard/review/page.tsx` to show ONLY `status: 'review'`.
-    - **Permissions:** Admin role check for "Publish" and "Delete All" actions.
-* **Constraint:** When linking Mills/Poças to a Levada, filter the dropdown to `status: 'published'` only.
+    - **Fix `upsertWaterLine`:** This Server Action MUST perform a double insertion within a Database Transaction:
+        1. Insert/Update the `constructions` table first (set `type_category` to 'water_line', save the `geom`, and set the `status`).
+        2. Insert/Update the `water_lines` table using the ID from the construction record.
+    - **GIS Repair:** Ensure the `geom` being sent to `constructions` is a valid PostGIS `LineString` with coordinates in `[longitude, latitude]` order (SRID 4326).
+* **Constraint:** Do NOT allow a Water Line to exist without a parent Construction record.

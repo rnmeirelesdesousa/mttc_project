@@ -408,6 +408,11 @@ export const waterLines = pgTable(
   'water_lines',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    // Foreign key to constructions (1:1 relationship)
+    constructionId: uuid('construction_id')
+      .notNull()
+      .unique()
+      .references(() => constructions.id, { onDelete: 'cascade' }),
     slug: varchar('slug', { length: 255 }).notNull().unique(),
     path: geometryLineString('path').notNull(), // PostGIS LineString geometry (SRID 4326)
     color: varchar('color', { length: 7 }).notNull().default('#3b82f6'), // Hex color code for map display
@@ -471,6 +476,10 @@ export const constructionsRelations = relations(constructions, ({ one, many }) =
     fields: [constructions.id],
     references: [pocasData.constructionId],
   }),
+  waterLine: one(waterLines, {
+    fields: [constructions.id],
+    references: [waterLines.constructionId],
+  }),
   translations: many(constructionTranslations),
   // Phase 3: Academic Shield - Author relation
   author: one(profiles, {
@@ -531,7 +540,11 @@ export const pocasDataRelations = relations(pocasData, ({ one }) => ({
 }));
 
 // Phase 5.9.7: Update Water Lines Relations to include pocas
-export const waterLinesRelations = relations(waterLines, ({ many }) => ({
+export const waterLinesRelations = relations(waterLines, ({ one, many }) => ({
+  construction: one(constructions, {
+    fields: [waterLines.constructionId],
+    references: [constructions.id],
+  }),
   translations: many(waterLineTranslations),
   mills: many(millsData),
   pocas: many(pocasData),
