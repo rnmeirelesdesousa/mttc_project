@@ -36,6 +36,8 @@ export interface PublishedMill {
   // Phase 5.9.2: Custom icon and water line reference
   customIconUrl: string | null;
   waterLineId: string | null;
+  // Phase 5.9.8: Water line color for dynamic SVG marker tinting
+  waterLineColor: string | null;
   // Translation (may be null if translation for locale doesn't exist)
   title: string | null;
   description: string | null;
@@ -150,6 +152,8 @@ export async function getPublishedMills(
         // Phase 5.9.2: Custom icon and water line reference
         customIconUrl: constructions.customIconUrl,
         waterLineId: millsData.waterLineId,
+        // Phase 5.9.8: Water line color for dynamic SVG marker tinting
+        waterLineColor: waterLines.color,
         // Translation fields
         title: constructionTranslations.title,
         description: constructionTranslations.description,
@@ -162,6 +166,10 @@ export async function getPublishedMills(
           eq(constructionTranslations.constructionId, constructions.id),
           eq(constructionTranslations.langCode, locale)
         )
+      )
+      .leftJoin(
+        waterLines,
+        eq(waterLines.id, millsData.waterLineId)
       )
       .where(and(...whereConditions));
 
@@ -197,6 +205,7 @@ export async function getPublishedMills(
           propertyStatus: row.propertyStatus,
           customIconUrl: row.customIconUrl,
           waterLineId: row.waterLineId,
+          waterLineColor: row.waterLineColor,
           title: row.title,
           description: row.description,
         };
@@ -470,6 +479,7 @@ export async function getMillBySlug(
       propertyStatus: row.propertyStatus,
       customIconUrl: row.customIconUrl,
       waterLineId: row.waterLineId,
+      waterLineColor: row.waterLineColor,
       title: row.title,
       description: row.description,
       // Architecture
@@ -730,6 +740,7 @@ export async function getMillById(
       propertyStatus: row.propertyStatus,
       customIconUrl: row.customIconUrl,
       waterLineId: row.waterLineId,
+      waterLineColor: row.waterLineColor,
       title: row.title,
       description: row.description,
       // Architecture
@@ -874,6 +885,8 @@ export async function getConnectedMills(
         // Phase 5.9.2: Custom icon and water line reference
         customIconUrl: constructions.customIconUrl,
         waterLineId: millsData.waterLineId,
+        // Phase 5.9.8: Water line color for dynamic SVG marker tinting
+        waterLineColor: waterLines.color,
         // Translation fields
         title: constructionTranslations.title,
         description: constructionTranslations.description,
@@ -886,6 +899,10 @@ export async function getConnectedMills(
           eq(constructionTranslations.constructionId, constructions.id),
           eq(constructionTranslations.langCode, locale)
         )
+      )
+      .leftJoin(
+        waterLines,
+        eq(waterLines.id, millsData.waterLineId)
       )
       .where(
         and(
@@ -1187,6 +1204,8 @@ export async function getWaterLineBySlug(
         // Phase 5.9.2: Custom icon and water line reference
         customIconUrl: constructions.customIconUrl,
         waterLineId: millsData.waterLineId,
+        // Phase 5.9.8: Water line color for dynamic SVG marker tinting
+        waterLineColor: waterLines.color,
         // Translation fields
         title: constructionTranslations.title,
         description: constructionTranslations.description,
@@ -1199,6 +1218,10 @@ export async function getWaterLineBySlug(
           eq(constructionTranslations.constructionId, constructions.id),
           eq(constructionTranslations.langCode, locale)
         )
+      )
+      .leftJoin(
+        waterLines,
+        eq(waterLines.id, millsData.waterLineId)
       )
       .where(
         and(

@@ -13,6 +13,7 @@ import MarkerClusterGroup from 'react-leaflet-cluster';
 import type { PublishedMill, MapWaterLine } from '@/actions/public';
 import { getMillIcon } from '@/lib/map-icons';
 import { ConnectionLine } from './ConnectionLine';
+import { DynamicSVGMarker } from './DynamicSVGMarker';
 
 /**
  * MapClickHandler Component
@@ -230,15 +231,15 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
           const isSelected = selectedMillId === mill.id;
           const isGreyedOut = selectedMillId !== null && !isSelected;
           
-          // Get custom icon if available (Phase 5.9.2.4)
-          // Make selected marker larger, grey out others when one is selected
-          const customIcon = getMillIcon(mill.customIconUrl, isSelected, isGreyedOut);
-
+          // Phase 5.9.8: Use DynamicSVGMarker for async SVG tinting with Levada colors
+          // Uses global template (mill.svg) and tints it with the associated Levada's color
           return (
-            <Marker
+            <DynamicSVGMarker
               key={mill.id}
+              mill={mill}
               position={position}
-              icon={customIcon}
+              isSelected={isSelected}
+              isGreyedOut={isGreyedOut}
               eventHandlers={{
                 click: (e) => {
                   // Prevent map background click from firing

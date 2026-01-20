@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase';
 import { db } from '@/lib/db';
-import { profiles, constructions } from '@/db/schema';
+import { profiles, constructions, waterLines } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getSessionUserId } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
@@ -125,6 +125,49 @@ export async function deleteDraftConstruction(
   } catch (error) {
     console.error('[deleteDraftConstruction]:', error);
     return { success: false, error: 'An error occurred while deleting the construction' };
+  }
+}
+
+/**
+ * Fetches a water line's (Levada's) color by its ID
+ * 
+ * Phase 5.9.8: Used during Construction creation to preview SVG markers
+ * with the correct color tinting.
+ * 
+ * @param waterLineId - Water line UUID
+ * @returns Standardized response: { success: true, data?: { color: string } } or { success: false, error: string }
+ */
+export async function getWaterLineColor(
+  waterLineId: string
+): Promise<
+  | { success: true; data: { color: string } }
+  | { success: false; error: string }
+> {
+  try {
+    // Validate input
+    if (!waterLineId || typeof waterLineId !== 'string') {
+      return { success: false, error: 'Water line ID is required' };
+    }
+
+    // Query water line color
+    const result = await db
+      .select({
+        color: waterLines.color,
+      })
+      .from(waterLines)
+      .where(eq(waterLines.id, waterLineId))
+      .limit(1);
+
+    if (result.length === 0) {
+      return { success: false, error: 'Water line not found' };
+    }
+
+    const waterLine = result[0]!;
+
+    return { success: true, data: { color: waterLine.color } };
+  } catch (error) {
+    console.error('[getWaterLineColor]:', error);
+    return { success: false, error: 'An error occurred while fetching water line color' };
   }
 }
 

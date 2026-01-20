@@ -13,6 +13,14 @@
   }
 }
 
+/* Prevent Leaflet's default marker styling from interfering with custom SVG icons */
+/* Only apply background removal to transparent placeholder div icons */
+.leaflet-marker-icon.bg-transparent,
+.leaflet-marker-icon.invisible {
+  background: none !important;
+  border: none !important;
+}
+
 /* Grey out non-selected markers when a marker is selected */
 .leaflet-marker-icon.mill-marker-greyed-out,
 .leaflet-marker-icon.mill-marker-greyed-out img {
