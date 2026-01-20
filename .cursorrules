@@ -101,7 +101,7 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.20.4: TAXONOMY & EDGE CASE REFINEMENT)**
-* **The Situation:** The Postgres enum `roof_shape` already contains 'inexistent', but it is missing from `schema.ts`, Zod validation, and the UI.
-* **Taxonomy Consolidation:** We are simplifying the Plan Shapes to exactly four categories: 'circular', 'quadrangular', 'rectangular', and 'irregular'.
-* **Objective:** Sync the Drizzle schema, Zod validation, and the Add/Edit Mill forms to reflect these exact scientific categories.
+**CURRENT CONTEXT (PHASE 5.9.20.5: SCIENTIFIC REVIEW COMPLETENESS)**
+* **Goal:** Transform the Admin Review page into a full technical audit view.
+* **Requirements:** The page at `app/[locale]/dashboard/review/[slug]/page.tsx` must show EVERY field from the inventory (Dimensions, Materials, Enums, and the 5 Observation text fields).
+* **Comparison:** The layout should mirror the "Technical Specifications" section of the public sidebar but in a full-page, editable/approvable format.

@@ -596,6 +596,12 @@ export async function getConstructionForReview(
         exteriorFinish: string | null;
         roofShape: string | null;
         roofMaterial: string | null;
+        length: number | null;
+        width: number | null;
+        height: number | null;
+        stoneTypeGranite: boolean;
+        stoneTypeSchist: boolean;
+        stoneTypeOther: boolean;
         captationType: string | null;
         conductionType: string | null;
         conductionState: string | null;
@@ -684,6 +690,12 @@ export async function getConstructionForReview(
         exteriorFinish: millsData.exteriorFinish,
         roofShape: millsData.roofShape,
         roofMaterial: millsData.roofMaterial,
+        length: millsData.length,
+        width: millsData.width,
+        height: millsData.height,
+        stoneTypeGranite: millsData.stoneTypeGranite,
+        stoneTypeSchist: millsData.stoneTypeSchist,
+        stoneTypeOther: millsData.stoneTypeOther,
         captationType: millsData.captationType,
         conductionType: millsData.conductionType,
         conductionState: millsData.conductionState,
@@ -774,6 +786,12 @@ export async function getConstructionForReview(
         exteriorFinish: row.exteriorFinish,
         roofShape: row.roofShape,
         roofMaterial: row.roofMaterial,
+        length: row.length,
+        width: row.width,
+        height: row.height,
+        stoneTypeGranite: row.stoneTypeGranite,
+        stoneTypeSchist: row.stoneTypeSchist,
+        stoneTypeOther: row.stoneTypeOther,
         captationType: row.captationType,
         conductionType: row.conductionType,
         conductionState: row.conductionState,
