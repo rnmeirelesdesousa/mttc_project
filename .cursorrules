@@ -101,14 +101,11 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.5.10: MAP-CENTRIC RESTRUCTURING)**
-* **Focus:** Root Route Reassignment & Header Layout.
-* **Navigation:** The root page (`/`) must now display the full-page map.
-* **Header Layout (Fixed h-20):**
-    - **justify-between flex-row:** - [Left]: Logo/Project Name.
-    - [Center]: Search Bar (600px max-width, absolute center).
-    - [Right]: Action Group (Auth/Dashboard).
-* **Search Implementation:** - Real-time search in `constructions` and `construction_translations`.
-    - Dropdown results list with: [Title] - [District].
-    - On Select: Update URL slug and trigger `flyTo` in the Map component.
-* **Constraints:** Ensure the "Search" box is responsive (shrinks on mobile).
+**CURRENT CONTEXT (PHASE 5.9.5.12: GLOBAL SEARCH & PERSISTENT SIDEBAR)**
+* **Focus:** Cross-Language Discovery and Non-Modal UX.
+* **Search Upgrade:** - Queries must search the `construction_translations` table across ALL `language_code` values simultaneously.
+    - If a result is found in a non-active language, display it in the results list.
+* **Persistent Sidebar:** - The Filter Sidebar must NOT block the map. Remove the backdrop/overlay.
+    - When open, the Map container width must shrink (`flex` or `calc`) to prevent the sidebar from covering markers.
+    - The Map must remain fully interactive (zoom/pan) while the sidebar is open.
+* **Closing Logic:** The sidebar only closes via the "X" button or the Menu toggle, NOT by clicking the map.

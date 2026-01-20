@@ -59,6 +59,37 @@ function FocusZoomHandler({
   return null;
 }
 
+/**
+ * MapResizeHandler Component
+ * 
+ * Handles map resize events to ensure the map properly adjusts when container size changes.
+ * This is important when the sidebar toggles and the map container width changes.
+ */
+function MapResizeHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    // Listen for window resize events
+    const handleResize = () => {
+      // Use setTimeout to ensure DOM has updated
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    // Also trigger on mount to ensure initial size is correct
+    handleResize();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [map]);
+
+  return null;
+}
+
 // Fix Leaflet icon issue in Next.js/Webpack
 // Leaflet's default icon paths don't work correctly with Webpack bundling
 // We need to manually set the icon URLs to point to the correct paths
@@ -123,6 +154,9 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
 
         {/* Map click handler for closing postal card */}
         {onMapClick && <MapClickHandler onMapClick={onMapClick} />}
+
+        {/* Map resize handler - ensures map resizes when container size changes */}
+        <MapResizeHandler />
 
         {/* Focus zoom handler - automatically centers and zooms to selected mill at 50% viewport width */}
         {selectedMillCoords && (

@@ -1271,12 +1271,22 @@ export async function getMapData(
  */
 export interface SearchableMill {
   id: string;
-  title: string | null;
+  title: string | null; // Title from current locale (fallback)
+  titleLangCode: string | null; // Language code of the title (for display)
   slug: string;
   district: string | null;
+  municipality: string | null;
+  parish: string | null;
+  address: string | null;
   typology: string;
   roofMaterial: string | null;
   motiveApparatus: string | null;
+  // All translations for cross-language search
+  translations: Array<{
+    langCode: string;
+    title: string;
+    description: string | null;
+  }>;
   lat: number;
   lng: number;
 }
@@ -1284,13 +1294,16 @@ export interface SearchableMill {
 /**
  * Fetches all published mills with searchable fields for global search
  * 
- * This is a lightweight query that only fetches fields needed for search:
- * - Names (title)
- * - Materials (roofMaterial)
- * - Typologies (typology)
- * - Districts (district)
+ * Cross-language search: Fetches all translations for each construction to enable
+ * searching across all languages. Returns titles from all languages.
  * 
- * @param locale - Language code ('pt' | 'en')
+ * Searchable fields:
+ * - Names (title) - all languages
+ * - Descriptions - all languages
+ * - Location data (district, municipality, parish, address)
+ * - Construction data (typology, roofMaterial, motiveApparatus)
+ * 
+ * @param locale - Language code ('pt' | 'en') - used as fallback for title display
  * @returns Standardized response with array of searchable mills
  */
 export async function getSearchableMills(
@@ -1305,54 +1318,123 @@ export async function getSearchableMills(
       return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
     }
 
-    // Query published mills with only searchable fields
+    // Query published mills with all searchable fields and ALL translations
     const results = await db
       .select({
         id: constructions.id,
         slug: constructions.slug,
-        title: constructionTranslations.title,
         district: constructions.district,
+        municipality: constructions.municipality,
+        parish: constructions.parish,
+        address: constructions.address,
         typology: millsData.typology,
         roofMaterial: millsData.roofMaterial,
         motiveApparatus: millsData.motiveApparatus,
         lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
         lat: sql<number | null>`COALESCE(ST_Y(${constructions.geom}::geometry), NULL)`,
+        // Translation fields (will be joined separately for all languages)
+        translationLangCode: constructionTranslations.langCode,
+        translationTitle: constructionTranslations.title,
+        translationDescription: constructionTranslations.description,
       })
       .from(constructions)
       .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
       .leftJoin(
         constructionTranslations,
-        and(
-          eq(constructionTranslations.constructionId, constructions.id),
-          eq(constructionTranslations.langCode, locale)
-        )
+        eq(constructionTranslations.constructionId, constructions.id)
+        // Note: No langCode filter - we want ALL translations
       )
       .where(eq(constructions.status, 'published'));
 
-    // Transform results and filter out invalid coordinates
-    const mills: SearchableMill[] = results
-      .map((row) => {
-        const lat = row.lat !== null ? Number(row.lat) : null;
-        const lng = row.lng !== null ? Number(row.lng) : null;
-        
-        // Skip mills with invalid coordinates
-        if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-          return null;
-        }
-        
-        return {
+    // Group results by construction ID and collect all translations
+    const millsMap = new Map<string, {
+      id: string;
+      slug: string;
+      district: string | null;
+      municipality: string | null;
+      parish: string | null;
+      address: string | null;
+      typology: string;
+      roofMaterial: string | null;
+      motiveApparatus: string | null;
+      lat: number | null;
+      lng: number | null;
+      translations: Array<{
+        langCode: string;
+        title: string;
+        description: string | null;
+      }>;
+    }>();
+
+    for (const row of results) {
+      const lat = row.lat !== null ? Number(row.lat) : null;
+      const lng = row.lng !== null ? Number(row.lng) : null;
+      
+      // Skip mills with invalid coordinates
+      if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        continue;
+      }
+
+      if (!millsMap.has(row.id)) {
+        millsMap.set(row.id, {
           id: row.id,
           slug: row.slug,
-          title: row.title,
           district: row.district,
+          municipality: row.municipality,
+          parish: row.parish,
+          address: row.address,
           typology: row.typology,
           roofMaterial: row.roofMaterial,
           motiveApparatus: row.motiveApparatus,
           lat,
           lng,
+          translations: [],
+        });
+      }
+
+      const mill = millsMap.get(row.id)!;
+      
+      // Add translation if it exists and hasn't been added yet
+      if (row.translationLangCode && row.translationTitle) {
+        const existingTranslation = mill.translations.find(
+          (t) => t.langCode === row.translationLangCode
+        );
+        if (!existingTranslation) {
+          mill.translations.push({
+            langCode: row.translationLangCode,
+            title: row.translationTitle,
+            description: row.translationDescription,
+          });
+        }
+      }
+    }
+
+    // Transform to SearchableMill format
+    const mills: SearchableMill[] = Array.from(millsMap.values())
+      .map((mill) => {
+        // Find title from current locale (fallback), or first available
+        const currentLocaleTranslation = mill.translations.find(
+          (t) => t.langCode === locale
+        );
+        const fallbackTranslation = mill.translations[0] || null;
+
+        return {
+          id: mill.id,
+          slug: mill.slug,
+          title: currentLocaleTranslation?.title || fallbackTranslation?.title || null,
+          titleLangCode: currentLocaleTranslation?.langCode || fallbackTranslation?.langCode || null,
+          district: mill.district,
+          municipality: mill.municipality,
+          parish: mill.parish,
+          address: mill.address,
+          typology: mill.typology,
+          roofMaterial: mill.roofMaterial,
+          motiveApparatus: mill.motiveApparatus,
+          translations: mill.translations,
+          lat: mill.lat!,
+          lng: mill.lng!,
         };
-      })
-      .filter((mill): mill is SearchableMill => mill !== null);
+      });
 
     return { success: true, data: mills };
   } catch (error) {

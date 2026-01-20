@@ -113,10 +113,9 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
     motiveApparatusParams.length > 0;
 
   return (
-    <div className="bg-white p-6 rounded-lg h-full overflow-y-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">{t('map.filters')}</h2>
-        {hasActiveFilters && (
+    <div className="bg-white p-6 h-full overflow-y-auto">
+      {hasActiveFilters && (
+        <div className="flex items-center justify-end mb-4">
           <Button
             variant="ghost"
             size="sm"
@@ -125,8 +124,8 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
           >
             {t('filter.clearAll')}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Typology Section */}
       <div className="mb-6">

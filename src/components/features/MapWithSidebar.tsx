@@ -2,17 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import { MillMap } from './MillMap';
 import { MillSidebar } from './MillSidebar';
 import { MapSidebar } from './MapSidebar';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import type { PublishedMill, MapWaterLine } from '@/actions/public';
 
 // Dynamically import MillMap to avoid SSR issues with Leaflet
@@ -43,6 +39,7 @@ interface MapWithSidebarProps {
  * Full-page map interface with filter sidebar accessible via menu icon.
  */
 export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }: MapWithSidebarProps) => {
+  const t = useTranslations();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -96,40 +93,65 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
     ? { lat: selectedMill.lat, lng: selectedMill.lng }
     : null;
 
+  // Trigger map resize when sidebar toggles
+  useEffect(() => {
+    if (mapContainerRef.current) {
+      // Use setTimeout to ensure DOM has updated
+      const timer = setTimeout(() => {
+        // Trigger window resize event to notify Leaflet
+        window.dispatchEvent(new Event('resize'));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [filterSidebarOpen]);
+
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <DynamicMillMap
-        mills={mills}
-        waterLines={waterLines}
-        locale={locale}
-        onMillClick={handleMillClick}
-        onMapClick={handleMapClick}
-        selectedMillCoords={selectedMillCoords}
-        mapContainerRef={mapContainerRef}
-      />
-      <MillSidebar
-        millId={selectedMillId}
-        locale={locale}
-        onClose={handleCloseSidebar}
-      />
-      
-      {/* Filter Menu Icon - Fixed position on left side */}
-      <div className="absolute top-4 left-4 z-[1002]">
-        <Sheet open={filterSidebarOpen} onOpenChange={setFilterSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="default"
-              size="sm"
-              className="bg-white/95 hover:bg-white text-gray-900 shadow-lg border border-gray-200 p-2"
-              aria-label="Open filters"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[400px] sm:w-[540px] overflow-y-auto">
+    <div className="relative h-full w-full overflow-hidden flex">
+      {/* Filter Sidebar - Persistent, non-blocking */}
+      {filterSidebarOpen && (
+        <div className="w-[400px] bg-white border-r border-gray-200 overflow-y-auto z-[1001] flex-shrink-0">
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-4 z-10">
+            <h2 className="text-lg font-semibold">{t('map.filters')}</h2>
+          </div>
+          <div className="p-0">
             <MapSidebar availableDistricts={availableDistricts} locale={locale} />
-          </SheetContent>
-        </Sheet>
+          </div>
+        </div>
+      )}
+
+      {/* Map Container - Takes remaining space */}
+      <div className="flex-1 relative h-full w-full">
+        <DynamicMillMap
+          mills={mills}
+          waterLines={waterLines}
+          locale={locale}
+          onMillClick={handleMillClick}
+          onMapClick={handleMapClick}
+          selectedMillCoords={selectedMillCoords}
+          mapContainerRef={mapContainerRef}
+        />
+        <MillSidebar
+          millId={selectedMillId}
+          locale={locale}
+          onClose={handleCloseSidebar}
+        />
+        
+        {/* Filter Menu Icon - Fixed position on left side */}
+        <div className="absolute top-4 left-4 z-[1002]">
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-white/95 hover:bg-white text-gray-900 shadow-lg border border-gray-200 p-2"
+            aria-label={filterSidebarOpen ? "Close filters" : "Open filters"}
+            onClick={() => setFilterSidebarOpen(!filterSidebarOpen)}
+          >
+            {filterSidebarOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

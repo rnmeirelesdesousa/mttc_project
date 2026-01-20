@@ -28,7 +28,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
   const [mills, setMills] = useState<SearchableMill[]>([]);
-  const [filteredMills, setFilteredMills] = useState<SearchableMill[]>([]);
+  const [filteredMills, setFilteredMills] = useState<(SearchableMill & { displayTitle?: string | null; displayLangCode?: string | null })[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
     fetchMills();
   }, [locale]);
 
-  // Filter mills based on search query
+  // Filter mills based on search query - cross-language search
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredMills([]);
@@ -56,45 +56,83 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
     }
 
     const query = searchQuery.toLowerCase().trim();
-    const filtered = mills.filter((mill) => {
-      // Search in title
-      const titleMatch = mill.title?.toLowerCase().includes(query);
-      
-      // Search in district
-      const districtMatch = mill.district?.toLowerCase().includes(query);
-      
-      // Search in typology (need to translate)
-      let typologyMatch = mill.typology?.toLowerCase().includes(query);
-      if (!typologyMatch && mill.typology) {
-        try {
-          typologyMatch = t(`taxonomy.typology.${mill.typology}`).toLowerCase().includes(query);
-        } catch {
-          // Translation key not found, skip translated search
-        }
-      }
-      
-      // Search in roofMaterial (need to translate)
-      let roofMaterialMatch = mill.roofMaterial?.toLowerCase().includes(query);
-      if (!roofMaterialMatch && mill.roofMaterial) {
-        try {
-          roofMaterialMatch = t(`taxonomy.roofMaterial.${mill.roofMaterial}`).toLowerCase().includes(query);
-        } catch {
-          // Translation key not found, skip translated search
-        }
-      }
-      
-      // Search in motiveApparatus (need to translate)
-      let motiveApparatusMatch = mill.motiveApparatus?.toLowerCase().includes(query);
-      if (!motiveApparatusMatch && mill.motiveApparatus) {
-        try {
-          motiveApparatusMatch = t(`taxonomy.motiveApparatus.${mill.motiveApparatus}`).toLowerCase().includes(query);
-        } catch {
-          // Translation key not found, skip translated search
-        }
-      }
+    const filtered = mills
+      .map((mill) => {
+        let matched = false;
+        let matchedTitle: string | null = null;
+        let matchedLangCode: string | null = null;
 
-      return titleMatch || districtMatch || typologyMatch || roofMaterialMatch || motiveApparatusMatch;
-    });
+        // Search in all translations (cross-language)
+        for (const translation of mill.translations || []) {
+          const titleMatch = translation.title?.toLowerCase().includes(query);
+          const descriptionMatch = translation.description?.toLowerCase().includes(query);
+          
+          if (titleMatch || descriptionMatch) {
+            matched = true;
+            // Use the title from the language that matched
+            if (titleMatch && !matchedTitle) {
+              matchedTitle = translation.title;
+              matchedLangCode = translation.langCode;
+            }
+          }
+        }
+        
+        // Search in location data
+        const districtMatch = mill.district?.toLowerCase().includes(query);
+        const municipalityMatch = mill.municipality?.toLowerCase().includes(query);
+        const parishMatch = mill.parish?.toLowerCase().includes(query);
+        const addressMatch = mill.address?.toLowerCase().includes(query);
+        
+        if (districtMatch || municipalityMatch || parishMatch || addressMatch) {
+          matched = true;
+        }
+        
+        // Search in typology (need to translate)
+        let typologyMatch = mill.typology?.toLowerCase().includes(query);
+        if (!typologyMatch && mill.typology) {
+          try {
+            typologyMatch = t(`taxonomy.typology.${mill.typology}`).toLowerCase().includes(query);
+          } catch {
+            // Translation key not found, skip translated search
+          }
+        }
+        
+        // Search in roofMaterial (need to translate)
+        let roofMaterialMatch = mill.roofMaterial?.toLowerCase().includes(query);
+        if (!roofMaterialMatch && mill.roofMaterial) {
+          try {
+            roofMaterialMatch = t(`taxonomy.roofMaterial.${mill.roofMaterial}`).toLowerCase().includes(query);
+          } catch {
+            // Translation key not found, skip translated search
+          }
+        }
+        
+        // Search in motiveApparatus (need to translate)
+        let motiveApparatusMatch = mill.motiveApparatus?.toLowerCase().includes(query);
+        if (!motiveApparatusMatch && mill.motiveApparatus) {
+          try {
+            motiveApparatusMatch = t(`taxonomy.motiveApparatus.${mill.motiveApparatus}`).toLowerCase().includes(query);
+          } catch {
+            // Translation key not found, skip translated search
+          }
+        }
+
+        if (typologyMatch || roofMaterialMatch || motiveApparatusMatch) {
+          matched = true;
+        }
+
+        if (!matched) {
+          return null;
+        }
+
+        // Return mill with the matched title (or fallback to default title)
+        return {
+          ...mill,
+          displayTitle: matchedTitle || mill.title,
+          displayLangCode: matchedLangCode || mill.titleLangCode,
+        };
+      })
+      .filter((mill): mill is SearchableMill & { displayTitle: string | null; displayLangCode: string | null } => mill !== null);
 
     setFilteredMills(filtered.slice(0, 10)); // Limit to 10 results
     setIsOpen(filtered.length > 0);
@@ -114,7 +152,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
     };
   }, []);
 
-  const handleSelectMill = (mill: SearchableMill) => {
+  const handleSelectMill = (mill: SearchableMill & { displayTitle?: string | null; displayLangCode?: string | null }) => {
     setSearchQuery('');
     setIsOpen(false);
     
@@ -139,11 +177,12 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
     inputRef.current?.focus();
   };
 
-  const getDisplayName = (mill: SearchableMill) => {
-    return mill.title || mill.slug;
+  const getDisplayName = (mill: SearchableMill & { displayTitle?: string | null; displayLangCode?: string | null }) => {
+    // Use displayTitle if available (from matched language), otherwise fallback to title
+    return mill.displayTitle || mill.title || mill.slug;
   };
 
-  const getMatchText = (mill: SearchableMill) => {
+  const getMatchText = (mill: SearchableMill & { displayTitle?: string | null; displayLangCode?: string | null }) => {
     const parts: string[] = [];
     if (mill.district) parts.push(mill.district);
     if (mill.typology) {
@@ -152,6 +191,10 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
       } catch {
         parts.push(mill.typology);
       }
+    }
+    // Show language indicator if title is from a different language
+    if (mill.displayLangCode && mill.displayLangCode !== locale) {
+      parts.push(`(${mill.displayLangCode.toUpperCase()})`);
     }
     return parts.join(' • ');
   };
