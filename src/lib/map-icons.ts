@@ -10,6 +10,9 @@
 
 import L from 'leaflet';
 
+// Base marker size in pixels
+const BASE_MARKER_SIZE = 60;
+
 // Phase 5.9.8: Cache for raw SVG templates to avoid re-fetching
 const svgTemplateCache = new Map<string, string>();
 // Cache for tinted SVG results (key: `${type}-${color}`)
@@ -163,11 +166,12 @@ export function getMarkerIcon(
   isSelected?: boolean,
   isGreyedOut?: boolean
 ): L.DivIcon {
-  // Scale factor for selected markers (1.5x larger)
-  const scale = isSelected ? 1.5 : 1;
-  const iconSize: [number, number] = [Math.round(25 * scale), Math.round(41 * scale)];
-  const iconAnchor: [number, number] = [Math.round(12 * scale), Math.round(41 * scale)];
-  const popupAnchor: [number, number] = [Math.round(1 * scale), Math.round(-34 * scale)];
+  // Calculate dimensions based on selection state
+  const width = isSelected ? BASE_MARKER_SIZE * 1.2 : BASE_MARKER_SIZE;
+  const height = width;
+  const iconSize: [number, number] = [width, height];
+  const iconAnchor: [number, number] = [width / 2, height];
+  const popupAnchor: [number, number] = [0, -height];
 
   // Add className for CSS styling when greyed out
   const className = isGreyedOut ? 'mill-marker-greyed-out bg-transparent' : 'bg-transparent';
@@ -193,7 +197,7 @@ export function getMillIcon(
   isSelected?: boolean,
   isGreyedOut?: boolean,
   waterLineColor?: string | null
-): L.Icon {
+): L.DivIcon {
   return getMarkerIcon('mill', isSelected, isGreyedOut);
 }
 
@@ -207,21 +211,20 @@ export function getMillIcon(
  * @param isSelected - Whether this marker is currently selected (makes it larger)
  * @param isGreyedOut - Whether this marker should be greyed out (when another is selected)
  * @param waterLineColor - Optional hex color code from associated Levada for SVG tinting
- * @returns Promise resolving to Leaflet L.Icon instance
+ * @returns Promise resolving to Leaflet L.Icon or L.DivIcon instance
  */
 export async function getMarkerIconAsync(
   type: 'mill' | 'poca' = 'mill',
   isSelected?: boolean,
   isGreyedOut?: boolean,
   waterLineColor?: string | null
-): Promise<L.Icon> {
-  // Scale factor for selected markers (1.5x larger)
-  const scale = isSelected ? 1.5 : 1;
-  const iconSize: [number, number] = [Math.round(25 * scale), Math.round(41 * scale)];
-  const iconAnchor: [number, number] = [Math.round(12 * scale), Math.round(41 * scale)];
-  const popupAnchor: [number, number] = [Math.round(1 * scale), Math.round(-34 * scale)];
-  const shadowSize: [number, number] = [Math.round(41 * scale), Math.round(41 * scale)];
-  const shadowAnchor: [number, number] = [Math.round(12 * scale), Math.round(41 * scale)];
+): Promise<L.Icon | L.DivIcon> {
+  // Calculate dimensions based on selection state
+  const width = isSelected ? BASE_MARKER_SIZE * 1.2 : BASE_MARKER_SIZE;
+  const height = width;
+  const iconSize: [number, number] = [width, height];
+  const iconAnchor: [number, number] = [width / 2, height];
+  const popupAnchor: [number, number] = [0, -height];
 
   // Add className for CSS styling when greyed out
   const className = isGreyedOut ? 'mill-marker-greyed-out' : '';
@@ -240,9 +243,6 @@ export async function getMarkerIconAsync(
       iconSize,
       iconAnchor,
       popupAnchor,
-      shadowUrl: DEFAULT_SHADOW_URL,
-      shadowSize,
-      shadowAnchor,
       className,
     });
   }
@@ -267,7 +267,7 @@ export async function getMillIconAsync(
   isSelected?: boolean,
   isGreyedOut?: boolean,
   waterLineColor?: string | null
-): Promise<L.Icon> {
+): Promise<L.Icon | L.DivIcon> {
   return getMarkerIconAsync('mill', isSelected, isGreyedOut, waterLineColor);
 }
 
@@ -294,6 +294,6 @@ export function getConstructionTypeColor(typeCategory: string): string {
  * Legacy function for poça icons
  * @deprecated Use getMarkerIcon or getMarkerIconAsync instead
  */
-export function getPocaIcon(customIconUrl?: string | null): L.Icon {
+export function getPocaIcon(customIconUrl?: string | null): L.DivIcon {
   return getMarkerIcon('poca');
 }

@@ -101,9 +101,8 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.8: SURGICAL SVG SYMBOLOGY)**
-* **Focus:** High-precision rendering of 2-layer SVGs from Affinity Designer.
-* **Storage Path:** Templates moved to `map-assets/svg/mill.svg` and `map-assets/svg/poca.svg`.
-* **Logic:** Use `DOMParser` to target `#marker-fill` (for transparency) and `#marker-lines` (for outlines).
-* **Requirement:** Apply `waterLines.color` to these IDs while strictly preserving the `fill-opacity` and `stroke-opacity` defined in the source file.
-* **Cache:** The `svgTemplateCache` key must be `${type}-${color}` to ensure different Levada colors don't conflict.
+**CURRENT CONTEXT (PHASE 5.9.8: MANUAL SYMBOLOGY CALIBRATION)**
+* **Focus:** Adjusting marker scale for visual clarity.
+* **Dimensions:** Markers are being set to a custom size (e.g., 40x40px).
+* **Anchor Logic:** `iconAnchor` must always be `[width/2, height]` to maintain geographic precision.
+* **Selection:** The CSS filter is used for selection, but the base `iconSize` is defined in `map-icons.ts`.

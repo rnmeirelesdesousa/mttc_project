@@ -29,6 +29,9 @@ interface DynamicSVGMarkerProps extends Omit<MarkerProps, 'icon'> {
 export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut, ...markerProps }: DynamicSVGMarkerProps) {
   const markerRef = useRef<L.Marker | null>(null);
   const iconUpdateInProgress = useRef(false);
+  
+  // Extract ref from props if it exists (using type assertion since ref is special)
+  const forwardedRef = (markerProps as any).ref;
 
   // Update icon when dependencies change (but only if marker is already mounted)
   useEffect(() => {
@@ -84,10 +87,10 @@ export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut,
       ref={(ref) => {
         markerRef.current = ref;
         // Handle forwarded ref if provided
-        if (typeof markerProps.ref === 'function') {
-          markerProps.ref(ref);
-        } else if (markerProps.ref) {
-          (markerProps.ref as React.MutableRefObject<L.Marker | null>).current = ref;
+        if (typeof forwardedRef === 'function') {
+          forwardedRef(ref);
+        } else if (forwardedRef) {
+          (forwardedRef as React.MutableRefObject<L.Marker | null>).current = ref;
         }
         // Apply filter immediately if selected
         if (ref && isSelected) {
