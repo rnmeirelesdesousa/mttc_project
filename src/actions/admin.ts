@@ -95,14 +95,19 @@ export async function deleteConstruction(
 
     const construction = existing[0]!;
 
-    // Phase 5.9.7.2: Scoped deletion logic
+    // Phase 5.9.7.2: Scoped deletion logic - STRICT ENFORCEMENT
+    // Researchers: Can delete ONLY if status === 'draft' AND they are the author
+    // Admins: Can delete ANY item
     if (!isUserAdmin) {
-      // Researchers: Can delete ONLY if status === 'draft' AND they are the author
-      if (construction.status !== 'draft') {
-        return { success: false, error: 'Only draft constructions can be deleted by the author' };
-      }
-      if (construction.createdBy !== userId) {
-        return { success: false, error: 'Unauthorized: You can only delete your own draft constructions' };
+      // Researcher attempting to delete non-draft OR not their own construction
+      if (construction.status !== 'draft' || construction.createdBy !== userId) {
+        // THROW ERROR: Strict enforcement for researcher violations
+        return { 
+          success: false, 
+          error: construction.status !== 'draft' 
+            ? 'Only draft constructions can be deleted by the author'
+            : 'Unauthorized: You can only delete your own draft constructions'
+        };
       }
     }
     // Admins: Can delete any item (no additional checks needed)
@@ -1424,16 +1429,28 @@ export async function getInventoryItems(
     const items: InventoryItem[] = [];
 
     // Fetch constructions (mills and pocas)
+    // Strategy: Query constructions directly without joining extension tables
+    // This ensures one physical site = one row in the inventory
+    // Extension data (mills_data, pocas_data) is not needed for the inventory list
     if (!filters?.type || filters.type === 'MILL' || filters.type === 'POCA' || filters.type === 'ALL') {
       const whereConditions = [];
       
       // Filter by type category if specific type requested
+      // Only include constructions that match the requested type_category
       if (filters?.type === 'MILL') {
         whereConditions.push(eq(constructions.typeCategory, 'MILL'));
       } else if (filters?.type === 'POCA') {
         whereConditions.push(eq(constructions.typeCategory, 'POCA'));
+      } else if (filters?.type === 'ALL') {
+        // Include both MILL and POCA, but exclude water_line (handled separately)
+        whereConditions.push(
+          or(
+            eq(constructions.typeCategory, 'MILL'),
+            eq(constructions.typeCategory, 'POCA')
+          )
+        );
       }
-      // If 'ALL', include both MILL and POCA
+      // If no type filter, default behavior includes MILL and POCA
       
       // Phase 5.9.7.2: Role-based filtering
       if (filters?.myProjects) {
@@ -1482,6 +1499,10 @@ export async function getInventoryItems(
         );
       }
 
+      // Query constructions with translations only
+      // Strategy: No joins to mills_data or pocas_data - ensures one row per construction.id
+      // The left join with construction_translations is safe because it has a composite
+      // primary key (constructionId, langCode), so it won't create duplicates
       const constructionsQuery = db
         .select({
           id: constructions.id,
@@ -1510,8 +1531,17 @@ export async function getInventoryItems(
 
       const constructionsResults = await constructionsQuery;
 
+      // Ensure uniqueness by construction.id (safety measure)
+      // One physical site = One row in the Inventory table
+      const uniqueConstructions = new Map<string, typeof constructionsResults[0]>();
+      for (const row of constructionsResults) {
+        if (!uniqueConstructions.has(row.id)) {
+          uniqueConstructions.set(row.id, row);
+        }
+      }
+
       items.push(
-        ...constructionsResults.map((row) => ({
+        ...Array.from(uniqueConstructions.values()).map((row) => ({
           id: row.id,
           slug: row.slug,
           type: (row.typeCategory === 'POCA' ? 'POCA' : 'MILL') as 'MILL' | 'POCA',

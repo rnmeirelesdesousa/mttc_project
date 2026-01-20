@@ -101,21 +101,8 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.7.2: LIFECYCLE & GOVERNANCE)**
-* **The Goal:** Implement strict RBAC, data states, and scoped deletion rights.
-* **Core Logic:** `constructions.status` and `profiles.role` dictate all actions.
-
-* **Tasks for the Builder:**
-    1.  **Inventory Filtering:** - Researchers: See only their OWN 'draft' items + all 'published' items.
-        - Admins: See all items regardless of status or author.
-    2.  **The Review Queue:** Admin-only view for items with `status: 'review'`.
-    3.  **Scoped Deletion Logic:**
-        - **Researcher Delete:** Modify the delete action to fail unless `status == 'draft'` AND the `user.id` matches the `construction.created_by`.
-        - **Admin Delete:** Allow the delete action for ANY item in the Inventory or Review Queue.
-        - **Delete Button:** Should be in the Inventory and Review Queue, avalable on each row the user has permission too do it.
-    4.  **Submission Flow:** - 'Save Draft' -> `status: 'draft'`.
-        - 'Submit for Review' -> `status: 'review'`.
-        - All success actions must redirect to `/[locale]/dashboard`.
-    5.  **Relational Filtering:** Mill/Poça entry forms must filter the 'Levada' dropdown to show ONLY `status: 'published'` water lines.
-
-* **Constraint:** Ensure the `Delete` button in the UI is conditionally hidden/disabled based on these roles to prevent a poor UX.
+**CURRENT CONTEXT (PHASE 5.9.7.3: GOVERNANCE & DATA INTEGRITY)**
+* **Critical Issues:** 1. Inventory Duplication: `getInventoryItems` is returning duplicate rows due to an un-discriminated JOIN Cartesian product between `mills_data` and `water_lines`.
+    2. Map ReferenceError: `getMapData` in `src/actions/public.ts` is attempting to access `whereConditions` which is out of scope.
+* **Architecture Strategy:** "Core + Extension". The `constructions` table is the parent. Extensions (`mills_data`, `water_lines`) must be joined conditionally or mapped 1:1 to avoid row multiplication.
+* **Permissions:** Researchers can ONLY delete their own 'draft' items. Admins can delete anything.

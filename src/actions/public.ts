@@ -1204,6 +1204,9 @@ export async function getWaterLineBySlug(
  * Returns both published mills (with custom icons and water line references) and all water lines.
  * Water lines are always shown regardless of filters (as per Phase 5.9.2.4 requirements).
  * 
+ * Strategy: Properly awaits getPublishedMills and getWaterLinesList separately, then merges
+ * their results into a clean GeoJSON/Feature structure.
+ * 
  * @param locale - Language code ('pt' | 'en')
  * @param filters - Optional filters for mills (typology and district)
  * @returns Standardized response with mills and water lines
@@ -1222,18 +1225,20 @@ export async function getMapData(
     }
 
     // Fetch mills with filters (reuse existing function)
+    // This properly handles all mill filtering logic internally
     const millsResult = await getPublishedMills(locale, filters);
     if (!millsResult.success) {
       return millsResult;
     }
 
-    // Fetch all water lines with translations
+    // Fetch all water lines with translations (separate call)
+    // This fetches the list of water lines with their translated names
     const waterLinesResult = await getWaterLinesList(locale);
     if (!waterLinesResult.success) {
       return waterLinesResult;
     }
 
-    // Fetch water line geometries and colors
+    // Fetch water line geometries and colors separately
     // Use INNER JOIN with constructions to ensure valid parent-child relationship
     // Use ST_AsText to get the raw PostGIS text, then parse it manually
     // since Drizzle custom types may not always parse correctly in selects
