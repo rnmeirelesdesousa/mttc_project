@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Eye, Edit, Search } from 'lucide-react';
 import Link from 'next/link';
 
@@ -99,6 +100,14 @@ export default function InventoryPage() {
   // Get edit URL
   const getEditUrl = (item: InventoryItem): string => {
     return `/${locale}/dashboard/edit/${item.id}`;
+  };
+
+  // Get status badge variant
+  const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
+    if (status === 'published') return 'default';
+    if (status === 'review') return 'secondary';
+    if (status === 'draft') return 'outline';
+    return 'outline';
   };
 
   // Get status display text
@@ -212,7 +221,11 @@ export default function InventoryPage() {
                     {item.title || item.slug}
                   </TableCell>
                   <TableCell>{getTypeText(item.type)}</TableCell>
-                  <TableCell>{getStatusText(item.status)}</TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusVariant(item.status)}>
+                      {getStatusText(item.status)}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     {new Date(item.updatedAt).toLocaleDateString(locale)}
                   </TableCell>

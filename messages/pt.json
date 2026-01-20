@@ -24,11 +24,24 @@
     "adminInstructionsSuffix": "para aprovar construções para publicação.",
     "reviewQueue": "Fila de Revisão",
     "reviewQueueDescription": "Revisar e publicar construções",
+    "nav": {
+      "home": "Início",
+      "inventory": "Inventário",
+      "newEntry": "Nova Entrada",
+      "waterLines": "Levadas",
+      "reviewQueue": "Fila de Revisão"
+    },
     "stats": {
-      "draft": "Rascunhos",
-      "draftDescription": "Construções em rascunho",
+      "draft": "Meus Rascunhos",
+      "draftDescription": "Suas construções em rascunho",
       "published": "Publicadas",
-      "publishedDescription": "Construções publicadas"
+      "publishedDescription": "Construções publicadas",
+      "totalMills": "Total de Moinhos",
+      "totalMillsDescription": "Todos os moinhos na base de dados",
+      "totalLevadas": "Total de Levadas",
+      "totalLevadasDescription": "Todas as levadas na base de dados",
+      "pendingReviews": "Revisões Pendentes",
+      "pendingReviewsDescription": "Construções aguardando revisão"
     }
   },
   "errors": {

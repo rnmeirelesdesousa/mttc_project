@@ -135,6 +135,104 @@ export async function getUserConstructionStats(): Promise<
 }
 
 /**
+ * Fetches comprehensive dashboard statistics
+ * 
+ * Security: Verifies that the performing user is authenticated (researcher or admin)
+ * 
+ * @returns Standardized response with comprehensive stats including total mills, pending reviews, draft count, and total levadas
+ */
+export async function getDashboardStats(): Promise<
+  | {
+      success: true;
+      data: {
+        totalMills: number;
+        totalLevadas: number;
+        pendingReviews: number;
+        draftCount: number;
+        publishedCount: number;
+      };
+    }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Get current user ID for user-specific stats
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Count total mills (all constructions)
+    const totalMillsResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(constructions)
+      .where(eq(constructions.typeCategory, 'MILL'));
+
+    const totalMills = totalMillsResult[0]?.count || 0;
+
+    // Count total levadas (water lines)
+    const totalLevadasResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(waterLines);
+
+    const totalLevadas = totalLevadasResult[0]?.count || 0;
+
+    // Count pending reviews (constructions with 'review' status)
+    const pendingReviewsResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(constructions)
+      .where(eq(constructions.status, 'review'));
+
+    const pendingReviews = pendingReviewsResult[0]?.count || 0;
+
+    // Count user's draft constructions
+    const draftResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(constructions)
+      .where(
+        and(
+          eq(constructions.createdBy, userId),
+          eq(constructions.status, 'draft')
+        )
+      );
+
+    const draftCount = draftResult[0]?.count || 0;
+
+    // Count user's published constructions
+    const publishedResult = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(constructions)
+      .where(
+        and(
+          eq(constructions.createdBy, userId),
+          eq(constructions.status, 'published')
+        )
+      );
+
+    const publishedCount = publishedResult[0]?.count || 0;
+
+    return {
+      success: true,
+      data: {
+        totalMills,
+        totalLevadas,
+        pendingReviews,
+        draftCount,
+        publishedCount,
+      },
+    };
+  } catch (error) {
+    console.error('[getDashboardStats]:', error);
+    return { success: false, error: 'An error occurred while fetching dashboard statistics' };
+  }
+}
+
+/**
  * Fetches a construction by slug for admin review
  * 
  * Security: Verifies that the performing user has 'admin' role

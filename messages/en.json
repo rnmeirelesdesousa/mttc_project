@@ -24,11 +24,24 @@
     "adminInstructionsSuffix": "to approve constructions for publication.",
     "reviewQueue": "Review Queue",
     "reviewQueueDescription": "Review and publish constructions",
+    "nav": {
+      "home": "Home",
+      "inventory": "Inventory",
+      "newEntry": "New Entry",
+      "waterLines": "Water Lines",
+      "reviewQueue": "Review Queue"
+    },
     "stats": {
-      "draft": "Drafts",
-      "draftDescription": "Draft constructions",
+      "draft": "My Drafts",
+      "draftDescription": "Your draft constructions",
       "published": "Published",
-      "publishedDescription": "Published constructions"
+      "publishedDescription": "Published constructions",
+      "totalMills": "Total Mills",
+      "totalMillsDescription": "All mills in database",
+      "totalLevadas": "Total Levadas",
+      "totalLevadasDescription": "All water lines in database",
+      "pendingReviews": "Pending Reviews",
+      "pendingReviewsDescription": "Constructions awaiting review"
     }
   },
   "errors": {
