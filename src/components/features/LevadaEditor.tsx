@@ -215,6 +215,7 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
         <MapContainer
           center={portugalCenter}
           zoom={defaultZoom}
+          maxZoom={19}
           style={{ height: '500px', width: '100%', cursor: snapPreview && isDrawing ? 'crosshair' : 'default' }}
           scrollWheelZoom={true}
           className="rounded-md border border-input"

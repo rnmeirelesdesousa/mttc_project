@@ -58,7 +58,7 @@ function FitBounds({ waterLines, mills }: { waterLines: MapWaterLine[]; mills: P
       const bounds = L.latLngBounds(allCoords);
       map.fitBounds(bounds, {
         padding: [50, 50], // Add padding around the bounds
-        maxZoom: 15, // Don't zoom in too much
+        maxZoom: 19, // Maximum zoom level
       });
     }
   }, [map, waterLines, mills]);
@@ -90,6 +90,7 @@ export const LevadaMap = ({ mills, waterLines, locale }: LevadaMapProps) => {
     <MapContainer
       center={portugalCenter}
       zoom={defaultZoom}
+      maxZoom={19}
       style={{ height: '100%', width: '100%' }}
       scrollWheelZoom={true}
     >

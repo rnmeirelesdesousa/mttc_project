@@ -143,6 +143,7 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
       <MapContainer
         center={portugalCenter}
         zoom={defaultZoom}
+        maxZoom={19}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
         zoomControl={false}

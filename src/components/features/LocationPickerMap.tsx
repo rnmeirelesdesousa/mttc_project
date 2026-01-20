@@ -133,6 +133,7 @@ export const LocationPickerMap = ({
     <MapContainer
       center={mapCenter}
       zoom={initialZoom}
+      maxZoom={19}
       style={{ height: '400px', width: '100%', cursor: snapPreview ? 'crosshair' : 'default' }}
       scrollWheelZoom={true}
       className="rounded-md border border-input"
