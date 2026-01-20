@@ -226,12 +226,9 @@
     },
     "planShape": {
       "circular": "Circular",
+      "quadrangular": "Quadrangular",
       "rectangular": "Rectangular",
-      "square": "Quadrado",
-      "polygonal": "Poligonal",
-      "irregular": "Irregular",
-      "circular_tower": "Torre Circular",
-      "quadrangular": "Quadrangular"
+      "irregular": "Irregular"
     },
     "volumetry": {
       "cylindrical": "Cilíndrico",
@@ -252,7 +249,7 @@
       "conical": "Cónico",
       "gable": "Duas Águas",
       "lean_to": "Uma Água",
-      "inexistent": "Inexistente",
+      "inexistent": "Inexistente (Caída)",
       "false_dome": "Falsa Cúpula"
     },
     "roofMaterial": {
@@ -305,10 +302,10 @@
       "cap": "Capelo"
     },
     "millstoneState": {
-      "complete": "Completo",
-      "disassembled": "Desmontado",
-      "fragmented": "Fragmentado",
-      "missing": "Faltante"
+      "complete": "Completas",
+      "disassembled": "Desmontadas",
+      "fragmented": "Fragmentadas",
+      "missing": "Desaparecidas"
     },
     "grindingComponent": {
       "tremonha": "Tremonha",
@@ -405,8 +402,8 @@
         "epochPlaceholder": "Selecione a época",
         "currentUse": "Uso Atual",
         "currentUsePlaceholder": "Selecione o uso atual",
-        "setting": "Ambiente",
-        "settingPlaceholder": "Selecione o ambiente",
+        "setting": "Enquadramento",
+        "settingPlaceholder": "Selecione o enquadramento",
         "architecture": {
           "title": "Arquitetura",
           "planShape": "Forma da Planta",
@@ -493,7 +490,7 @@
         },
         "grinding": {
           "title": "Mecanismo de Moagem",
-          "millstoneQuantity": "Quantidade de Pares de Mós",
+          "millstoneQuantity": "Quantidade de Casais de Mós",
           "millstoneQuantityPlaceholder": "Ex: 1",
           "millstoneDiameter": "Diâmetro das Mós (cm)",
           "millstoneDiameterPlaceholder": "Ex: 120",
@@ -530,10 +527,13 @@
       "submitting": "A criar...",
       "update": "Atualizar Moinho",
       "updating": "A atualizar...",
+      "updateDraft": "Atualizar Rascunho",
+      "updateReview": "Atualizar Revisão",
       "saveAsDraft": "Guardar como Rascunho",
       "savingDraft": "A guardar...",
       "submitForReview": "Submeter para Revisão",
       "submittingForReview": "A submeter...",
+      "publishError": "Falha ao publicar construção",
       "success": "Moinho criado com sucesso!",
       "error": "Erro ao criar o moinho"
     }
@@ -580,7 +580,7 @@
     "description": "Lista completa de todas as construções e levadas",
     "tabs": {
       "all": "Todos os Itens",
-      "myProjects": "Meus Projetos"
+      "myProjects": "Meus Rascunhos"
     },
     "type": {
       "mill": "Moinho",

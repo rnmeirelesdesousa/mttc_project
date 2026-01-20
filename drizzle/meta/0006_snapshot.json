@@ -1,6 +1,6 @@
 {
-  "id": "7e8e64f7-3d5e-43d2-9ccc-59b490aec14c",
-  "prevId": "3936f2fc-ebf0-4654-a159-596de43a10ea",
+  "id": "f2014a26-9d0f-4114-95f8-5dac65439c56",
+  "prevId": "7e8e64f7-3d5e-43d2-9ccc-59b490aec14c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -863,6 +863,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "construction_id": {
+          "name": "construction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "slug": {
           "name": "slug",
           "type": "varchar(255)",
@@ -881,14 +887,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'#3b82f6'"
-        },
-        "status": {
-          "name": "status",
-          "type": "status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'draft'"
         },
         "created_at": {
           "name": "created_at",
@@ -922,9 +920,30 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "water_lines_construction_id_constructions_id_fk": {
+          "name": "water_lines_construction_id_constructions_id_fk",
+          "tableFrom": "water_lines",
+          "tableTo": "constructions",
+          "columnsFrom": [
+            "construction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
+        "water_lines_construction_id_unique": {
+          "name": "water_lines_construction_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "construction_id"
+          ]
+        },
         "water_lines_slug_unique": {
           "name": "water_lines_slug_unique",
           "nullsNotDistinct": false,
@@ -945,7 +964,8 @@
       "values": [
         "pedestrian",
         "car",
-        "difficult_none"
+        "difficult_none",
+        "traditional_track"
       ]
     },
     "public.admission_azenha": {
@@ -1094,12 +1114,9 @@
       "schema": "public",
       "values": [
         "circular",
+        "quadrangular",
         "rectangular",
-        "square",
-        "polygonal",
-        "irregular",
-        "circular_tower",
-        "quadrangular"
+        "irregular"
       ]
     },
     "public.property_status": {
@@ -1118,7 +1135,8 @@
         "tile",
         "zinc",
         "thatch",
-        "slate"
+        "slate",
+        "stone"
       ]
     },
     "public.roof_shape": {
@@ -1128,7 +1146,8 @@
         "conical",
         "gable",
         "lean_to",
-        "inexistent"
+        "inexistent",
+        "false_dome"
       ]
     },
     "public.setting": {

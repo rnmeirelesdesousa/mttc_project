@@ -101,8 +101,7 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.20.1: DATABASE & UI HARMONIZATION)**
-* **The Situation:** The live Supabase DB contains columns and enums not yet reflected in `src/db/schema.ts`. Conversely, the UI (page.tsx) expects enums like 'false_dome' that don't exist in the DB yet.
-* **Objective:** Achieve 1:1 parity between Supabase, Drizzle Schema, and the Mill Creation Form.
-* **Scientific Constraint:** All new fields must support i18n keys in `pt.json` and `en.json`.
-* **Architecture:** Maintain "Core + Extension". Generic data in `constructions`, mill-specific scientific data in `mills_data`.
+**CURRENT CONTEXT (PHASE 5.9.20.4: TAXONOMY & EDGE CASE REFINEMENT)**
+* **The Situation:** The Postgres enum `roof_shape` already contains 'inexistent', but it is missing from `schema.ts`, Zod validation, and the UI.
+* **Taxonomy Consolidation:** We are simplifying the Plan Shapes to exactly four categories: 'circular', 'quadrangular', 'rectangular', and 'irregular'.
+* **Objective:** Sync the Drizzle schema, Zod validation, and the Add/Edit Mill forms to reflect these exact scientific categories.

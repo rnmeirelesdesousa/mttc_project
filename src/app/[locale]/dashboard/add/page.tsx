@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { createMillConstruction, updateMillConstruction, getConstructionByIdForEdit } from '@/actions/admin';
+import { createMillConstruction, updateMillConstruction, getConstructionByIdForEdit, updateConstructionStatus, getCurrentUserInfo } from '@/actions/admin';
 import { uploadStoneworkImage } from '@/actions/storage';
 import { getWaterLinesList, getMapData, type WaterLineListItem } from '@/actions/public';
 import { Upload, X, Image as ImageIcon, GripVertical } from 'lucide-react';
@@ -126,6 +126,8 @@ function AddMillPageContent() {
   const [isEditMode, setIsEditMode] = useState(!!editId);
   const [isLoadingData, setIsLoadingData] = useState(!!editId);
   const [constructionId, setConstructionId] = useState<string | null>(editId);
+  const [initialStatus, setInitialStatus] = useState<'draft' | 'review' | 'published' | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Form state
   const [activeTab, setActiveTab] = useState('general');
@@ -246,6 +248,17 @@ function AddMillPageContent() {
   const [uploadingMain, setUploadingMain] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
 
+  // Fetch user info for admin check
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const result = await getCurrentUserInfo();
+      if (result.success) {
+        setIsAdmin(result.data.role === 'admin');
+      }
+    };
+    fetchUserInfo();
+  }, []);
+
   // Fetch water lines list on mount
   useEffect(() => {
     const fetchWaterLines = async () => {
@@ -302,6 +315,7 @@ function AddMillPageContent() {
         if (result.success) {
           const data = result.data;
           setConstructionId(data.id);
+          setInitialStatus(data.status as 'draft' | 'review' | 'published');
           
           // Populate all form fields
           setTitle(data.title || '');
@@ -399,6 +413,8 @@ function AddMillPageContent() {
             setRoofType('stone');
           } else if (data.roofShape === 'gable' && data.roofMaterial === 'tile') {
             setRoofType('gable');
+          } else if (data.roofShape === 'inexistent') {
+            setRoofType('inexistent');
           }
         } else {
           setError(result.error);
@@ -520,7 +536,7 @@ function AddMillPageContent() {
     return `${baseUrl}/storage/v1/object/public/constructions/${path}`;
   };
 
-  const handleSubmit = async (e: React.FormEvent, status: 'draft' | 'review') => {
+  const handleSubmit = async (e: React.FormEvent, status?: 'draft' | 'review') => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -566,7 +582,7 @@ function AddMillPageContent() {
       }
 
       // Prepare form data
-      const formData = {
+      const formData: any = {
         title: title.trim(),
         description: description.trim() || undefined,
         legacyId: legacyId.trim() || undefined,
@@ -663,9 +679,12 @@ function AddMillPageContent() {
         hasMillerHouse,
         hasStable,
         hasFullingMill,
-        // Phase 5.9.7.1: Status for workflow
-        status,
       };
+
+      // Phase 5.9.7.1: Status for workflow - only include if provided (not for published items)
+      if (status) {
+        formData.status = status;
+      }
 
       // Call appropriate server action (create or update)
       const result = isEditMode && constructionId
@@ -987,12 +1006,9 @@ function AddMillPageContent() {
                   >
                     <option value="">{t('add.form.technical.architecture.planShapePlaceholder')}</option>
                     <option value="circular">{t('taxonomy.planShape.circular')}</option>
-                    <option value="rectangular">{t('taxonomy.planShape.rectangular')}</option>
-                    <option value="square">{t('taxonomy.planShape.square')}</option>
-                    <option value="polygonal">{t('taxonomy.planShape.polygonal')}</option>
-                    <option value="irregular">{t('taxonomy.planShape.irregular')}</option>
-                    <option value="circular_tower">{t('taxonomy.planShape.circular_tower')}</option>
                     <option value="quadrangular">{t('taxonomy.planShape.quadrangular')}</option>
+                    <option value="rectangular">{t('taxonomy.planShape.rectangular')}</option>
+                    <option value="irregular">{t('taxonomy.planShape.irregular')}</option>
                   </select>
                 </div>
 
@@ -1196,6 +1212,13 @@ function AddMillPageContent() {
                     } else if (value === 'gable') {
                       setRoofShape('gable');
                       setRoofMaterial('tile');
+                    } else if (value === 'inexistent') {
+                      setRoofShape('inexistent');
+                      setRoofMaterial('');
+                      // Clear gable roof materials if switching away
+                      setGableRoofMaterialLusa(false);
+                      setGableRoofMaterialMarselha(false);
+                      setGableRoofMaterialMeiaCana(false);
                     } else {
                       setRoofShape('');
                       setRoofMaterial('');
@@ -1222,6 +1245,12 @@ function AddMillPageContent() {
                     <RadioGroupItem value="gable" id="roof-gable" />
                     <Label htmlFor="roof-gable" className="font-normal cursor-pointer">
                       {t('add.form.technical.architecture.roofTypeGable')}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="inexistent" id="roof-inexistent" />
+                    <Label htmlFor="roof-inexistent" className="font-normal cursor-pointer">
+                      {t('taxonomy.roofShape.inexistent')}
                     </Label>
                   </div>
                 </RadioGroup>
@@ -1963,10 +1992,77 @@ function AddMillPageContent() {
               </Button>
             </>
           )}
-          {isEditMode && (
+          {isEditMode && initialStatus === 'draft' && (
+            <>
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={(e) => handleSubmit(e, 'draft')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting 
+                  ? t('add.form.updating')
+                  : t('add.form.updateDraft')}
+              </Button>
+              <Button 
+                type="button"
+                onClick={(e) => handleSubmit(e, 'review')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting 
+                  ? t('add.form.submittingForReview')
+                  : t('add.form.submitForReview')}
+              </Button>
+            </>
+          )}
+          {isEditMode && initialStatus === 'review' && (
+            <>
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={(e) => handleSubmit(e, 'review')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting 
+                  ? t('add.form.updating')
+                  : t('add.form.updateReview')}
+              </Button>
+              {isAdmin && constructionId && (
+                <Button 
+                  type="button"
+                  onClick={async () => {
+                    if (!constructionId) return;
+                    setIsSubmitting(true);
+                    setError(null);
+                    try {
+                      const result = await updateConstructionStatus(constructionId, 'published');
+                      if (result.success) {
+                        router.push(`/${locale}/dashboard?success=published`);
+                        router.refresh();
+                      } else {
+                        setError(result.error);
+                      }
+                    } catch (err) {
+                      console.error('[AddMillPage]: Publish error:', err);
+                      setError(t('add.form.publishError'));
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  disabled={isSubmitting || isLoadingData}
+                >
+                  {isSubmitting 
+                    ? t('common.loading')
+                    : t('common.publish')}
+                </Button>
+              )}
+            </>
+          )}
+          {isEditMode && initialStatus === 'published' && (
             <Button 
               type="button"
-              onClick={(e) => handleSubmit(e, 'draft')} 
+              variant="outline"
+              onClick={(e) => handleSubmit(e)} 
               disabled={isSubmitting || isLoadingData}
             >
               {isSubmitting 

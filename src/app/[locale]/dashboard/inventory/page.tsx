@@ -288,16 +288,19 @@ export default function InventoryPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                      >
-                        <Link href={getPublicUrl(item)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          {t('inventory.actions.view')}
-                        </Link>
-                      </Button>
+                      {/* Only show View button if status is published */}
+                      {item.status === 'published' && (
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Link href={getPublicUrl(item)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            {t('inventory.actions.view')}
+                          </Link>
+                        </Button>
+                      )}
                       <Button
                         asChild
                         variant="outline"

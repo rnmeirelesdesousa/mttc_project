@@ -48,14 +48,12 @@ export const conservationStateEnum = pgEnum('conservation_state', [
 ]);
 
 // Derived enums based on Portuguese mill architecture (mills_data_spec.md)
+// Phase 5.9.20.4: Consolidated to 4 approved plan shapes
 export const planShapeEnum = pgEnum('plan_shape', [
   'circular',
-  'rectangular',
-  'square',
-  'polygonal',
-  'irregular',
-  'circular_tower',
   'quadrangular',
+  'rectangular',
+  'irregular',
 ]);
 
 export const volumetryEnum = pgEnum('volumetry', [

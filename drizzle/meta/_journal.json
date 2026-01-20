@@ -43,6 +43,13 @@
       "when": 1768911926886,
       "tag": "0005_mysterious_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1768931862299,
+      "tag": "0006_bizarre_kingpin",
+      "breakpoints": true
     }
   ]
 }

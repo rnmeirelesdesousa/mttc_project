@@ -226,12 +226,9 @@
     },
     "planShape": {
       "circular": "Circular",
+      "quadrangular": "Quadrangular",
       "rectangular": "Rectangular",
-      "square": "Square",
-      "polygonal": "Polygonal",
-      "irregular": "Irregular",
-      "circular_tower": "Circular Tower",
-      "quadrangular": "Quadrangular"
+      "irregular": "Irregular"
     },
     "volumetry": {
       "cylindrical": "Cylindrical",
@@ -252,7 +249,7 @@
       "conical": "Conical",
       "gable": "Gable (Two Slopes)",
       "lean_to": "Lean-to (One Slope)",
-      "inexistent": "Inexistent",
+      "inexistent": "Inexistent / Fallen",
       "false_dome": "False Dome"
     },
     "roofMaterial": {
@@ -530,10 +527,13 @@
       "submitting": "Creating...",
       "update": "Update Mill",
       "updating": "Updating...",
+      "updateDraft": "Update Draft",
+      "updateReview": "Update Review",
       "saveAsDraft": "Save as Draft",
       "savingDraft": "Saving...",
       "submitForReview": "Submit for Review",
       "submittingForReview": "Submitting...",
+      "publishError": "Failed to publish construction",
       "success": "Mill created successfully!",
       "error": "Error creating mill"
     }

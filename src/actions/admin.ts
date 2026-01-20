@@ -925,7 +925,8 @@ const createMillConstructionSchema = z.object({
   propertyStatus: z.enum(['private', 'public', 'unknown']).optional(),
   
   // Architecture (Section III)
-  planShape: z.enum(['circular', 'rectangular', 'square', 'polygonal', 'irregular', 'circular_tower', 'quadrangular']).optional(),
+  // Phase 5.9.20.4: Restricted to 4 approved plan shapes
+  planShape: z.enum(['circular', 'quadrangular', 'rectangular', 'irregular']).optional(),
   volumetry: z.enum(['cylindrical', 'conical', 'prismatic_sq_rec']).optional(),
   constructionTechnique: z.enum(['dry_stone', 'mortared_stone', 'mixed_other']).optional(),
   exteriorFinish: z.enum(['exposed', 'plastered', 'whitewashed']).optional(),
