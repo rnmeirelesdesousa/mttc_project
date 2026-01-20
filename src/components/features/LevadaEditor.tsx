@@ -121,11 +121,14 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
   const [snapPreview, setSnapPreview] = useState<[number, number] | null>(null);
 
   // Center of Portugal (approximate geographic center)
+  // Phase 5.9.7.1: If path has points, center on the drawn coordinates for verification
   // If initialPath exists, center on the first point
-  const portugalCenter: LatLngExpression = initialPath.length > 0 
-    ? [initialPath[0]![0], initialPath[0]![1]]
-    : [39.5, -8.0];
-  const defaultZoom = initialPath.length > 0 ? 12 : 7;
+  const portugalCenter: LatLngExpression = path.length > 0
+    ? [path[0]![0], path[0]![1]] // Use first point of current path (Leaflet format: [lat, lng])
+    : initialPath.length > 0 
+      ? [initialPath[0]![0], initialPath[0]![1]]
+      : [39.5, -8.0];
+  const defaultZoom = (path.length > 0 || initialPath.length > 0) ? 12 : 7;
 
   // Update path when initialPath changes (for edit mode)
   // Only set once when initialPath becomes available
@@ -221,6 +224,9 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+
+          {/* Phase 5.9.7.1: Map center updater - ensures map centers on drawn coordinates */}
+          <MapCenterUpdater center={portugalCenter} zoom={defaultZoom} />
 
           {/* Handle map clicks with snap-to-mill */}
           <MapClickHandler 

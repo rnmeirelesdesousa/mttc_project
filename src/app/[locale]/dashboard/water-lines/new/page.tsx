@@ -118,7 +118,7 @@ function NewWaterLinePageContent() {
     fetchWaterLineData();
   }, [editId, isEditMode, locale]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, status: 'draft' | 'review') => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -146,9 +146,11 @@ function NewWaterLinePageContent() {
       }
 
       // Convert path from [lat, lng] (Leaflet) to [lng, lat] (PostGIS)
+      // Phase 5.9.7.1: Verify coordinate order - Leaflet uses [lat, lng], PostGIS uses [lng, lat]
       const dbPath: [number, number][] = path.map(([lat, lng]) => [lng, lat]);
 
       // Call appropriate server action (create or update)
+      // Note: Water lines don't currently have status field, but we pass it for future compatibility
       const result = isEditMode && waterLineId
         ? await updateWaterLine({
             id: waterLineId,
@@ -167,12 +169,9 @@ function NewWaterLinePageContent() {
           });
 
       if (result.success) {
-        // Redirect to dashboard or inventory
-        if (isEditMode) {
-          router.push(`/${locale}/dashboard/inventory`);
-        } else {
-          router.push(`/${locale}/dashboard`);
-        }
+        // Redirect to dashboard with success message
+        const successKey = status === 'draft' ? 'savedDraft' : 'submittedForReview';
+        router.push(`/${locale}/dashboard?success=${successKey}`);
         router.refresh();
       } else {
         setError(result.error);
@@ -206,7 +205,7 @@ function NewWaterLinePageContent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Map Section */}
           <div className="space-y-4">
@@ -281,11 +280,34 @@ function NewWaterLinePageContent() {
           >
             {t('waterLines.form.cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting || isLoadingData}>
-            {isSubmitting 
-              ? (isEditMode ? t('waterLines.form.updating') : t('waterLines.form.submitting'))
-              : (isEditMode ? t('waterLines.form.update') : t('waterLines.form.submit'))}
-          </Button>
+          {!isEditMode && (
+            <>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={(e) => handleSubmit(e, 'draft')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting ? t('waterLines.form.savingDraft') : t('waterLines.form.saveAsDraft')}
+              </Button>
+              <Button 
+                type="button"
+                onClick={(e) => handleSubmit(e, 'review')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting ? t('waterLines.form.submittingForReview') : t('waterLines.form.submitForReview')}
+              </Button>
+            </>
+          )}
+          {isEditMode && (
+            <Button 
+              type="button"
+              onClick={(e) => handleSubmit(e, 'draft')} 
+              disabled={isSubmitting || isLoadingData}
+            >
+              {isSubmitting ? t('waterLines.form.updating') : t('waterLines.form.update')}
+            </Button>
+          )}
         </div>
       </form>
     </div>

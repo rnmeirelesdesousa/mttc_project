@@ -98,7 +98,7 @@ function NewPocaPageContent() {
     fetchMapData();
   }, [locale]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, status: 'draft' | 'review') => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -130,11 +130,13 @@ function NewPocaPageContent() {
         latitude,
         longitude,
         waterLineId: waterLineId.trim(),
+        status, // Phase 5.9.7.1: Pass status
       });
 
       if (result.success) {
-        // Redirect to dashboard
-        router.push(`/${locale}/dashboard`);
+        // Redirect to dashboard with success message
+        const successKey = status === 'draft' ? 'savedDraft' : 'submittedForReview';
+        router.push(`/${locale}/dashboard?success=${successKey}`);
         router.refresh();
       } else {
         setError(result.error);
@@ -160,7 +162,7 @@ function NewPocaPageContent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         {/* Name Field */}
         <div className="space-y-2">
           <Label htmlFor="name">{t('pocas.form.name')}</Label>
@@ -227,8 +229,20 @@ function NewPocaPageContent() {
           >
             {t('pocas.form.cancel')}
           </Button>
-          <Button type="submit" disabled={isSubmitting || loadingWaterLines}>
-            {isSubmitting ? t('pocas.form.submitting') : t('pocas.form.submit')}
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={(e) => handleSubmit(e, 'draft')} 
+            disabled={isSubmitting || loadingWaterLines}
+          >
+            {isSubmitting ? t('pocas.form.savingDraft') : t('pocas.form.saveAsDraft')}
+          </Button>
+          <Button 
+            type="button"
+            onClick={(e) => handleSubmit(e, 'review')} 
+            disabled={isSubmitting || loadingWaterLines}
+          >
+            {isSubmitting ? t('pocas.form.submittingForReview') : t('pocas.form.submitForReview')}
           </Button>
         </div>
       </form>

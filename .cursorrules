@@ -101,13 +101,14 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.7: THE POÇAS IDENTITY)**
-* **Focus:** Expanding the hydraulic complex to include "Poças" (Water Pools).
-* **Architecture:** Use the "Core + Extension" pattern. 
-    - Parent: `constructions` table.
-    - Extension: Create a `pocas_data` table.
+**CURRENT CONTEXT (PHASE 5.9.7.1: WORKFLOW & PERMISSIONS)**
+* **Focus:** Distinguishing between 'Draft' (Private) and 'Review' (Admin Queue).
+* **Logic:** - **Draft:** Visible only to the Author in "My Projects". Only Author/Admin can delete.
+    - **Review:** Visible in the "Review Queue" for Admins.
+    - **Published:** Visible to everyone.
 * **Key Tasks:**
-    - **Schema Update:** Update `schema.ts` to include `pocas_data`. Add `water_line_id` to link them to Levadas.
-    - **Creator Workflow:** Build `src/app/[locale]/dashboard/pocas/new/page.tsx` using a simplified version of the Mill form (Name, Location, Levada connection).
-    - **Map Integration:** Ensure the `LocationPickerMap` and the main `MillMap` are prepared to handle a new construction type: 'poca'.
-* **Constraint:** Keep it lean. Poças do not require the complex scientific fields of Mills (yet), but they MUST be linked to a `water_line_id`.
+    - **Creator UI:** Add two distinct buttons to creation forms: "Save as Draft" (status: draft) and "Submit for Review" (status: review).
+    - **Redirects:** Successful submission must redirect to `/dashboard`.
+    - **Review Queue:** Filter `src/app/[locale]/dashboard/review/page.tsx` to show ONLY `status: 'review'`.
+    - **Permissions:** Admin role check for "Publish" and "Delete All" actions.
+* **Constraint:** When linking Mills/Poças to a Levada, filter the dropdown to `status: 'published'` only.

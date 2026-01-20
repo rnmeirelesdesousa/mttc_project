@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Eye, Edit, Search } from 'lucide-react';
 import Link from 'next/link';
 
@@ -39,6 +40,7 @@ export default function InventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'myProjects'>('all');
   
   // Filters
   const [typeFilter, setTypeFilter] = useState<'MILL' | 'LEVADA' | 'POCA' | 'ALL'>('ALL');
@@ -61,12 +63,21 @@ export default function InventoryPage() {
     setError(null);
 
     try {
+      // Phase 5.9.7.1: "My Projects" tab shows only drafts where created_by matches session ID
+      const filters = activeTab === 'myProjects' 
+        ? {
+            type: typeFilter,
+            status: 'draft' as const, // Force draft status for "My Projects"
+            myProjects: true, // Flag to filter by current user
+          }
+        : {
+            type: typeFilter,
+            status: statusFilter,
+          };
+
       const result = await getInventoryItems(
         locale,
-        {
-          type: typeFilter,
-          status: statusFilter,
-        },
+        filters,
         debouncedSearchQuery || undefined
       );
 
@@ -81,7 +92,7 @@ export default function InventoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [locale, typeFilter, statusFilter, debouncedSearchQuery]);
+  }, [locale, typeFilter, statusFilter, debouncedSearchQuery, activeTab]);
 
   // Fetch items when filters or search change
   useEffect(() => {
@@ -137,6 +148,14 @@ export default function InventoryPage() {
         </p>
       </div>
 
+      {/* Tabs: All Items / My Projects */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'all' | 'myProjects')} className="mb-6">
+        <TabsList>
+          <TabsTrigger value="all">{t('inventory.tabs.all')}</TabsTrigger>
+          <TabsTrigger value="myProjects">{t('inventory.tabs.myProjects')}</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {/* Filters */}
       <div className="mb-6 space-y-4">
         {/* Top Filters Row */}
@@ -157,21 +176,23 @@ export default function InventoryPage() {
             </select>
           </div>
 
-          {/* Status Filter */}
-          <div className="space-y-2">
-            <Label htmlFor="statusFilter">{t('inventory.filters.status')}</Label>
-            <select
-              id="statusFilter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'draft' | 'review' | 'published' | 'ALL')}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="ALL">{t('inventory.filters.allStatuses')}</option>
-              <option value="draft">{t('common.draft')}</option>
-              <option value="review">{t('common.review')}</option>
-              <option value="published">{t('common.published')}</option>
-            </select>
-          </div>
+          {/* Status Filter - Hidden in "My Projects" tab */}
+          {activeTab === 'all' && (
+            <div className="space-y-2">
+              <Label htmlFor="statusFilter">{t('inventory.filters.status')}</Label>
+              <select
+                id="statusFilter"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'draft' | 'review' | 'published' | 'ALL')}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="ALL">{t('inventory.filters.allStatuses')}</option>
+                <option value="draft">{t('common.draft')}</option>
+                <option value="review">{t('common.review')}</option>
+                <option value="published">{t('common.published')}</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Text Search */}

@@ -1,0 +1,1 @@
+ALTER TABLE "water_lines" ADD COLUMN "status" "status" DEFAULT 'draft' NOT NULL;

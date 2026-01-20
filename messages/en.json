@@ -24,6 +24,13 @@
     "adminInstructionsSuffix": "to approve constructions for publication.",
     "reviewQueue": "Review Queue",
     "reviewQueueDescription": "Review and publish constructions",
+    "messages": {
+      "success": {
+        "savedDraft": "Draft saved successfully",
+        "submittedForReview": "Submitted for review successfully"
+      },
+      "error": {}
+    },
     "nav": {
       "home": "Home",
       "inventory": "Inventory",
@@ -509,6 +516,10 @@
       "submitting": "Creating...",
       "update": "Update Mill",
       "updating": "Updating...",
+      "saveAsDraft": "Save as Draft",
+      "savingDraft": "Saving...",
+      "submitForReview": "Submit for Review",
+      "submittingForReview": "Submitting...",
       "success": "Mill created successfully!",
       "error": "Error creating mill"
     }
@@ -537,6 +548,10 @@
       "submitting": "Creating...",
       "update": "Update Water Line",
       "updating": "Updating...",
+      "saveAsDraft": "Save as Draft",
+      "savingDraft": "Saving...",
+      "submitForReview": "Submit for Review",
+      "submittingForReview": "Submitting...",
       "error": "Error creating water line"
     }
   },
@@ -549,6 +564,10 @@
   "inventory": {
     "title": "Inventory",
     "description": "Complete list of all constructions and water lines",
+    "tabs": {
+      "all": "All Items",
+      "myProjects": "My Projects"
+    },
     "type": {
       "mill": "Mill",
       "levada": "Levada",
@@ -603,6 +622,10 @@
       "cancel": "Cancel",
       "submit": "Create Poça",
       "submitting": "Creating...",
+      "saveAsDraft": "Save as Draft",
+      "savingDraft": "Saving...",
+      "submitForReview": "Submit for Review",
+      "submittingForReview": "Submitting...",
       "error": "An error occurred while creating the poça"
     }
   }

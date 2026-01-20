@@ -24,6 +24,13 @@
     "adminInstructionsSuffix": "para aprovar construções para publicação.",
     "reviewQueue": "Fila de Revisão",
     "reviewQueueDescription": "Revisar e publicar construções",
+    "messages": {
+      "success": {
+        "savedDraft": "Rascunho guardado com sucesso",
+        "submittedForReview": "Submetido para revisão com sucesso"
+      },
+      "error": {}
+    },
     "nav": {
       "home": "Início",
       "inventory": "Inventário",
@@ -509,6 +516,10 @@
       "submitting": "A criar...",
       "update": "Atualizar Moinho",
       "updating": "A atualizar...",
+      "saveAsDraft": "Guardar como Rascunho",
+      "savingDraft": "A guardar...",
+      "submitForReview": "Submeter para Revisão",
+      "submittingForReview": "A submeter...",
       "success": "Moinho criado com sucesso!",
       "error": "Erro ao criar o moinho"
     }
@@ -537,6 +548,10 @@
       "submitting": "A criar...",
       "update": "Atualizar Levada",
       "updating": "A atualizar...",
+      "saveAsDraft": "Guardar como Rascunho",
+      "savingDraft": "A guardar...",
+      "submitForReview": "Submeter para Revisão",
+      "submittingForReview": "A submeter...",
       "error": "Erro ao criar a levada"
     }
   },
@@ -549,6 +564,10 @@
   "inventory": {
     "title": "Inventário",
     "description": "Lista completa de todas as construções e levadas",
+    "tabs": {
+      "all": "Todos os Itens",
+      "myProjects": "Meus Projetos"
+    },
     "type": {
       "mill": "Moinho",
       "levada": "Levada",
@@ -603,6 +622,10 @@
       "cancel": "Cancelar",
       "submit": "Criar Poça",
       "submitting": "A criar...",
+      "saveAsDraft": "Guardar como Rascunho",
+      "savingDraft": "A guardar...",
+      "submitForReview": "Submeter para Revisão",
+      "submittingForReview": "A submeter...",
       "error": "Ocorreu um erro ao criar a poça"
     }
   }

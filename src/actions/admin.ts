@@ -15,6 +15,57 @@ import { generateSlug, generateUniqueSlug } from '@/lib/slug';
  */
 
 /**
+ * Deletes a construction (MILL or POCA) regardless of status
+ * 
+ * Security: Verifies that the performing user has 'admin' role
+ * 
+ * @param id - Construction UUID
+ * @returns Standardized response: { success: true } or { success: false, error: string }
+ */
+export async function deleteConstruction(
+  id: string
+): Promise<
+  | { success: true }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify admin role
+    const hasAdminRole = await isAdmin();
+    if (!hasAdminRole) {
+      return { success: false, error: 'Unauthorized: Admin role required' };
+    }
+
+    // Validate input
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Construction ID is required' };
+    }
+
+    // Delete construction (cascade will handle related records)
+    const result = await db
+      .delete(constructions)
+      .where(eq(constructions.id, id))
+      .returning({ id: constructions.id });
+
+    if (!result || result.length === 0) {
+      return { success: false, error: 'Construction not found' };
+    }
+
+    // Revalidate dashboard pages
+    revalidatePath('/en/dashboard');
+    revalidatePath('/pt/dashboard');
+    revalidatePath('/en/dashboard/review');
+    revalidatePath('/pt/dashboard/review');
+    revalidatePath('/en/dashboard/inventory');
+    revalidatePath('/pt/dashboard/inventory');
+
+    return { success: true };
+  } catch (error) {
+    console.error('[deleteConstruction]:', error);
+    return { success: false, error: 'An error occurred while deleting the construction' };
+  }
+}
+
+/**
  * Updates the status of a construction
  * 
  * Security: Verifies that the performing user has 'admin' role
@@ -535,7 +586,7 @@ export async function getReviewQueue(
       return { success: false, error: 'Locale is required' };
     }
 
-    // Query constructions with status = 'draft'
+    // Query constructions with status = 'review' (Phase 5.9.7.1: Review queue shows only 'review' status)
     // Join with construction_translations to get title for current locale
     const drafts = await db
       .select({
@@ -554,7 +605,7 @@ export async function getReviewQueue(
           eq(constructionTranslations.langCode, locale)
         )
       )
-      .where(eq(constructions.status, 'draft'))
+      .where(eq(constructions.status, 'review'))
       .orderBy(desc(constructions.createdAt));
 
     return {
@@ -682,6 +733,9 @@ const createMillConstructionSchema = z.object({
   // Images
   mainImage: z.string().optional(),
   galleryImages: z.array(z.string()).optional(),
+  
+  // Phase 5.9.7.1: Status for workflow
+  status: z.enum(['draft', 'review']).optional(),
 });
 
 /**
@@ -757,7 +811,7 @@ export async function createMillConstruction(
         galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
           ? validated.galleryImages 
           : null,
-        status: 'draft' as const, // Always start as draft
+        status: (validated.status || 'draft') as 'draft' | 'review', // Phase 5.9.7.1: Use provided status or default to draft
         createdBy: userId,
       };
       
@@ -884,6 +938,8 @@ const createWaterLineSchema = z.object({
   color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Invalid color format'),
   path: z.array(z.tuple([z.number(), z.number()])).min(2, 'Path must have at least 2 points'),
   locale: z.enum(['pt', 'en']),
+  // Phase 5.9.7.1: Status for workflow (water lines don't have status in schema, but we'll handle it if added later)
+  // Note: Water lines currently don't have status field, so this is for future compatibility
 });
 
 /**
@@ -989,6 +1045,9 @@ const createPocaConstructionSchema = z.object({
   
   // Link to water line (required)
   waterLineId: z.string().uuid('Valid water line ID is required'),
+  
+  // Phase 5.9.7.1: Status for workflow
+  status: z.enum(['draft', 'review']).optional(),
 });
 
 /**
@@ -1056,7 +1115,7 @@ export async function createPocaConstruction(
           slug: uniqueSlug,
           typeCategory: 'POCA',
           geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
-          status: 'draft' as const, // Always start as draft
+          status: (validated.status || 'draft') as 'draft' | 'review', // Phase 5.9.7.1: Use provided status or default to draft
           createdBy: userId,
         })
         .returning({ id: constructions.id, slug: constructions.slug });
@@ -1122,6 +1181,7 @@ export async function getInventoryItems(
   filters?: {
     type?: 'MILL' | 'LEVADA' | 'POCA' | 'ALL';
     status?: 'draft' | 'review' | 'published' | 'ALL';
+    myProjects?: boolean; // Phase 5.9.7.1: Filter by current user's drafts
   },
   searchQuery?: string
 ): Promise<
@@ -1140,6 +1200,12 @@ export async function getInventoryItems(
       return { success: false, error: 'Locale is required' };
     }
 
+    // Get current user ID if filtering by "My Projects"
+    const userId = filters?.myProjects ? await getSessionUserId() : null;
+    if (filters?.myProjects && !userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
     const items: InventoryItem[] = [];
 
     // Fetch constructions (mills and pocas)
@@ -1154,9 +1220,15 @@ export async function getInventoryItems(
       }
       // If 'ALL', include both MILL and POCA
       
-      // Apply status filter
-      if (filters?.status && filters.status !== 'ALL') {
-        whereConditions.push(eq(constructions.status, filters.status));
+      // Phase 5.9.7.1: "My Projects" - filter by current user and draft status
+      if (filters?.myProjects) {
+        whereConditions.push(eq(constructions.createdBy, userId!));
+        whereConditions.push(eq(constructions.status, 'draft'));
+      } else {
+        // Apply status filter (only if not filtering by "My Projects")
+        if (filters?.status && filters.status !== 'ALL') {
+          whereConditions.push(eq(constructions.status, filters.status));
+        }
       }
       
       // Apply search query (searches in title)
@@ -1803,22 +1875,42 @@ export async function updateMillConstruction(
     // Use database transaction to ensure atomicity
     const result = await db.transaction(async (tx) => {
       // Step 1: Update constructions (core data)
+      // Phase 5.9.7.1: Update status if provided (for draft/review workflow)
+      const updateData: {
+        legacyId: string | null;
+        geom: [number, number];
+        district: string | null;
+        municipality: string | null;
+        parish: string | null;
+        address: string | null;
+        drainageBasin: string | null;
+        mainImage: string | null;
+        galleryImages: string[] | null;
+        updatedAt: Date;
+        status?: 'draft' | 'review';
+      } = {
+        legacyId: validated.legacyId || null,
+        geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
+        district: validated.district || null,
+        municipality: validated.municipality || null,
+        parish: validated.parish || null,
+        address: validated.address || null,
+        drainageBasin: validated.drainageBasin || null,
+        mainImage: validated.mainImage || null,
+        galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
+          ? validated.galleryImages 
+          : null,
+        updatedAt: new Date(),
+      };
+      
+      // Only update status if provided (allows changing from draft to review)
+      if (validated.status) {
+        updateData.status = validated.status;
+      }
+      
       const [updatedConstruction] = await tx
         .update(constructions)
-        .set({
-          legacyId: validated.legacyId || null,
-          geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
-          district: validated.district || null,
-          municipality: validated.municipality || null,
-          parish: validated.parish || null,
-          address: validated.address || null,
-          drainageBasin: validated.drainageBasin || null,
-          mainImage: validated.mainImage || null,
-          galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
-            ? validated.galleryImages 
-            : null,
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(constructions.id, validated.id))
         .returning({ id: constructions.id, slug: constructions.slug });
 

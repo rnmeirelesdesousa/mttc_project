@@ -520,7 +520,7 @@ function AddMillPageContent() {
     return `${baseUrl}/storage/v1/object/public/constructions/${path}`;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, status: 'draft' | 'review') => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -663,6 +663,8 @@ function AddMillPageContent() {
         hasMillerHouse,
         hasStable,
         hasFullingMill,
+        // Phase 5.9.7.1: Status for workflow
+        status,
       };
 
       // Call appropriate server action (create or update)
@@ -674,12 +676,9 @@ function AddMillPageContent() {
         : await createMillConstruction(formData);
 
       if (result.success) {
-        // Redirect to dashboard or inventory
-        if (isEditMode) {
-          router.push(`/${locale}/dashboard/inventory`);
-        } else {
-          router.push(`/${locale}/dashboard`);
-        }
+        // Redirect to dashboard with success message
+        const successKey = status === 'draft' ? 'savedDraft' : 'submittedForReview';
+        router.push(`/${locale}/dashboard?success=${successKey}`);
         router.refresh();
       } else {
         setError(result.error);
@@ -703,7 +702,7 @@ function AddMillPageContent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => e.preventDefault()}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="general">{t('add.tabs.general')}</TabsTrigger>
@@ -1939,12 +1938,41 @@ function AddMillPageContent() {
           </TabsContent>
         </Tabs>
 
-        <div className="mt-8 flex justify-end">
-          <Button type="submit" disabled={isSubmitting || isLoadingData}>
-            {isSubmitting 
-              ? (isEditMode ? t('add.form.updating') : t('add.form.submitting'))
-              : (isEditMode ? t('add.form.update') : t('add.form.submit'))}
-          </Button>
+        <div className="mt-8 flex justify-end gap-4">
+          {!isEditMode && (
+            <>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={(e) => handleSubmit(e, 'draft')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting 
+                  ? t('add.form.savingDraft')
+                  : t('add.form.saveAsDraft')}
+              </Button>
+              <Button 
+                type="button"
+                onClick={(e) => handleSubmit(e, 'review')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting 
+                  ? t('add.form.submittingForReview')
+                  : t('add.form.submitForReview')}
+              </Button>
+            </>
+          )}
+          {isEditMode && (
+            <Button 
+              type="button"
+              onClick={(e) => handleSubmit(e, 'draft')} 
+              disabled={isSubmitting || isLoadingData}
+            >
+              {isSubmitting 
+                ? t('add.form.updating')
+                : t('add.form.update')}
+            </Button>
+          )}
         </div>
       </form>
     </div>
