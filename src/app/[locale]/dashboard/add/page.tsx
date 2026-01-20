@@ -353,6 +353,16 @@ function AddMillPageContent() {
           setWidth(data.width?.toString() || '');
           setHeight(data.height?.toString() || '');
           
+          // Stone Material (Phase 5.9.20.6: Persistence Fix)
+          setStoneTypeGranite(data.stoneTypeGranite ?? false);
+          setStoneTypeSchist(data.stoneTypeSchist ?? false);
+          setStoneTypeOther(data.stoneTypeOther ?? false);
+          
+          // Gable Roof Materials (Phase 5.9.20.6: Persistence Fix)
+          setGableRoofMaterialLusa(data.gableMaterialLusa ?? false);
+          setGableRoofMaterialMarselha(data.gableMaterialMarselha ?? false);
+          setGableRoofMaterialMeiaCana(data.gableMaterialMeiaCana ?? false);
+          
           // Mechanism - Hydraulic
           setCaptationType(data.captationType || '');
           setConductionType(data.conductionType || '');

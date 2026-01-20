@@ -956,15 +956,17 @@ const createMillConstructionSchema = z.object({
   height: z.number().min(0).optional(),
   
   // Data Transition: Stone Material (replacing packed strings in observations)
-  stoneTypeGranite: z.boolean().optional(),
-  stoneTypeSchist: z.boolean().optional(),
-  stoneTypeOther: z.boolean().optional(),
+  // Use default(false) to ensure field is always present, even when form sends false
+  stoneTypeGranite: z.boolean().default(false),
+  stoneTypeSchist: z.boolean().default(false),
+  stoneTypeOther: z.boolean().default(false),
   stoneMaterialDescription: z.string().optional(),
   
   // Data Transition: Gable Roof Materials (replacing packed strings in observations)
-  gableMaterialLusa: z.boolean().optional(),
-  gableMaterialMarselha: z.boolean().optional(),
-  gableMaterialMeiaCana: z.boolean().optional(),
+  // Use default(false) to ensure field is always present, even when form sends false
+  gableMaterialLusa: z.boolean().default(false),
+  gableMaterialMarselha: z.boolean().default(false),
+  gableMaterialMeiaCana: z.boolean().default(false),
   
   // Motive Systems - Hydraulic (Section IV)
   captationType: z.enum(['weir', 'pool', 'direct']).optional(),
@@ -1838,6 +1840,15 @@ export async function getConstructionByIdForEdit(
         exteriorFinish: string | null;
         roofShape: string | null;
         roofMaterial: string | null;
+        length: number | null;
+        width: number | null;
+        height: number | null;
+        stoneTypeGranite: boolean;
+        stoneTypeSchist: boolean;
+        stoneTypeOther: boolean;
+        gableMaterialLusa: boolean;
+        gableMaterialMarselha: boolean;
+        gableMaterialMeiaCana: boolean;
         captationType: string | null;
         conductionType: string | null;
         conductionState: string | null;
@@ -1941,6 +1952,12 @@ export async function getConstructionByIdForEdit(
         length: millsData.length,
         width: millsData.width,
         height: millsData.height,
+        stoneTypeGranite: millsData.stoneTypeGranite,
+        stoneTypeSchist: millsData.stoneTypeSchist,
+        stoneTypeOther: millsData.stoneTypeOther,
+        gableMaterialLusa: millsData.gableMaterialLusa,
+        gableMaterialMarselha: millsData.gableMaterialMarselha,
+        gableMaterialMeiaCana: millsData.gableMaterialMeiaCana,
         captationType: millsData.captationType,
         conductionType: millsData.conductionType,
         conductionState: millsData.conductionState,
@@ -2040,6 +2057,12 @@ export async function getConstructionByIdForEdit(
         length: row.length,
         width: row.width,
         height: row.height,
+        stoneTypeGranite: row.stoneTypeGranite,
+        stoneTypeSchist: row.stoneTypeSchist,
+        stoneTypeOther: row.stoneTypeOther,
+        gableMaterialLusa: row.gableMaterialLusa,
+        gableMaterialMarselha: row.gableMaterialMarselha,
+        gableMaterialMeiaCana: row.gableMaterialMeiaCana,
         captationType: row.captationType,
         conductionType: row.conductionType,
         conductionState: row.conductionState,
