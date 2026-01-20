@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { constructions, constructionTranslations, millsData, waterLines, waterLineTranslations } from '@/db/schema';
+import { constructions, constructionTranslations, millsData, waterLines, waterLineTranslations, pocasData } from '@/db/schema';
 import { eq, and, desc, sql, or, like } from 'drizzle-orm';
 import { isAdmin, isResearcherOrAdmin, getSessionUserId } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
@@ -976,12 +976,131 @@ export async function createWaterLine(
 }
 
 /**
+ * Zod schema for poça creation (Phase 5.9.7: The Poças Identity)
+ */
+const createPocaConstructionSchema = z.object({
+  // General Info
+  title: z.string().min(1, 'Title is required'),
+  locale: z.enum(['pt', 'en']),
+  
+  // Location
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  
+  // Link to water line (required)
+  waterLineId: z.string().uuid('Valid water line ID is required'),
+});
+
+/**
+ * Creates a new poça construction with all related data
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * 
+ * This action uses a database transaction to ensure atomicity:
+ * 1. Inserts into constructions (core data, status='draft', typeCategory='POCA')
+ * 2. Inserts into construction_translations (title for locale)
+ * 3. Inserts into pocas_data (link to water line)
+ * 
+ * @param data - Form data containing poça information
+ * @returns Standardized response: { success: true, data?: { id: string, slug: string } } or { success: false, error: string }
+ */
+export async function createPocaConstruction(
+  data: z.infer<typeof createPocaConstructionSchema>
+): Promise<
+  | { success: true; data: { id: string; slug: string } }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Get current user ID for audit trail
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Validate input with Zod
+    const validationResult = createPocaConstructionSchema.safeParse(data);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      return { success: false, error: `Validation failed: ${errors}` };
+    }
+
+    const validated = validationResult.data;
+
+    // Generate unique slug from title
+    const baseSlug = generateSlug(validated.title);
+    
+    // Check if slug exists
+    const slugExists = async (slug: string): Promise<boolean> => {
+      const existing = await db
+        .select({ id: constructions.id })
+        .from(constructions)
+        .where(eq(constructions.slug, slug))
+        .limit(1);
+      return existing.length > 0;
+    };
+
+    const uniqueSlug = await generateUniqueSlug(baseSlug, slugExists);
+
+    // Use database transaction to ensure atomicity
+    const result = await db.transaction(async (tx) => {
+      // Step 1: Insert into constructions (core data)
+      const [newConstruction] = await tx
+        .insert(constructions)
+        .values({
+          slug: uniqueSlug,
+          typeCategory: 'POCA',
+          geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
+          status: 'draft' as const, // Always start as draft
+          createdBy: userId,
+        })
+        .returning({ id: constructions.id, slug: constructions.slug });
+
+      if (!newConstruction) {
+        throw new Error('Failed to create construction');
+      }
+
+      // Step 2: Insert into construction_translations (i18n)
+      await tx.insert(constructionTranslations).values({
+        constructionId: newConstruction.id,
+        langCode: validated.locale,
+        title: validated.title,
+      });
+
+      // Step 3: Insert into pocas_data (link to water line)
+      await tx.insert(pocasData).values({
+        constructionId: newConstruction.id,
+        waterLineId: validated.waterLineId,
+      });
+
+      return newConstruction;
+    });
+
+    // Revalidate dashboard pages to show new draft
+    revalidatePath('/en/dashboard');
+    revalidatePath('/pt/dashboard');
+    revalidatePath('/en/dashboard/inventory');
+    revalidatePath('/pt/dashboard/inventory');
+
+    return { success: true, data: { id: result.id, slug: result.slug } };
+  } catch (error) {
+    console.error('[createPocaConstruction]:', error);
+    return { success: false, error: 'An error occurred while creating the poça' };
+  }
+}
+
+/**
  * Inventory item type for the master list
  */
 export interface InventoryItem {
   id: string;
   slug: string;
-  type: 'MILL' | 'LEVADA';
+  type: 'MILL' | 'LEVADA' | 'POCA';
   title: string | null;
   status: 'draft' | 'review' | 'published';
   createdAt: Date;
@@ -1001,7 +1120,7 @@ export interface InventoryItem {
 export async function getInventoryItems(
   locale: string,
   filters?: {
-    type?: 'MILL' | 'LEVADA' | 'ALL';
+    type?: 'MILL' | 'LEVADA' | 'POCA' | 'ALL';
     status?: 'draft' | 'review' | 'published' | 'ALL';
   },
   searchQuery?: string
@@ -1023,9 +1142,17 @@ export async function getInventoryItems(
 
     const items: InventoryItem[] = [];
 
-    // Fetch constructions (mills)
-    if (!filters?.type || filters.type === 'MILL' || filters.type === 'ALL') {
+    // Fetch constructions (mills and pocas)
+    if (!filters?.type || filters.type === 'MILL' || filters.type === 'POCA' || filters.type === 'ALL') {
       const whereConditions = [];
+      
+      // Filter by type category if specific type requested
+      if (filters?.type === 'MILL') {
+        whereConditions.push(eq(constructions.typeCategory, 'MILL'));
+      } else if (filters?.type === 'POCA') {
+        whereConditions.push(eq(constructions.typeCategory, 'POCA'));
+      }
+      // If 'ALL', include both MILL and POCA
       
       // Apply status filter
       if (filters?.status && filters.status !== 'ALL') {
@@ -1044,6 +1171,7 @@ export async function getInventoryItems(
         .select({
           id: constructions.id,
           slug: constructions.slug,
+          typeCategory: constructions.typeCategory,
           status: constructions.status,
           createdAt: constructions.createdAt,
           updatedAt: constructions.updatedAt,
@@ -1070,7 +1198,7 @@ export async function getInventoryItems(
         ...constructionsResults.map((row) => ({
           id: row.id,
           slug: row.slug,
-          type: 'MILL' as const,
+          type: (row.typeCategory === 'POCA' ? 'POCA' : 'MILL') as 'MILL' | 'POCA',
           title: row.title,
           status: row.status as 'draft' | 'review' | 'published',
           createdAt: row.createdAt,
@@ -1141,7 +1269,7 @@ export async function getInventoryItems(
 }
 
 /**
- * Gets the type of an item by ID (MILL or LEVADA)
+ * Gets the type of an item by ID (MILL, POCA, or LEVADA)
  * 
  * Security: Verifies that the performing user has 'researcher' or 'admin' role
  * 
@@ -1151,7 +1279,7 @@ export async function getInventoryItems(
 export async function getItemTypeById(
   id: string
 ): Promise<
-  | { success: true; data: { type: 'MILL' | 'LEVADA'; slug: string } }
+  | { success: true; data: { type: 'MILL' | 'POCA' | 'LEVADA'; slug: string } }
   | { success: false; error: string }
 > {
   try {
@@ -1171,13 +1299,15 @@ export async function getItemTypeById(
       .select({
         id: constructions.id,
         slug: constructions.slug,
+        typeCategory: constructions.typeCategory,
       })
       .from(constructions)
       .where(eq(constructions.id, id))
       .limit(1);
 
     if (construction.length > 0) {
-      return { success: true, data: { type: 'MILL', slug: construction[0]!.slug } };
+      const type = construction[0]!.typeCategory === 'POCA' ? 'POCA' : 'MILL';
+      return { success: true, data: { type, slug: construction[0]!.slug } };
     }
 
     // Try to find in water_lines table

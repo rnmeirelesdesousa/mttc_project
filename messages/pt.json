@@ -28,7 +28,11 @@
       "home": "Início",
       "inventory": "Inventário",
       "newEntry": "Nova Entrada",
-      "waterLines": "Levadas",
+      "newEntrySubmenu": {
+        "mill": "Moinho",
+        "waterLine": "Levada",
+        "poca": "Poça"
+      },
       "reviewQueue": "Fila de Revisão"
     },
     "stats": {
@@ -547,7 +551,8 @@
     "description": "Lista completa de todas as construções e levadas",
     "type": {
       "mill": "Moinho",
-      "levada": "Levada"
+      "levada": "Levada",
+      "poca": "Poça"
     },
     "filters": {
       "type": "Tipo",
@@ -578,5 +583,27 @@
   },
   "search": {
     "placeholder": "Pesquisar moinhos por nome, distrito, tipologia, material..."
+  },
+  "pocas": {
+    "new": {
+      "title": "Nova Poça",
+      "description": "Criar uma nova poça (reservatório de água) ligada a uma levada"
+    },
+    "form": {
+      "name": "Nome",
+      "namePlaceholder": "Ex: Poça do Açude",
+      "nameRequired": "O nome é obrigatório",
+      "location": "Localização",
+      "locationDescription": "Clique no mapa para selecionar a localização da poça",
+      "locationRequired": "A localização é obrigatória",
+      "waterLine": "Levada",
+      "selectWaterLine": "Selecione uma levada",
+      "waterLineRequired": "A levada é obrigatória",
+      "noWaterLines": "Nenhuma levada disponível. Crie uma levada primeiro.",
+      "cancel": "Cancelar",
+      "submit": "Criar Poça",
+      "submitting": "A criar...",
+      "error": "Ocorreu um erro ao criar a poça"
+    }
   }
 }

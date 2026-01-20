@@ -28,7 +28,11 @@
       "home": "Home",
       "inventory": "Inventory",
       "newEntry": "New Entry",
-      "waterLines": "Water Lines",
+      "newEntrySubmenu": {
+        "mill": "Mill",
+        "waterLine": "Water Line",
+        "poca": "Poça"
+      },
       "reviewQueue": "Review Queue"
     },
     "stats": {
@@ -547,7 +551,8 @@
     "description": "Complete list of all constructions and water lines",
     "type": {
       "mill": "Mill",
-      "levada": "Levada"
+      "levada": "Levada",
+      "poca": "Poça"
     },
     "filters": {
       "type": "Type",
@@ -578,5 +583,27 @@
   },
   "search": {
     "placeholder": "Search mills by name, district, typology, material..."
+  },
+  "pocas": {
+    "new": {
+      "title": "New Poça",
+      "description": "Create a new poça (water pool) linked to a levada"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "E.g.: Poça do Açude",
+      "nameRequired": "Name is required",
+      "location": "Location",
+      "locationDescription": "Click on the map to select the poça location",
+      "locationRequired": "Location is required",
+      "waterLine": "Levada",
+      "selectWaterLine": "Select a levada",
+      "waterLineRequired": "Levada is required",
+      "noWaterLines": "No water lines available. Create a levada first.",
+      "cancel": "Cancel",
+      "submit": "Create Poça",
+      "submitting": "Creating...",
+      "error": "An error occurred while creating the poça"
+    }
   }
 }

@@ -41,7 +41,7 @@ export default function InventoryPage() {
   const [error, setError] = useState<string | null>(null);
   
   // Filters
-  const [typeFilter, setTypeFilter] = useState<'MILL' | 'LEVADA' | 'ALL'>('ALL');
+  const [typeFilter, setTypeFilter] = useState<'MILL' | 'LEVADA' | 'POCA' | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<'draft' | 'review' | 'published' | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -92,6 +92,8 @@ export default function InventoryPage() {
   const getPublicUrl = (item: InventoryItem): string => {
     if (item.type === 'MILL') {
       return `/${locale}/mill/${item.slug}`;
+    } else if (item.type === 'POCA') {
+      return `/${locale}/poca/${item.slug}`; // TODO: Create public poca page if needed
     } else {
       return `/${locale}/levada/${item.slug}`;
     }
@@ -119,6 +121,8 @@ export default function InventoryPage() {
   const getTypeText = (type: string): string => {
     if (type === 'MILL') {
       return t('inventory.type.mill');
+    } else if (type === 'POCA') {
+      return t('inventory.type.poca');
     } else {
       return t('inventory.type.levada');
     }
@@ -143,12 +147,13 @@ export default function InventoryPage() {
             <select
               id="typeFilter"
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as 'MILL' | 'LEVADA' | 'ALL')}
+              onChange={(e) => setTypeFilter(e.target.value as 'MILL' | 'LEVADA' | 'POCA' | 'ALL')}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="ALL">{t('inventory.filters.allTypes')}</option>
               <option value="MILL">{t('inventory.type.mill')}</option>
               <option value="LEVADA">{t('inventory.type.levada')}</option>
+              <option value="POCA">{t('inventory.type.poca')}</option>
             </select>
           </div>
 

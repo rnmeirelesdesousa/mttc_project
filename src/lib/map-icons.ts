@@ -62,3 +62,61 @@ export function getMillIcon(customIconUrl?: string | null): L.Icon {
     shadowAnchor: [12, 41],
   });
 }
+
+/**
+ * Gets the icon color for a construction type
+ * 
+ * Phase 5.9.7: Returns a color code for different construction types on the map
+ * 
+ * @param typeCategory - Construction type category ('MILL', 'POCA', etc.)
+ * @returns Hex color code for the construction type
+ */
+export function getConstructionTypeColor(typeCategory: string): string {
+  switch (typeCategory) {
+    case 'POCA':
+      return '#10b981'; // Green color for poças (water pools)
+    case 'MILL':
+      return '#3b82f6'; // Blue color for mills (default)
+    default:
+      return '#3b82f6'; // Default blue
+  }
+}
+
+/**
+ * Creates a Leaflet icon for a poça marker
+ * 
+ * Phase 5.9.7: Uses a green-colored marker to distinguish poças from mills
+ * 
+ * @param customIconUrl - Optional custom icon URL from Supabase Storage 'map-assets' bucket
+ * @returns Leaflet L.Icon instance
+ */
+export function getPocaIcon(customIconUrl?: string | null): L.Icon {
+  const customUrl = getCustomIconUrl(customIconUrl);
+
+  if (customUrl) {
+    // Use custom icon
+    return L.icon({
+      iconUrl: customUrl,
+      iconRetinaUrl: customUrl,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowUrl: DEFAULT_SHADOW_URL,
+      shadowSize: [41, 41],
+      shadowAnchor: [12, 41],
+    });
+  }
+
+  // Use default Leaflet icon (will be styled with CSS or colored marker in map component)
+  // For now, return the default icon - the map component can apply color styling
+  return L.icon({
+    iconRetinaUrl: DEFAULT_ICON_RETINA_URL,
+    iconUrl: DEFAULT_ICON_URL,
+    shadowUrl: DEFAULT_SHADOW_URL,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+    shadowAnchor: [12, 41],
+  });
+}

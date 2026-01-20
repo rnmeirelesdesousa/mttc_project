@@ -443,6 +443,22 @@ export const waterLineTranslations = pgTable(
 );
 
 // ============================================================================
+// STEP 5.7: Table `pocas_data` (Phase 5.9.7: The Poças Identity)
+// ============================================================================
+
+export const pocasData = pgTable('pocas_data', {
+  // Primary Key and Foreign Key (1:1 relationship with constructions)
+  constructionId: uuid('construction_id')
+    .primaryKey()
+    .references(() => constructions.id, { onDelete: 'cascade' }),
+
+  // Link to water line (levada)
+  waterLineId: uuid('water_line_id')
+    .notNull()
+    .references(() => waterLines.id, { onDelete: 'restrict' }),
+});
+
+// ============================================================================
 // STEP 6: Define Relations
 // ============================================================================
 
@@ -450,6 +466,10 @@ export const constructionsRelations = relations(constructions, ({ one, many }) =
   millsData: one(millsData, {
     fields: [constructions.id],
     references: [millsData.constructionId],
+  }),
+  pocasData: one(pocasData, {
+    fields: [constructions.id],
+    references: [pocasData.constructionId],
   }),
   translations: many(constructionTranslations),
   // Phase 3: Academic Shield - Author relation
@@ -487,11 +507,6 @@ export const constructionTranslationsRelations = relations(
   })
 );
 
-// Phase 5.9.2: Water Lines Relations
-export const waterLinesRelations = relations(waterLines, ({ many }) => ({
-  translations: many(waterLineTranslations),
-  mills: many(millsData),
-}));
 
 export const waterLineTranslationsRelations = relations(
   waterLineTranslations,
@@ -502,6 +517,25 @@ export const waterLineTranslationsRelations = relations(
     }),
   })
 );
+
+// Phase 5.9.7: Poças Data Relations
+export const pocasDataRelations = relations(pocasData, ({ one }) => ({
+  construction: one(constructions, {
+    fields: [pocasData.constructionId],
+    references: [constructions.id],
+  }),
+  waterLine: one(waterLines, {
+    fields: [pocasData.waterLineId],
+    references: [waterLines.id],
+  }),
+}));
+
+// Phase 5.9.7: Update Water Lines Relations to include pocas
+export const waterLinesRelations = relations(waterLines, ({ many }) => ({
+  translations: many(waterLineTranslations),
+  mills: many(millsData),
+  pocas: many(pocasData),
+}));
 
 // ============================================================================
 // Types
@@ -525,6 +559,9 @@ export type NewWaterLine = InferInsertModel<typeof waterLines>;
 export type WaterLineTranslation = InferSelectModel<typeof waterLineTranslations>;
 export type NewWaterLineTranslation = InferInsertModel<typeof waterLineTranslations>;
 
+export type PocasData = InferSelectModel<typeof pocasData>;
+export type NewPocasData = InferInsertModel<typeof pocasData>;
+
 export const schema = {
   constructions,
   millsData,
@@ -532,4 +569,5 @@ export const schema = {
   profiles,
   waterLines,
   waterLineTranslations,
+  pocasData,
 };
