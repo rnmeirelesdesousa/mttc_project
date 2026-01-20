@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { LogOut, User, Menu, X } from 'lucide-react';
@@ -28,11 +28,15 @@ interface HeaderProps {
 export const Header = ({ locale }: HeaderProps) => {
   const t = useTranslations();
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const localeRef = useRef(locale);
   const userRef = useRef<SupabaseUser | null>(null);
+
+  // Detect if we're on a Dashboard route
+  const isDashboardRoute = pathname?.startsWith(`/${locale}/dashboard`) ?? false;
 
   // Keep locale ref up to date
   useEffect(() => {
@@ -169,9 +173,9 @@ export const Header = ({ locale }: HeaderProps) => {
           </Link>
         </div>
 
-        {/* Center: Global Search Bar - Hidden on small screens, shown on md+ */}
+        {/* Center: Global Search Bar - Hidden on small screens, shown on md+, and hidden on Dashboard routes */}
         <div className="hidden md:flex items-center justify-center">
-          <GlobalSearch locale={locale} />
+          {!isDashboardRoute && <GlobalSearch locale={locale} />}
         </div>
         <div className="md:hidden" /> {/* Spacer for mobile to maintain grid */}
 
@@ -182,12 +186,21 @@ export const Header = ({ locale }: HeaderProps) => {
             <div className="h-9 w-20 bg-transparent" />
           ) : isAuthenticated ? (
             <>
-              <Link href={dashboardPath}>
-                <Button variant="ghost" size="sm" className="font-medium hidden sm:inline-flex">
-                  <User className="mr-2 h-4 w-4" />
-                  <span className="hidden lg:inline">{t('header.dashboard')}</span>
-                </Button>
-              </Link>
+              {isDashboardRoute ? (
+                <Link href={homePath}>
+                  <Button variant="ghost" size="sm" className="font-medium hidden sm:inline-flex">
+                    <span className="hidden lg:inline">{t('header.map')}</span>
+                    <span className="lg:hidden">{t('header.map')}</span>
+                  </Button>
+                </Link>
+              ) : (
+                <Link href={dashboardPath}>
+                  <Button variant="ghost" size="sm" className="font-medium hidden sm:inline-flex">
+                    <User className="mr-2 h-4 w-4" />
+                    <span className="hidden lg:inline">{t('header.dashboard')}</span>
+                  </Button>
+                </Link>
+              )}
               <Button variant="outline" size="sm" onClick={handleLogoutClick} className="font-medium">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">{t('header.logout')}</span>
@@ -217,14 +230,16 @@ export const Header = ({ locale }: HeaderProps) => {
         </div>
       </div>
 
-      {/* Mobile Menu - Includes search on small screens */}
+      {/* Mobile Menu - Includes search on small screens (hidden on Dashboard routes) */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-200/50 bg-white/95 backdrop-blur-md">
           <div className="container mx-auto px-4 py-4 space-y-4">
-            {/* Mobile Search */}
-            <div className="w-full">
-              <GlobalSearch locale={locale} />
-            </div>
+            {/* Mobile Search - Hidden on Dashboard routes */}
+            {!isDashboardRoute && (
+              <div className="w-full">
+                <GlobalSearch locale={locale} />
+              </div>
+            )}
             
             {/* Mobile Auth Actions */}
             <nav className="space-y-3">
@@ -233,14 +248,24 @@ export const Header = ({ locale }: HeaderProps) => {
                 <div className="h-9 w-full bg-transparent" />
               ) : isAuthenticated ? (
                 <>
-                  <Link
-                    href={dashboardPath}
-                    className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <User className="h-4 w-4" />
-                    <span>{t('header.dashboard')}</span>
-                  </Link>
+                  {isDashboardRoute ? (
+                    <Link
+                      href={homePath}
+                      className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <span>{t('header.map')}</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={dashboardPath}
+                      className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="h-4 w-4" />
+                      <span>{t('header.dashboard')}</span>
+                    </Link>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
