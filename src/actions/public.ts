@@ -22,6 +22,7 @@ export interface PublishedMill {
   municipality: string | null;
   parish: string | null;
   address: string | null;
+  place: string | null; // Phase 5.9.20.10: Lugar field
   drainageBasin: string | null;
   mainImage: string | null;
   galleryImages: string[] | null;
@@ -132,6 +133,7 @@ export async function getPublishedMills(
         municipality: constructions.municipality,
         parish: constructions.parish,
         address: constructions.address,
+        place: constructions.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
@@ -319,6 +321,7 @@ export async function getMillBySlug(
         municipality: constructions.municipality,
         parish: constructions.parish,
         address: constructions.address,
+        place: constructions.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
@@ -455,6 +458,7 @@ export async function getMillBySlug(
       municipality: row.municipality,
       parish: row.parish,
       address: row.address,
+      place: row.place, // Phase 5.9.20.10: Lugar field
       drainageBasin: row.drainageBasin,
       mainImage: row.mainImage,
       galleryImages: row.galleryImages,
@@ -577,6 +581,7 @@ export async function getMillById(
         municipality: constructions.municipality,
         parish: constructions.parish,
         address: constructions.address,
+        place: constructions.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
@@ -713,6 +718,7 @@ export async function getMillById(
       municipality: row.municipality,
       parish: row.parish,
       address: row.address,
+      place: row.place, // Phase 5.9.20.10: Lugar field
       drainageBasin: row.drainageBasin,
       mainImage: row.mainImage,
       galleryImages: row.galleryImages,
@@ -853,6 +859,7 @@ export async function getConnectedMills(
         municipality: constructions.municipality,
         parish: constructions.parish,
         address: constructions.address,
+        place: constructions.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
@@ -1165,6 +1172,7 @@ export async function getWaterLineBySlug(
         municipality: constructions.municipality,
         parish: constructions.parish,
         address: constructions.address,
+        place: constructions.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,

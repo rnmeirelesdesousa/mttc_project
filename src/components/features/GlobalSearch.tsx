@@ -81,9 +81,10 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         const districtMatch = mill.district?.toLowerCase().includes(query);
         const municipalityMatch = mill.municipality?.toLowerCase().includes(query);
         const parishMatch = mill.parish?.toLowerCase().includes(query);
+        const placeMatch = mill.place?.toLowerCase().includes(query); // Phase 5.9.20.10: Lugar field
         const addressMatch = mill.address?.toLowerCase().includes(query);
         
-        if (districtMatch || municipalityMatch || parishMatch || addressMatch) {
+        if (districtMatch || municipalityMatch || parishMatch || placeMatch || addressMatch) {
           matched = true;
         }
         

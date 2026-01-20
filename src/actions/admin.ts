@@ -940,6 +940,7 @@ const createMillConstructionSchema = z.object({
   municipality: z.string().optional(),
   parish: z.string().optional(),
   address: z.string().optional(),
+  place: z.string().optional(), // Phase 5.9.20.10: Lugar field
   drainageBasin: z.string().optional(),
   
   // Characterization (Section II)
@@ -1939,6 +1940,7 @@ export async function getConstructionByIdForEdit(
         municipality: constructions.municipality,
         parish: constructions.parish,
         address: constructions.address,
+        place: constructions.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
@@ -2045,6 +2047,7 @@ export async function getConstructionByIdForEdit(
         municipality: row.municipality,
         parish: row.parish,
         address: row.address,
+        place: row.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: row.drainageBasin,
         mainImage: row.mainImage,
         galleryImages: row.galleryImages || [],
@@ -2317,6 +2320,7 @@ export async function updateMillConstruction(
         municipality: string | null;
         parish: string | null;
         address: string | null;
+        place: string | null; // Phase 5.9.20.10: Lugar field
         drainageBasin: string | null;
         mainImage: string | null;
         galleryImages: string[] | null;
@@ -2329,6 +2333,7 @@ export async function updateMillConstruction(
         municipality: validated.municipality || null,
         parish: validated.parish || null,
         address: validated.address || null,
+        place: validated.place || null, // Phase 5.9.20.10: Lugar field
         drainageBasin: validated.drainageBasin || null,
         mainImage: validated.mainImage || null,
         galleryImages: validated.galleryImages && validated.galleryImages.length > 0 

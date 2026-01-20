@@ -95,14 +95,16 @@ export default async function MillDetailPage({ params }: PageProps) {
                   {t('add.form.general.legacyId')}: {mill.legacyId}
                 </p>
               )}
-              {(mill.municipality || mill.district || mill.parish) && (
+              {(mill.municipality || mill.district || mill.parish || mill.place || mill.address) && (
                 <p className="text-xs text-gray-500 mb-1">
                   {mill.municipality && mill.municipality}
                   {mill.district && mill.municipality && ', '}
                   {mill.district && mill.district}
                   {mill.parish && (mill.municipality || mill.district) && ' • '}
                   {mill.parish && mill.parish}
-                  {mill.address && (mill.parish || mill.municipality || mill.district) && ' • '}
+                  {mill.place && (mill.parish || mill.municipality || mill.district) && ' • '}
+                  {mill.place && mill.place}
+                  {mill.address && (mill.place || mill.parish || mill.municipality || mill.district) && ' • '}
                   {mill.address && mill.address}
                 </p>
               )}

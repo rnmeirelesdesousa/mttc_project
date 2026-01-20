@@ -262,6 +262,7 @@ export const constructions = pgTable(
     municipality: text('municipality'),
     parish: text('parish'),
     address: text('address'),
+    place: text('place'), // Phase 5.9.20.10: Lugar field
     drainageBasin: text('drainage_basin'),
     mainImage: text('main_image'),
     galleryImages: text('gallery_images').array(),

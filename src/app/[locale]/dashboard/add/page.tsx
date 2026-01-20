@@ -146,6 +146,7 @@ function AddMillPageContent() {
   const [municipality, setMunicipality] = useState('');
   const [parish, setParish] = useState('');
   const [address, setAddress] = useState('');
+  const [place, setPlace] = useState(''); // Phase 5.9.20.10: Lugar field
   const [drainageBasin, setDrainageBasin] = useState('');
 
   // Technical Specs / Characterization
@@ -329,6 +330,7 @@ function AddMillPageContent() {
           setMunicipality(data.municipality || '');
           setParish(data.parish || '');
           setAddress(data.address || '');
+          setPlace(data.place || ''); // Phase 5.9.20.10: Lugar field
           setDrainageBasin(data.drainageBasin || '');
           
           // Technical Specs
@@ -605,6 +607,7 @@ function AddMillPageContent() {
         municipality: municipality.trim() || undefined,
         parish: parish.trim() || undefined,
         address: address.trim() || undefined,
+        place: place.trim() || undefined, // Phase 5.9.20.10: Lugar field
         drainageBasin: drainageBasin.trim() || undefined,
         // Characterization
         typology: typology as 'azenha' | 'rodizio' | 'mare' | 'torre_fixa' | 'giratorio' | 'velas' | 'armacao',
@@ -870,6 +873,17 @@ function AddMillPageContent() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder={t('add.form.location.addressPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="place">{t('add.form.location.place')}</Label>
+              <Input
+                id="place"
+                type="text"
+                value={place}
+                onChange={(e) => setPlace(e.target.value)}
+                placeholder={t('add.form.location.placePlaceholder')}
               />
             </div>
 

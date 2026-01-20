@@ -172,6 +172,12 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
                 <p className="font-medium">{mill.parish}</p>
               </div>
             )}
+            {mill.place && (
+              <div>
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.place')}:</span>
+                <p className="font-medium">{mill.place}</p>
+              </div>
+            )}
             {mill.drainageBasin && (
               <div>
                 <span className="text-[10px] text-gray-500">{t('mill.sidebar.drainageBasin')}:</span>

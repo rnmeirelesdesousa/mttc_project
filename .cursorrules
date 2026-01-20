@@ -101,8 +101,15 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.20.9: PUBLIC PAGE SCIENTIFIC ENHANCEMENT)**
-* **Goal:** Transform the public mill page into a comprehensive scientific record.
-* **Requirements:** The page at `app/[locale]/(public)/mill/[slug]/page.tsx` must show EVERY scientific field (Dimensions, Materials, Enums, and Observations).
-* **UI Pattern:** Use a "Scientific Dossier" look. Clean typography, technical grid for specs, and a prominent photo gallery.
-* **Sync:** Ensure the public action `getMillBySlug` (in `public.ts`) is updated to fetch all the new 5.9.20.x columns.
+# CURRENT CONTEXT: Phase 5.9.20.10 - Database & UI Extension for Mills Location
+### Description: 
+Adding a new field 'place' (Lugar) to the Mill entity. This requires a full-stack update: 
+synchronizing the Drizzle schema.ts, executing the Supabase migration, and updating 
+all relevant frontend pages/forms.
+
+### Database Synchronization Rules
+- **Schema Authority:** The `schema.ts` file is the source of truth. 
+- **Field Naming:** Use `place` for the database column name. 
+- **Labeling:** Use "Lugar" or "Place" for UI labels.
+- **Consistency:** Every schema change must be reflected in the Supabase SQL editor via migration scripts or direct SQL provided to the user.
+- **Type Safety:** Update Zod schemas and TypeScript interfaces to include the `place` field.
