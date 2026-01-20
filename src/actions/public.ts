@@ -1266,3 +1266,101 @@ export async function getMapData(
   }
 }
 
+/**
+ * Searchable mill data for global search functionality
+ */
+export interface SearchableMill {
+  id: string;
+  title: string | null;
+  slug: string;
+  district: string | null;
+  typology: string;
+  roofMaterial: string | null;
+  motiveApparatus: string | null;
+  lat: number;
+  lng: number;
+}
+
+/**
+ * Fetches all published mills with searchable fields for global search
+ * 
+ * This is a lightweight query that only fetches fields needed for search:
+ * - Names (title)
+ * - Materials (roofMaterial)
+ * - Typologies (typology)
+ * - Districts (district)
+ * 
+ * @param locale - Language code ('pt' | 'en')
+ * @returns Standardized response with array of searchable mills
+ */
+export async function getSearchableMills(
+  locale: string
+): Promise<
+  | { success: true; data: SearchableMill[] }
+  | { success: false; error: string }
+> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
+    }
+
+    // Query published mills with only searchable fields
+    const results = await db
+      .select({
+        id: constructions.id,
+        slug: constructions.slug,
+        title: constructionTranslations.title,
+        district: constructions.district,
+        typology: millsData.typology,
+        roofMaterial: millsData.roofMaterial,
+        motiveApparatus: millsData.motiveApparatus,
+        lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
+        lat: sql<number | null>`COALESCE(ST_Y(${constructions.geom}::geometry), NULL)`,
+      })
+      .from(constructions)
+      .innerJoin(millsData, eq(millsData.constructionId, constructions.id))
+      .leftJoin(
+        constructionTranslations,
+        and(
+          eq(constructionTranslations.constructionId, constructions.id),
+          eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .where(eq(constructions.status, 'published'));
+
+    // Transform results and filter out invalid coordinates
+    const mills: SearchableMill[] = results
+      .map((row) => {
+        const lat = row.lat !== null ? Number(row.lat) : null;
+        const lng = row.lng !== null ? Number(row.lng) : null;
+        
+        // Skip mills with invalid coordinates
+        if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          return null;
+        }
+        
+        return {
+          id: row.id,
+          slug: row.slug,
+          title: row.title,
+          district: row.district,
+          typology: row.typology,
+          roofMaterial: row.roofMaterial,
+          motiveApparatus: row.motiveApparatus,
+          lat,
+          lng,
+        };
+      })
+      .filter((mill): mill is SearchableMill => mill !== null);
+
+    return { success: true, data: mills };
+  } catch (error) {
+    console.error('[getSearchableMills]:', error);
+    return {
+      success: false,
+      error: 'An error occurred while fetching searchable mills',
+    };
+  }
+}
+

@@ -101,10 +101,14 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.5.6: ELASTIC DASHBOARD UI)**
-* **Focus:** Responsiveness and Proportional Scaling.
-* **Card Dimensions:** - Width: Use `w-[90vw] md:w-[45vw] lg:w-[35vw]`.
-    - Max-Width cap: `max-w-[600px]`.
-* **Image Scaling:** Use `aspect-[3/2]` with `w-full h-auto`. Ensure the image container scales with the card width.
-* **Dynamic Offset:** The `FocusZoomHandler` must calculate the horizontal offset based on the *actual* rendered width of the `MillSidebar` to ensure the marker is never covered.
-* **Mobile Rule:** On screens < 768px, the card should transition to a bottom-drawer/sheet style instead of a side panel.
+**CURRENT CONTEXT (PHASE 5.9.5.9: THE COMMAND HEADER)**
+* **Focus:** Header UI expansion and Global Search.
+* **Header Geometry:** Increase height to `h-20` (80px) or `h-24` (96px). 
+* **Public State (Logged Out):**
+    - Left: Project Title (Large/Bold).
+    - Center: Global Search Bar (Omnisearch).
+    - Right: Login Button (Clean/Minimal).
+* **Search Functionality:** - Real-time filtering of the `mills` and `constructions` tables.
+    - Display results in a dropdown list (Title, Location, Typology).
+    - Action: Clicking a result must trigger the `onMillClick` logic in the map.
+* **Aesthetic:** High contrast, fixed at top, `z-[1100]`.

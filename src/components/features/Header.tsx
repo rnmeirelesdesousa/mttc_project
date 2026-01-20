@@ -4,11 +4,12 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Map, LogOut, User, Menu, X } from 'lucide-react';
+import { LogOut, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import { handleLogout } from '@/actions/auth';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { GlobalSearch } from './GlobalSearch';
 
 interface HeaderProps {
   locale: string;
@@ -156,48 +157,42 @@ export const Header = ({ locale }: HeaderProps) => {
   const dashboardPath = `/${locale}/dashboard`;
 
   return (
-    <header className="fixed top-0 z-[1001] w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <header className="fixed top-0 z-[1100] w-full border-b-2 border-gray-200 bg-white shadow-sm">
+      <div className="container mx-auto flex h-20 md:h-24 items-center justify-between px-4 gap-4">
         {/* Left: Project Name */}
         <Link
           href={homePath}
-          className="flex items-center space-x-2 text-lg font-semibold hover:text-primary transition-colors"
+          className="flex items-center text-xl md:text-2xl font-bold text-gray-900 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
         >
           <span>{t('home.title')}</span>
         </Link>
 
-        {/* Center: Map Link (Desktop) */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link
-            href={mapPath}
-            className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors"
-          >
-            <Map className="h-4 w-4" />
-            <span>{t('header.map')}</span>
-          </Link>
-        </nav>
+        {/* Center: Global Search Bar */}
+        <div className="flex-1 flex justify-center max-w-2xl mx-4">
+          <GlobalSearch locale={locale} />
+        </div>
 
-        {/* Right: Auth Actions (Desktop) */}
-        <div className="hidden md:flex items-center space-x-4">
+        {/* Right: Auth Actions */}
+        <div className="hidden md:flex items-center space-x-3 flex-shrink-0">
           {loading ? (
             // Neutral placeholder to prevent hydration flicker
             <div className="h-9 w-20 bg-transparent" />
           ) : isAuthenticated ? (
             <>
               <Link href={dashboardPath}>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="font-medium">
                   <User className="mr-2 h-4 w-4" />
                   {t('header.dashboard')}
                 </Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={handleLogoutClick}>
+              <Button variant="outline" size="sm" onClick={handleLogoutClick} className="font-medium">
                 <LogOut className="mr-2 h-4 w-4" />
                 {t('header.logout')}
               </Button>
             </>
           ) : (
             <Link href={loginPath}>
-              <Button size="sm">
+              <Button size="sm" className="font-medium">
                 {t('header.login')}
               </Button>
             </Link>
@@ -206,7 +201,7 @@ export const Header = ({ locale }: HeaderProps) => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden p-2 rounded-md hover:bg-accent transition-colors"
+          className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors flex-shrink-0"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -220,16 +215,8 @@ export const Header = ({ locale }: HeaderProps) => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-background">
+        <div className="md:hidden border-t bg-white">
           <nav className="container mx-auto px-4 py-4 space-y-3">
-            <Link
-              href={mapPath}
-              className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Map className="h-4 w-4" />
-              <span>{t('header.map')}</span>
-            </Link>
             {loading ? (
               // Neutral placeholder to prevent hydration flicker
               <div className="h-9 w-full bg-transparent" />

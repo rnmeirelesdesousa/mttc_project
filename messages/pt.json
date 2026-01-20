@@ -562,5 +562,8 @@
     "logout": "Terminar Sessão",
     "dashboard": "Painel",
     "map": "Mapa"
+  },
+  "search": {
+    "placeholder": "Pesquisar moinhos por nome, distrito, tipologia, material..."
   }
 }

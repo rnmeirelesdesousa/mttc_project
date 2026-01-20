@@ -91,7 +91,7 @@ export default async function MapPage({ params, searchParams }: PageProps) {
   const { mills, waterLines } = result.data;
 
   return (
-    <div className="fixed inset-x-0 top-16 bottom-0 w-full h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="fixed inset-x-0 top-20 md:top-24 bottom-0 w-full h-[calc(100vh-5rem)] md:h-[calc(100vh-6rem)] overflow-hidden">
       <DynamicMapWithSidebar 
         mills={mills} 
         waterLines={waterLines} 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { MillMap } from './MillMap';
 import { MillSidebar } from './MillSidebar';
@@ -42,20 +43,51 @@ interface MapWithSidebarProps {
  * Full-page map interface with filter sidebar accessible via menu icon.
  */
 export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }: MapWithSidebarProps) => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [selectedMillId, setSelectedMillId] = useState<string | null>(null);
   const [filterSidebarOpen, setFilterSidebarOpen] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
+  // Sync selectedMillId with URL param
+  useEffect(() => {
+    const millIdParam = searchParams.get('millId');
+    if (millIdParam) {
+      // Verify the mill exists in the current mills array
+      const millExists = mills.some((mill) => mill.id === millIdParam);
+      if (millExists) {
+        setSelectedMillId(millIdParam);
+      }
+    } else {
+      setSelectedMillId(null);
+    }
+  }, [searchParams, mills]);
+
   const handleMillClick = (millId: string) => {
     setSelectedMillId(millId);
+    // Update URL without page reload
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('millId', millId);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const handleMapClick = () => {
     setSelectedMillId(null);
+    // Remove millId from URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('millId');
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.push(newUrl, { scroll: false });
   };
 
   const handleCloseSidebar = () => {
     setSelectedMillId(null);
+    // Remove millId from URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('millId');
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.push(newUrl, { scroll: false });
   };
 
   // Find the selected mill's coordinates for focus zoom

@@ -562,5 +562,8 @@
     "logout": "Logout",
     "dashboard": "Dashboard",
     "map": "Map"
+  },
+  "search": {
+    "placeholder": "Search mills by name, district, typology, material..."
   }
 }
