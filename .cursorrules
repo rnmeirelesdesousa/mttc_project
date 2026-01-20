@@ -101,17 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-# CURRENT CONTEXT: Phase 5.9.20.11 - Mill ID Card Redesign (MillSidebar.tsx)
-### Description: 
-Restructuring the MillSidebar component to resemble a professional horizontal ID card. 
-The layout should prioritize a horizontal ratio (Golden Ratio) and a clear information 
-hierarchy: Media/Identity on top, Location/Technical data in the body, and CTA at the bottom.
-
-### Component Design Rules
-- **Ratio:** Maintain a horizontal orientation (aspect ratio roughly 1.618:1).
-- **Layout:** - Top Left: Main image or "No Picture" placeholder.
-  - Top Right (adjacent to image): Primary Identification & Location.
-  - Bottom: Technical specifications and observation fields.
-  - Footer: "View Details" button anchored to the bottom right.
-- **Styling:** Use a clean, "scientific command center" aesthetic with high scannability.
-- **Fallbacks:** Handle missing images with a styled gray placeholder.
+**CURRENT CONTEXT (PHASE 5.9.8: DYNAMIC SYMBOLOGY & INFRASTRUCTURE LINKING)**
+* **Focus:** Implementing dynamic SVG marker coloring based on Levada associations.
+* **Infrastructure:** Use the `color` field from `water_lines` to tint `mills_data` and `pocas_data` markers on the Map.
+* **Tasks:** 1. Update Construction Form to allow uploading/selecting SVG markers to the `map-assets` bucket.
+    2. Implement a "Color Sync" logic: if a construction is linked to a `water_line_id`, its map icon must inherit the Levada's hex color.
+    3. Update `MillMap` and `LevadaMap` components to handle dynamic SVG path tinting (via CSS `fill` or Lucide-style props).
+* **Constraint:** Maintain the "Core + Extension" pattern. The `custom_icon_url` remains in the `constructions` table, but the rendering logic must be color-aware.
