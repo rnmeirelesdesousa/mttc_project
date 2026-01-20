@@ -67,7 +67,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
 
   if (loading) {
     return (
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 md:right-8 md:left-auto md:top-[calc(6rem+(100vh-6rem)/2)] md:-translate-y-1/2 md:translate-x-0 md:bottom-auto z-[999] w-[calc(100vw-2rem)] md:w-[45vw] lg:w-[35vw] max-w-[600px] pointer-events-auto">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 md:right-8 md:left-auto md:top-[calc(5rem+(100vh-5rem)/2)] md:-translate-y-1/2 md:translate-x-0 md:bottom-auto z-[999] w-[calc(100vw-2rem)] md:w-[45vw] lg:w-[35vw] max-w-[600px] pointer-events-auto">
         <Card
           ref={cardRef}
           className="w-full max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col"
@@ -107,7 +107,7 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 md:right-8 md:left-auto md:top-[calc(4rem+(100vh-4rem)/2)] md:-translate-y-1/2 md:translate-x-0 md:bottom-auto z-[999] w-[calc(100vw-2rem)] md:w-[45vw] lg:w-[35vw] max-w-[600px] pointer-events-auto">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 md:right-8 md:left-auto md:top-[calc(5rem+(100vh-5rem)/2)] md:-translate-y-1/2 md:translate-x-0 md:bottom-auto z-[999] w-[calc(100vw-2rem)] md:w-[45vw] lg:w-[35vw] max-w-[600px] pointer-events-auto">
       <Card
         ref={cardRef}
         className="w-full max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col"

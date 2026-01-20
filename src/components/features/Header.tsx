@@ -157,100 +157,112 @@ export const Header = ({ locale }: HeaderProps) => {
   const dashboardPath = `/${locale}/dashboard`;
 
   return (
-    <header className="fixed top-0 z-[1100] w-full border-b-2 border-gray-200 bg-white shadow-sm">
-      <div className="container mx-auto flex h-20 md:h-24 items-center justify-between px-4 gap-4">
-        {/* Left: Project Name */}
-        <Link
-          href={homePath}
-          className="flex items-center text-xl md:text-2xl font-bold text-gray-900 hover:text-primary transition-colors whitespace-nowrap flex-shrink-0"
-        >
-          <span>{t('home.title')}</span>
-        </Link>
-
-        {/* Center: Global Search Bar */}
-        <div className="flex-1 flex justify-center max-w-2xl mx-4">
-          <GlobalSearch locale={locale} />
+    <header className="fixed top-0 z-[1100] w-full border-b border-gray-200/50 bg-white/80 backdrop-blur-md shadow-sm">
+      <div className="w-full grid grid-cols-3 h-20 items-center gap-4">
+        {/* Left: Project Title - Aligned to left edge of screen */}
+        <div className="flex items-center justify-start pl-4">
+          <Link
+            href={homePath}
+            className="flex items-center text-lg md:text-xl font-bold text-gray-900 hover:text-primary transition-colors whitespace-nowrap"
+          >
+            <span>{t('home.title')}</span>
+          </Link>
         </div>
 
+        {/* Center: Global Search Bar - Hidden on small screens, shown on md+ */}
+        <div className="hidden md:flex items-center justify-center">
+          <GlobalSearch locale={locale} />
+        </div>
+        <div className="md:hidden" /> {/* Spacer for mobile to maintain grid */}
+
         {/* Right: Auth Actions */}
-        <div className="hidden md:flex items-center space-x-3 flex-shrink-0">
+        <div className="flex items-center justify-end space-x-2 md:space-x-3 pr-4">
           {loading ? (
             // Neutral placeholder to prevent hydration flicker
             <div className="h-9 w-20 bg-transparent" />
           ) : isAuthenticated ? (
             <>
               <Link href={dashboardPath}>
-                <Button variant="ghost" size="sm" className="font-medium">
+                <Button variant="ghost" size="sm" className="font-medium hidden sm:inline-flex">
                   <User className="mr-2 h-4 w-4" />
-                  {t('header.dashboard')}
+                  <span className="hidden lg:inline">{t('header.dashboard')}</span>
                 </Button>
               </Link>
               <Button variant="outline" size="sm" onClick={handleLogoutClick} className="font-medium">
                 <LogOut className="mr-2 h-4 w-4" />
-                {t('header.logout')}
+                <span className="hidden sm:inline">{t('header.logout')}</span>
               </Button>
             </>
           ) : (
             <Link href={loginPath}>
               <Button size="sm" className="font-medium">
-                {t('header.login')}
+                <span className="hidden sm:inline">{t('header.login')}</span>
+                <span className="sm:hidden">{t('header.login').charAt(0)}</span>
               </Button>
             </Link>
           )}
-        </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-colors flex-shrink-0"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {mobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </button>
+          {/* Mobile Menu Button - Shows search icon on small screens when search is hidden */}
+          <button
+            className="md:hidden p-2 rounded-md hover:bg-gray-100/50 transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Includes search on small screens */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-white">
-          <nav className="container mx-auto px-4 py-4 space-y-3">
-            {loading ? (
-              // Neutral placeholder to prevent hydration flicker
-              <div className="h-9 w-full bg-transparent" />
-            ) : isAuthenticated ? (
-              <>
-                <Link
-                  href={dashboardPath}
-                  className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4" />
-                  <span>{t('header.dashboard')}</span>
+        <div className="md:hidden border-t border-gray-200/50 bg-white/95 backdrop-blur-md">
+          <div className="container mx-auto px-4 py-4 space-y-4">
+            {/* Mobile Search */}
+            <div className="w-full">
+              <GlobalSearch locale={locale} />
+            </div>
+            
+            {/* Mobile Auth Actions */}
+            <nav className="space-y-3">
+              {loading ? (
+                // Neutral placeholder to prevent hydration flicker
+                <div className="h-9 w-full bg-transparent" />
+              ) : isAuthenticated ? (
+                <>
+                  <Link
+                    href={dashboardPath}
+                    className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <User className="h-4 w-4" />
+                    <span>{t('header.dashboard')}</span>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      handleLogoutClick();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {t('header.logout')}
+                  </Button>
+                </>
+              ) : (
+                <Link href={loginPath} onClick={() => setMobileMenuOpen(false)}>
+                  <Button size="sm" className="w-full">
+                    {t('header.login')}
+                  </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => {
-                    handleLogoutClick();
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {t('header.logout')}
-                </Button>
-              </>
-            ) : (
-              <Link href={loginPath} onClick={() => setMobileMenuOpen(false)}>
-                <Button size="sm" className="w-full">
-                  {t('header.login')}
-                </Button>
-              </Link>
-            )}
-          </nav>
+              )}
+            </nav>
+          </div>
         </div>
       )}
     </header>

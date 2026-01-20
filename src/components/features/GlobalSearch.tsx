@@ -118,16 +118,18 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
     setSearchQuery('');
     setIsOpen(false);
     
-    // Navigate to map page with millId param
-    const mapPath = `/${locale}/map`;
-    const isOnMapPage = pathname === mapPath;
+    // Navigate to home page (which now serves the map) with millId param
+    const homePath = `/${locale}`;
+    const isOnHomePage = pathname === homePath || pathname === `/${locale}/map`;
     
-    if (isOnMapPage) {
-      // If already on map page, update URL with millId
-      router.push(`${mapPath}?millId=${mill.id}`, { scroll: false });
+    if (isOnHomePage) {
+      // If already on home/map page, update URL with millId
+      const params = new URLSearchParams();
+      params.set('millId', mill.id);
+      router.push(`${homePath}?${params.toString()}`, { scroll: false });
     } else {
-      // Navigate to map page with millId
-      router.push(`${mapPath}?millId=${mill.id}`);
+      // Navigate to home page with millId
+      router.push(`${homePath}?millId=${mill.id}`);
     }
   };
 

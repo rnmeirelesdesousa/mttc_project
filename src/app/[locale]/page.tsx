@@ -1,76 +1,105 @@
+import { getMapData, getUniqueDistricts, type MillFilters } from '@/actions/public';
 import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Map, Database } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import MapWithSidebar to avoid SSR issues with Leaflet
+// Leaflet requires window object which is not available during SSR
+const DynamicMapWithSidebar = dynamic(
+  () => import('@/components/features/MapWithSidebar').then((mod) => ({ default: mod.MapWithSidebar })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full bg-gray-100">
+        <p className="text-gray-600">Loading map...</p>
+      </div>
+    ),
+  }
+);
 
 interface RootLocalePageProps {
   params: {
     locale: string;
   };
+  searchParams: {
+    typology?: string | string[];
+    district?: string;
+    roofMaterial?: string | string[];
+    motiveApparatus?: string | string[];
+    millId?: string;
+  };
 }
 
 /**
- * Portal Home Page
+ * Home Page - Map View
  * 
- * Hero-style landing page for the Portuguese Stonework Database.
- * Provides primary navigation to the map and researcher portal.
+ * Displays published mills on an interactive Leaflet map with filter sidebar.
+ * This is now the primary entry point for the application.
+ * 
+ * Security: Public route - no authentication required
  */
-export default async function RootLocalePage({ params }: RootLocalePageProps) {
+export default async function RootLocalePage({ params, searchParams }: RootLocalePageProps) {
   const t = await getTranslations();
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero Section */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-gray-50">
-        <div className="container mx-auto px-4 py-16 text-center max-w-4xl">
-          {/* Title */}
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            {t('home.title')}
-          </h1>
-          
-          {/* Mission Statement */}
-          <p className="text-xl md:text-2xl text-gray-700 mb-4 leading-relaxed">
-            {t('home.mission')}
-          </p>
-          
-          <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
-            {t('home.description')}
-          </p>
+  // Parse filters from searchParams
+  const filters: MillFilters = {};
+  
+  // Handle typology (can be string or string[])
+  if (searchParams.typology) {
+    filters.typology = Array.isArray(searchParams.typology)
+      ? searchParams.typology
+      : [searchParams.typology];
+  }
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              asChild
-              size="lg"
-              className="text-lg px-8 py-6"
-            >
-              <Link href={`/${params.locale}/map`}>
-                <Map className="mr-2 h-5 w-5" />
-                {t('home.exploreMap')}
-              </Link>
-            </Button>
-            
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="text-lg px-8 py-6"
-            >
-              <Link href={`/${params.locale}/dashboard`}>
-                <Database className="mr-2 h-5 w-5" />
-                {t('home.researcherPortal')}
-              </Link>
-            </Button>
-          </div>
+  // Handle district
+  if (searchParams.district) {
+    filters.district = searchParams.district;
+  }
 
-          {/* Additional Info */}
-          <div className="mt-16 pt-8 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
-              {t('home.footer')}
-            </p>
-          </div>
+  // Handle roof material (can be string or string[])
+  if (searchParams.roofMaterial) {
+    filters.roofMaterial = Array.isArray(searchParams.roofMaterial)
+      ? searchParams.roofMaterial
+      : [searchParams.roofMaterial];
+  }
+
+  // Handle motive apparatus (can be string or string[])
+  if (searchParams.motiveApparatus) {
+    filters.motiveApparatus = Array.isArray(searchParams.motiveApparatus)
+      ? searchParams.motiveApparatus
+      : [searchParams.motiveApparatus];
+  }
+
+  // Fetch unique districts for the sidebar
+  const districtsResult = await getUniqueDistricts();
+  const availableDistricts = districtsResult.success ? districtsResult.data : [];
+
+  // Fetch map data (mills + water lines) with filters
+  const result = await getMapData(
+    params.locale,
+    Object.keys(filters).length > 0 ? filters : undefined
+  );
+
+  if (!result.success) {
+    return (
+      <div className="pt-20 min-h-screen flex items-center justify-center">
+        <div className="container mx-auto p-8">
+          <h1 className="text-2xl font-bold mb-4">{t('map.title')}</h1>
+          <p className="text-red-600">Error: {result.error}</p>
         </div>
       </div>
+    );
+  }
+
+  const { mills, waterLines } = result.data;
+
+  return (
+    <div className="fixed inset-x-0 top-20 bottom-0 w-full h-[calc(100vh-5rem)] overflow-hidden">
+      <DynamicMapWithSidebar 
+        mills={mills} 
+        waterLines={waterLines} 
+        locale={params.locale}
+        availableDistricts={availableDistricts}
+      />
     </div>
   );
 }
