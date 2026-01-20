@@ -190,7 +190,8 @@
     "access": {
       "pedestrian": "Pedestrian",
       "car": "Car Access",
-      "difficult_none": "Difficult / None"
+      "difficult_none": "Difficult / None",
+      "traditional_track": "Traditional Track"
     },
     "legalProtection": {
       "inexistent": "Inexistent",
@@ -243,13 +244,15 @@
       "conical": "Conical",
       "gable": "Gable (Two Slopes)",
       "lean_to": "Lean-to (One Slope)",
-      "inexistent": "Inexistent"
+      "inexistent": "Inexistent",
+      "false_dome": "False Dome"
     },
     "roofMaterial": {
       "tile": "Tile",
       "zinc": "Zinc",
       "thatch": "Thatch/Straw",
-      "slate": "Slate/Shale"
+      "slate": "Slate/Shale",
+      "stone": "Stone (Lageado)"
     },
     "setting": {
       "rural": "Rural",

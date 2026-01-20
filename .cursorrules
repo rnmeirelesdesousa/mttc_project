@@ -101,7 +101,8 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.7.4: DELETE ACTION DEBUG)**
-* **The Error:** `[deleteConstruction]: Construction not found` for ID `609de324-c4a0-4024-9740-1232b6fd9895`.
-* **The User:** Logged in as ADMIN (Role verified).
-* **The Goal:** Fix the mismatch between the Inventory UI and the Delete Server Action.
+**CURRENT CONTEXT (PHASE 5.9.20.1: DATABASE & UI HARMONIZATION)**
+* **The Situation:** The live Supabase DB contains columns and enums not yet reflected in `src/db/schema.ts`. Conversely, the UI (page.tsx) expects enums like 'false_dome' that don't exist in the DB yet.
+* **Objective:** Achieve 1:1 parity between Supabase, Drizzle Schema, and the Mill Creation Form.
+* **Scientific Constraint:** All new fields must support i18n keys in `pt.json` and `en.json`.
+* **Architecture:** Maintain "Core + Extension". Generic data in `constructions`, mill-specific scientific data in `mills_data`.

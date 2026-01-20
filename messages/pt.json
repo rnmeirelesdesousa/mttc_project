@@ -190,7 +190,8 @@
     "access": {
       "pedestrian": "Pedestre",
       "car": "Acesso por Carro",
-      "difficult_none": "Difícil / Nenhum"
+      "difficult_none": "Difícil / Nenhum",
+      "traditional_track": "Caminho Tradicional"
     },
     "legalProtection": {
       "inexistent": "Inexistente",
@@ -243,13 +244,15 @@
       "conical": "Cónico",
       "gable": "Duas Águas",
       "lean_to": "Uma Água",
-      "inexistent": "Inexistente"
+      "inexistent": "Inexistente",
+      "false_dome": "Falsa Cúpula"
     },
     "roofMaterial": {
       "tile": "Telha",
       "zinc": "Zinco",
       "thatch": "Colmo/Mato",
-      "slate": "Lousa/Xisto"
+      "slate": "Lousa/Xisto",
+      "stone": "Pedra (Lageado)"
     },
     "setting": {
       "rural": "Rural",

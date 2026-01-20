@@ -393,9 +393,9 @@ function AddMillPageContent() {
           setGalleryImages(data.galleryImages || []);
           
           // Determine roof type from roofShape and roofMaterial
-          if (data.roofShape === 'conical' && !data.roofMaterial) {
+          if (data.roofShape === 'false_dome') {
             setRoofType('fake_dome');
-          } else if (data.roofShape === 'conical' && data.roofMaterial === 'slate') {
+          } else if (data.roofShape === 'conical' && data.roofMaterial === 'stone') {
             setRoofType('stone');
           } else if (data.roofShape === 'gable' && data.roofMaterial === 'tile') {
             setRoofType('gable');
@@ -890,6 +890,7 @@ function AddMillPageContent() {
                 <option value="pedestrian">{t('taxonomy.access.pedestrian')}</option>
                 <option value="car">{t('taxonomy.access.car')}</option>
                 <option value="difficult_none">{t('taxonomy.access.difficult_none')}</option>
+                <option value="traditional_track">{t('taxonomy.access.traditional_track')}</option>
               </select>
             </div>
 
@@ -1179,7 +1180,7 @@ function AddMillPageContent() {
                     setRoofType(value);
                     // Map consolidated roof type to roofShape and roofMaterial
                     if (value === 'fake_dome') {
-                      setRoofShape('conical');
+                      setRoofShape('false_dome');
                       setRoofMaterial('');
                       // Clear gable roof materials if switching away
                       setGableRoofMaterialLusa(false);
@@ -1187,7 +1188,7 @@ function AddMillPageContent() {
                       setGableRoofMaterialMeiaCana(false);
                     } else if (value === 'stone') {
                       setRoofShape('conical');
-                      setRoofMaterial('slate');
+                      setRoofMaterial('stone');
                       // Clear gable roof materials if switching away
                       setGableRoofMaterialLusa(false);
                       setGableRoofMaterialMarselha(false);

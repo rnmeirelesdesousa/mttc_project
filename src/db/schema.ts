@@ -19,7 +19,7 @@ export const typologyEnum = pgEnum('typology', [
   'armacao',
 ]);
 
-export const accessEnum = pgEnum('access', ['pedestrian', 'car', 'difficult_none']);
+export const accessEnum = pgEnum('access', ['pedestrian', 'car', 'difficult_none', 'traditional_track']);
 
 export const legalProtectionEnum = pgEnum('legal_protection', [
   'inexistent',
@@ -81,6 +81,7 @@ export const roofShapeEnum = pgEnum('roof_shape', [
   'gable',
   'lean_to',
   'inexistent',
+  'false_dome',
 ]);
 
 export const roofMaterialEnum = pgEnum('roof_material', [
@@ -88,6 +89,7 @@ export const roofMaterialEnum = pgEnum('roof_material', [
   'zinc',
   'thatch',
   'slate',
+  'stone',
 ]);
 
 export const settingEnum = pgEnum('setting', [

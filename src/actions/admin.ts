@@ -920,7 +920,7 @@ const createMillConstructionSchema = z.object({
   currentUse: z.enum(['milling', 'housing', 'tourism', 'ruin', 'museum']).optional(),
   
   // Access & Legal
-  access: z.enum(['pedestrian', 'car', 'difficult_none']).optional(),
+  access: z.enum(['pedestrian', 'car', 'difficult_none', 'traditional_track']).optional(),
   legalProtection: z.enum(['inexistent', 'under_study', 'classified']).optional(),
   propertyStatus: z.enum(['private', 'public', 'unknown']).optional(),
   
@@ -929,8 +929,8 @@ const createMillConstructionSchema = z.object({
   volumetry: z.enum(['cylindrical', 'conical', 'prismatic_sq_rec']).optional(),
   constructionTechnique: z.enum(['dry_stone', 'mortared_stone', 'mixed_other']).optional(),
   exteriorFinish: z.enum(['exposed', 'plastered', 'whitewashed']).optional(),
-  roofShape: z.enum(['conical', 'gable', 'lean_to', 'inexistent']).optional(),
-  roofMaterial: z.enum(['tile', 'zinc', 'thatch', 'slate']).optional(),
+  roofShape: z.enum(['conical', 'gable', 'lean_to', 'inexistent', 'false_dome']).optional(),
+  roofMaterial: z.enum(['tile', 'zinc', 'thatch', 'slate', 'stone']).optional(),
   // Physical Dimensions (Phase 5.9.3.10)
   length: z.number().min(0).optional(),
   width: z.number().min(0).optional(),
