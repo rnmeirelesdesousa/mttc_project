@@ -101,7 +101,8 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.20.8: REVIEW PAGE UI DEBUGGING)**
-* **The Problem:** Stone Type and Gable Material badges are NOT appearing on the Review Page (`review/[slug]/page.tsx`), even though the data is in the DB.
-* **Audit Findings:** The conditional rendering logic is likely blocking the display or the data object mapping from `admin.ts` to `page.tsx` is incomplete.
-* **Objective:** Ensure the badges for Granite, Schist, Other, and Gable Materials are visible whenever their boolean value is true, regardless of other field states.
+**CURRENT CONTEXT (PHASE 5.9.20.9: PUBLIC PAGE SCIENTIFIC ENHANCEMENT)**
+* **Goal:** Transform the public mill page into a comprehensive scientific record.
+* **Requirements:** The page at `app/[locale]/(public)/mill/[slug]/page.tsx` must show EVERY scientific field (Dimensions, Materials, Enums, and Observations).
+* **UI Pattern:** Use a "Scientific Dossier" look. Clean typography, technical grid for specs, and a prominent photo gallery.
+* **Sync:** Ensure the public action `getMillBySlug` (in `public.ts`) is updated to fetch all the new 5.9.20.x columns.

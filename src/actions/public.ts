@@ -17,6 +17,7 @@ import { eq, and, sql, inArray, or, ne } from 'drizzle-orm';
 export interface PublishedMill {
   id: string;
   slug: string;
+  legacyId: string | null;
   district: string | null;
   municipality: string | null;
   parish: string | null;
@@ -126,6 +127,7 @@ export async function getPublishedMills(
         // Construction fields
         id: constructions.id,
         slug: constructions.slug,
+        legacyId: constructions.legacyId,
         district: constructions.district,
         municipality: constructions.municipality,
         parish: constructions.parish,
@@ -177,6 +179,7 @@ export async function getPublishedMills(
         return {
           id: row.id,
           slug: row.slug,
+          legacyId: row.legacyId,
           district: row.district,
           municipality: row.municipality,
           parish: row.parish,
@@ -311,6 +314,7 @@ export async function getMillBySlug(
         // Construction fields
         id: constructions.id,
         slug: constructions.slug,
+        legacyId: constructions.legacyId,
         district: constructions.district,
         municipality: constructions.municipality,
         parish: constructions.parish,
@@ -446,6 +450,7 @@ export async function getMillBySlug(
     return {
       id: row.id,
       slug: row.slug,
+      legacyId: row.legacyId,
       district: row.district,
       municipality: row.municipality,
       parish: row.parish,
@@ -567,6 +572,7 @@ export async function getMillById(
         // Construction fields
         id: constructions.id,
         slug: constructions.slug,
+        legacyId: constructions.legacyId,
         district: constructions.district,
         municipality: constructions.municipality,
         parish: constructions.parish,
@@ -702,6 +708,7 @@ export async function getMillById(
     return {
       id: row.id,
       slug: row.slug,
+      legacyId: row.legacyId,
       district: row.district,
       municipality: row.municipality,
       parish: row.parish,
@@ -841,6 +848,7 @@ export async function getConnectedMills(
         // Construction fields
         id: constructions.id,
         slug: constructions.slug,
+        legacyId: constructions.legacyId,
         district: constructions.district,
         municipality: constructions.municipality,
         parish: constructions.parish,
@@ -896,6 +904,7 @@ export async function getConnectedMills(
         return {
           id: row.id,
           slug: row.slug,
+          legacyId: row.legacyId,
           district: row.district,
           municipality: row.municipality,
           parish: row.parish,
@@ -1151,6 +1160,7 @@ export async function getWaterLineBySlug(
         // Construction fields
         id: constructions.id,
         slug: constructions.slug,
+        legacyId: constructions.legacyId,
         district: constructions.district,
         municipality: constructions.municipality,
         parish: constructions.parish,
@@ -1204,6 +1214,7 @@ export async function getWaterLineBySlug(
         return {
           id: row.id,
           slug: row.slug,
+          legacyId: row.legacyId,
           district: row.district,
           municipality: row.municipality,
           parish: row.parish,
