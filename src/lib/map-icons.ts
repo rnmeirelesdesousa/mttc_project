@@ -31,22 +31,36 @@ function getCustomIconUrl(customUrl: string | null | undefined): string | null {
  * If a custom icon URL is provided, uses that icon. Otherwise, uses the default Leaflet marker.
  * 
  * @param customIconUrl - Optional custom icon URL from Supabase Storage 'map-assets' bucket
+ * @param isSelected - Whether this marker is currently selected (makes it larger)
+ * @param isGreyedOut - Whether this marker should be greyed out (when another is selected)
  * @returns Leaflet L.Icon instance
  */
-export function getMillIcon(customIconUrl?: string | null): L.Icon {
+export function getMillIcon(customIconUrl?: string | null, isSelected?: boolean, isGreyedOut?: boolean): L.Icon {
   const customUrl = getCustomIconUrl(customIconUrl);
+  
+  // Scale factor for selected markers (1.5x larger)
+  const scale = isSelected ? 1.5 : 1;
+  const iconSize: [number, number] = [Math.round(25 * scale), Math.round(41 * scale)];
+  const iconAnchor: [number, number] = [Math.round(12 * scale), Math.round(41 * scale)];
+  const popupAnchor: [number, number] = [Math.round(1 * scale), Math.round(-34 * scale)];
+  const shadowSize: [number, number] = [Math.round(41 * scale), Math.round(41 * scale)];
+  const shadowAnchor: [number, number] = [Math.round(12 * scale), Math.round(41 * scale)];
+
+  // Add className for CSS styling when greyed out
+  const className = isGreyedOut ? 'mill-marker-greyed-out' : '';
 
   if (customUrl) {
     // Use custom icon
     return L.icon({
       iconUrl: customUrl,
       iconRetinaUrl: customUrl, // Use same URL for retina (or provide separate if available)
-      iconSize: [25, 41], // Default Leaflet marker size
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
+      iconSize,
+      iconAnchor,
+      popupAnchor,
       shadowUrl: DEFAULT_SHADOW_URL,
-      shadowSize: [41, 41],
-      shadowAnchor: [12, 41],
+      shadowSize,
+      shadowAnchor,
+      className,
     });
   }
 
@@ -55,11 +69,12 @@ export function getMillIcon(customIconUrl?: string | null): L.Icon {
     iconRetinaUrl: DEFAULT_ICON_RETINA_URL,
     iconUrl: DEFAULT_ICON_URL,
     shadowUrl: DEFAULT_SHADOW_URL,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-    shadowAnchor: [12, 41],
+    iconSize,
+    iconAnchor,
+    popupAnchor,
+    shadowSize,
+    shadowAnchor,
+    className,
   });
 }
 

@@ -101,15 +101,17 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-# CURRENT CONTEXT: Phase 5.9.20.10 - Database & UI Extension for Mills Location
+# CURRENT CONTEXT: Phase 5.9.20.11 - Mill ID Card Redesign (MillSidebar.tsx)
 ### Description: 
-Adding a new field 'place' (Lugar) to the Mill entity. This requires a full-stack update: 
-synchronizing the Drizzle schema.ts, executing the Supabase migration, and updating 
-all relevant frontend pages/forms.
+Restructuring the MillSidebar component to resemble a professional horizontal ID card. 
+The layout should prioritize a horizontal ratio (Golden Ratio) and a clear information 
+hierarchy: Media/Identity on top, Location/Technical data in the body, and CTA at the bottom.
 
-### Database Synchronization Rules
-- **Schema Authority:** The `schema.ts` file is the source of truth. 
-- **Field Naming:** Use `place` for the database column name. 
-- **Labeling:** Use "Lugar" or "Place" for UI labels.
-- **Consistency:** Every schema change must be reflected in the Supabase SQL editor via migration scripts or direct SQL provided to the user.
-- **Type Safety:** Update Zod schemas and TypeScript interfaces to include the `place` field.
+### Component Design Rules
+- **Ratio:** Maintain a horizontal orientation (aspect ratio roughly 1.618:1).
+- **Layout:** - Top Left: Main image or "No Picture" placeholder.
+  - Top Right (adjacent to image): Primary Identification & Location.
+  - Bottom: Technical specifications and observation fields.
+  - Footer: "View Details" button anchored to the bottom right.
+- **Styling:** Use a clean, "scientific command center" aesthetic with high scannability.
+- **Fallbacks:** Handle missing images with a styled gray placeholder.

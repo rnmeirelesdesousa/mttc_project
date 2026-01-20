@@ -12,6 +12,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import type { PublishedMill, MapWaterLine } from '@/actions/public';
 import { getMillIcon } from '@/lib/map-icons';
+import { ConnectionLine } from './ConnectionLine';
 
 /**
  * MapClickHandler Component
@@ -108,6 +109,8 @@ interface MillMapProps {
   onMapClick?: () => void;
   selectedMillCoords?: { lat: number; lng: number } | null;
   mapContainerRef?: React.RefObject<HTMLDivElement>;
+  selectedMillId?: string | null;
+  sidebarRef?: React.RefObject<HTMLDivElement>;
 }
 
 /**
@@ -127,7 +130,7 @@ interface MillMapProps {
  * @param onMillClick - Callback when a mill marker is clicked
  * @param onMapClick - Callback when map background is clicked
  */
-export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, selectedMillCoords, mapContainerRef }: MillMapProps) => {
+export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, selectedMillCoords, mapContainerRef, selectedMillId, sidebarRef }: MillMapProps) => {
   const t = useTranslations();
 
   // Center of Portugal (approximate geographic center)
@@ -163,6 +166,14 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
           <FocusZoomHandler 
             lat={selectedMillCoords.lat} 
             lng={selectedMillCoords.lng}
+          />
+        )}
+
+        {/* Connection line from sidebar bottom to marker */}
+        {selectedMillCoords && sidebarRef && (
+          <ConnectionLine
+            millCoords={selectedMillCoords}
+            sidebarRef={sidebarRef}
           />
         )}
 
@@ -216,9 +227,12 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
           }
 
           const position: LatLngExpression = [mill.lat, mill.lng];
+          const isSelected = selectedMillId === mill.id;
+          const isGreyedOut = selectedMillId !== null && !isSelected;
           
           // Get custom icon if available (Phase 5.9.2.4)
-          const customIcon = getMillIcon(mill.customIconUrl);
+          // Make selected marker larger, grey out others when one is selected
+          const customIcon = getMillIcon(mill.customIconUrl, isSelected, isGreyedOut);
 
           return (
             <Marker

@@ -150,6 +150,7 @@
       "municipality": "Concelho",
       "parish": "Freguesia",
       "place": "Lugar",
+      "address": "Morada",
       "coordinates": "Coordenadas",
       "latitude": "Latitude",
       "longitude": "Longitude",

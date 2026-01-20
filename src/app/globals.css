@@ -2,3 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes slideInFromMarker {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateX(-100px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateX(0) scale(1);
+  }
+}
+
+/* Grey out non-selected markers when a marker is selected */
+.leaflet-marker-icon.mill-marker-greyed-out,
+.leaflet-marker-icon.mill-marker-greyed-out img {
+  filter: grayscale(100%) opacity(0.4) !important;
+  transition: filter 0.3s ease;
+}
+

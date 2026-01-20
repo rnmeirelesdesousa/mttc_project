@@ -150,6 +150,7 @@
       "municipality": "Municipality",
       "parish": "Parish",
       "place": "Place",
+      "address": "Address",
       "coordinates": "Coordinates",
       "latitude": "Latitude",
       "longitude": "Longitude",

@@ -46,6 +46,7 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
   const [selectedMillId, setSelectedMillId] = useState<string | null>(null);
   const [filterSidebarOpen, setFilterSidebarOpen] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Sync selectedMillId with URL param
   useEffect(() => {
@@ -129,11 +130,14 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
           onMapClick={handleMapClick}
           selectedMillCoords={selectedMillCoords}
           mapContainerRef={mapContainerRef}
+          selectedMillId={selectedMillId}
+          sidebarRef={sidebarRef}
         />
         <MillSidebar
           millId={selectedMillId}
           locale={locale}
           onClose={handleCloseSidebar}
+          sidebarRef={sidebarRef}
         />
         
         {/* Filter Menu Icon - Fixed position on left side */}

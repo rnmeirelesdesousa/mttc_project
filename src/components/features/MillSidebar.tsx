@@ -12,24 +12,27 @@ interface MillSidebarProps {
   millId: string | null;
   locale: string;
   onClose?: () => void;
+  sidebarRef?: React.RefObject<HTMLDivElement>;
 }
 
 /**
- * MillSidebar Component (Fixed Side Panel - Scientist's Command Center)
+ * MillSidebar Component (Horizontal ID Card - Scientist's Command Center)
  * 
- * Displays a fixed ID card for a selected mill with scientific layout.
- * Positioned as a fixed side panel on the right side of the screen.
+ * Displays a horizontal ID card for a selected mill with scientific layout.
+ * Positioned as a fixed floating card at the bottom-center of the screen.
+ * Layout: Image (left) | Identity & Location (right) | Technical Details (bottom) | Action Button (bottom-right)
  * 
  * @param millId - UUID of the mill to display (null to hide)
  * @param locale - Current locale for i18n
  * @param onClose - Optional callback when sidebar is closed
  */
-export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
+export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }: MillSidebarProps) => {
   const t = useTranslations();
   const [mill, setMill] = useState<MillDetail | null>(null);
   const [connectedMills, setConnectedMills] = useState<PublishedMill[]>([]);
   const [loading, setLoading] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const internalRef = useRef<HTMLDivElement>(null);
+  const cardRef = externalRef || internalRef;
 
   useEffect(() => {
     if (!millId) {
@@ -67,12 +70,16 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
 
   if (loading) {
     return (
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 md:right-8 md:left-auto md:top-[calc(5rem+(100vh-5rem)/2)] md:-translate-y-1/2 md:translate-x-0 md:bottom-auto z-[999] w-[calc(100vw-2rem)] md:w-[45vw] lg:w-[35vw] max-w-[600px] pointer-events-auto">
+      <div 
+        className="fixed left-[75vw] top-[25vh] -translate-x-1/2 -translate-y-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[600px] lg:w-[800px] max-w-[800px] pointer-events-auto"
+        style={{
+          animation: 'slideInFromMarker 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+        }}
+      >
         <Card
-          ref={cardRef}
-          className="w-full max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col"
+          className="w-full bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 border-b-blue-600"
         >
-          <CardContent className="p-6 overflow-y-auto flex-1">
+          <CardContent className="!p-5">
             <p className="text-xs text-gray-600">{t('common.loading')}</p>
           </CardContent>
         </Card>
@@ -107,312 +114,293 @@ export const MillSidebar = ({ millId, locale, onClose }: MillSidebarProps) => {
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 md:right-8 md:left-auto md:top-[calc(5rem+(100vh-5rem)/2)] md:-translate-y-1/2 md:translate-x-0 md:bottom-auto z-[999] w-[calc(100vw-2rem)] md:w-[45vw] lg:w-[35vw] max-w-[600px] pointer-events-auto">
+    <div 
+      ref={cardRef} 
+      className="fixed left-[75vw] bottom-[50vh] -translate-x-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[600px] lg:w-[800px] max-w-[800px] pointer-events-auto"
+      style={{
+        animation: 'slideInFromMarker 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+      }}
+    >
       <Card
-        ref={cardRef}
-        className="w-full max-h-[90vh] bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-l-4 border-l-blue-600 flex flex-col"
+        className="w-full bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 border-b-blue-600 relative"
       >
-      {/* General Info Section */}
-      <CardHeader className="p-0 border-b flex-shrink-0 flex flex-col">
-        {imageUrl && (
-          <div className="relative w-full flex-shrink-0 max-h-[30vh]" style={{ aspectRatio: '3/2' }}>
-            <Image
-              src={imageUrl}
-              alt={millTitle}
-              fill
-              className="object-cover rounded-t-lg"
-            />
-          </div>
-        )}
-        <div className="p-6">
-          <h2 className="text-sm font-semibold mb-2">{millTitle}</h2>
-          {mill.description && (
-            <p className="text-xs text-gray-700 leading-relaxed">{mill.description}</p>
+        <CardContent className="!p-5 relative">
+          {/* Close button - Professional software suite styling */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="absolute top-5 right-5 w-7 h-7 flex items-center justify-center rounded-md bg-white/90 hover:bg-white text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-150 z-10"
+              aria-label="Close"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           )}
-          {/* See Details Button */}
-          <Link
-            href={`/${locale}/mill/${mill.slug}`}
-            className="inline-block mt-2 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-200 transition-colors"
-          >
-            {t('map.viewDetails')}
-          </Link>
-        </div>
-      </CardHeader>
-
-      <CardContent className="p-6 space-y-4 overflow-y-auto flex-1">
-        {/* Coordinates - Prominent display near top with mono font */}
-        <div className="bg-blue-50 border border-blue-200 rounded p-2.5">
-          <span className="text-[10px] font-semibold text-gray-600 uppercase">{t('mill.sidebar.coordinates')}:</span>
-          <p className="font-mono text-sm font-bold text-blue-900 mt-1">
-            {mill.lat.toFixed(6)}, {mill.lng.toFixed(6)}
-          </p>
-        </div>
-
-        {/* Location Info Section */}
-        <div>
-          <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
-            {t('mill.sidebar.locationInfo')}
-          </h3>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            {mill.district && (
-              <div>
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.district')}:</span>
-                <p className="font-medium">{mill.district}</p>
-              </div>
-            )}
-            {mill.municipality && (
-              <div>
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.municipality')}:</span>
-                <p className="font-medium">{mill.municipality}</p>
-              </div>
-            )}
-            {mill.parish && (
-              <div>
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.parish')}:</span>
-                <p className="font-medium">{mill.parish}</p>
-              </div>
-            )}
-            {mill.place && (
-              <div>
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.place')}:</span>
-                <p className="font-medium">{mill.place}</p>
-              </div>
-            )}
-            {mill.drainageBasin && (
-              <div>
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.drainageBasin')}:</span>
-                <p className="font-medium">{mill.drainageBasin}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Classification Section - 2-column grid */}
-        <div>
-          <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
-            {t('mill.sidebar.classification')}
-          </h3>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            {mill.typology && (
-              <div>
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.typology')}:</span>
-                <p className="font-medium">{t(`taxonomy.typology.${mill.typology}`)}</p>
-              </div>
-            )}
-            {mill.currentUse && (
-              <div>
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.currentUse')}:</span>
-                <p className="font-medium">{t(`taxonomy.currentUse.${mill.currentUse}`)}</p>
-              </div>
-            )}
-            {mill.ratingOverall && (
-              <div className="col-span-2">
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.conservationRating')}:</span>
-                <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${getConservationColor(mill.ratingOverall)}`}>
-                  {t(`taxonomy.conservation.${mill.ratingOverall}`)}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Technical Section - Construction Technique & Roof Detail in 2-column grid */}
-        {(mill.constructionTechnique || mill.roofShape) && (
-          <div>
-            <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
-              {t('mill.sidebar.constructionTechnique')} / {t('mill.sidebar.roofDetail')}
-            </h3>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              {/* Construction Technique Column */}
-              {mill.constructionTechnique && (
-                <div>
-                  <span className="text-[10px] text-gray-500">{t('mill.sidebar.constructionTechnique')}:</span>
-                  <p className="font-medium mt-0.5">{t(`taxonomy.constructionTechnique.${mill.constructionTechnique}`)}</p>
-                  {/* Show stone materials if a stone technique is selected */}
-                  {(mill.constructionTechnique === 'dry_stone' || mill.constructionTechnique === 'mortared_stone') && (
-                    <div className="mt-1.5">
-                      <span className="text-[10px] text-gray-500">{t('mill.sidebar.stoneMaterials')}:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {mill.stoneTypeGranite && (
-                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                            {t('taxonomy.stoneType.granite')}
-                          </span>
-                        )}
-                        {mill.stoneTypeSchist && (
-                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                            {t('taxonomy.stoneType.schist')}
-                          </span>
-                        )}
-                        {mill.stoneTypeOther && (
-                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                            {t('taxonomy.stoneType.other')}
-                          </span>
-                        )}
-                      </div>
-                      {mill.stoneTypeOther && mill.stoneMaterialDescription && (
-                        <p className="text-[10px] text-gray-600 mt-1 italic">{mill.stoneMaterialDescription}</p>
-                      )}
-                    </div>
-                  )}
+          {/* Top Row: Identity Section (Horizontal Layout) */}
+          <div className="flex gap-4 mb-3">
+            {/* Left: Image */}
+            <div className="flex-shrink-0 w-32 h-32 md:w-40 md:h-40">
+              {imageUrl ? (
+                <div className="relative w-full h-full rounded-md overflow-hidden border border-gray-200">
+                  <Image
+                    src={imageUrl}
+                    alt={millTitle}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
-              )}
-              {/* Roof Detail Column */}
-              {mill.roofShape && (
-                <div>
-                  <span className="text-[10px] text-gray-500">{t('mill.sidebar.roofDetail')}:</span>
-                  <p className="font-medium mt-0.5">{t(`taxonomy.roofShape.${mill.roofShape}`)}</p>
-                  {mill.roofMaterial && (
-                    <p className="text-[10px] text-gray-600 mt-0.5">{t(`taxonomy.roofMaterial.${mill.roofMaterial}`)}</p>
-                  )}
-                  {/* Show gable materials if Gable is selected */}
-                  {mill.roofShape === 'gable' && (
-                    <div className="mt-1.5">
-                      <span className="text-[10px] text-gray-500">{t('mill.sidebar.gableMaterials')}:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {mill.gableMaterialLusa && (
-                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                            {t('taxonomy.gableMaterial.lusa')}
-                          </span>
-                        )}
-                        {mill.gableMaterialMarselha && (
-                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                            {t('taxonomy.gableMaterial.marselha')}
-                          </span>
-                        )}
-                        {mill.gableMaterialMeiaCana && (
-                          <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
-                            {t('taxonomy.gableMaterial.meiaCana')}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
+              ) : (
+                <div className="w-full h-full rounded-md bg-gray-200 border border-gray-300 flex items-center justify-center">
+                  <p className="text-xs text-gray-500 text-center px-2">No Picture</p>
                 </div>
               )}
             </div>
-          </div>
-        )}
 
-        {/* Technical Specifications Section */}
-        {(mill.length || mill.width || mill.height || mill.observationsStructure || mill.observationsRoof || mill.observationsHydraulic || mill.observationsMechanism || mill.observationsGeneral) && (
-          <div>
-            <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
-              {t('mill.sidebar.technicalSpecs')}
-            </h3>
-            {/* Dimensions */}
-            {(mill.length || mill.width || mill.height) && (
-              <div className="mb-3">
-                <span className="text-[10px] text-gray-500">{t('mill.sidebar.dimensions')}:</span>
-                <div className="bg-slate-50/50 border border-slate-200 rounded p-2 mt-1">
-                  <p className="text-xs font-medium text-slate-900">
-                    {mill.length && `${mill.length}m`}
-                    {mill.length && mill.width && ' × '}
-                    {mill.width && `${mill.width}m`}
-                    {(mill.length || mill.width) && mill.height && ' × '}
-                    {mill.height && `${mill.height}m`}
-                  </p>
+            {/* Right: Title, Coordinates, Location */}
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base md:text-lg font-semibold mb-2 truncate">{millTitle}</h2>
+              
+              {/* Coordinates */}
+              <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+                <span className="text-[10px] font-semibold text-gray-600 uppercase">{t('mill.sidebar.coordinates')}:</span>
+                <p className="font-mono text-xs md:text-sm font-bold text-blue-900 mt-0.5">
+                  {mill.lat.toFixed(6)}, {mill.lng.toFixed(6)}
+                </p>
+              </div>
+
+              {/* Location Info - All available location fields */}
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                {mill.district && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.district')}:</span>
+                    <p className="font-medium truncate">{mill.district}</p>
+                  </div>
+                )}
+                {mill.municipality && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.municipality')}:</span>
+                    <p className="font-medium truncate">{mill.municipality}</p>
+                  </div>
+                )}
+                {mill.parish && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.parish')}:</span>
+                    <p className="font-medium truncate">{mill.parish}</p>
+                  </div>
+                )}
+                {mill.place && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.place')}:</span>
+                    <p className="font-medium truncate">{mill.place}</p>
+                  </div>
+                )}
+                {mill.address && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.address')}:</span>
+                    <p className="font-medium truncate">{mill.address}</p>
+                  </div>
+                )}
+                {mill.drainageBasin && (
+                  <div>
+                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.drainageBasin')}:</span>
+                    <p className="font-medium truncate">{mill.drainageBasin}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section: Technical Details */}
+          <div className="border-t border-gray-200 pt-2">
+            {/* Technical Details Grid - Compact 3-column layout */}
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              {/* Typology */}
+              <div>
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.typology')}:</span>
+                <p className="font-medium mt-0.5">
+                  {mill.typology ? t(`taxonomy.typology.${mill.typology}`) : '-'}
+                </p>
+              </div>
+
+              {/* Construction Technique */}
+              <div>
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.constructionTechnique')}:</span>
+                <div className="mt-0.5">
+                  {mill.constructionTechnique ? (
+                    <>
+                      <p className="font-medium">{t(`taxonomy.constructionTechnique.${mill.constructionTechnique}`)}</p>
+                      {/* Show stone materials if dry_stone or mortared_stone */}
+                      {(mill.constructionTechnique === 'dry_stone' || mill.constructionTechnique === 'mortared_stone') && (
+                        (mill.stoneTypeGranite || mill.stoneTypeSchist || mill.stoneTypeOther) && (
+                          <div className="flex flex-wrap gap-0.5 mt-0.5">
+                            {mill.stoneTypeGranite && (
+                              <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
+                                {t('taxonomy.stoneType.granite')}
+                              </span>
+                            )}
+                            {mill.stoneTypeSchist && (
+                              <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
+                                {t('taxonomy.stoneType.schist')}
+                              </span>
+                            )}
+                            {mill.stoneTypeOther && (
+                              <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
+                                {t('taxonomy.stoneType.other')}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      )}
+                      {/* Show other technique description if mixed_other */}
+                      {mill.constructionTechnique === 'mixed_other' && mill.observationsStructure && (
+                        <p className="text-[9px] text-gray-600 mt-0.5 line-clamp-1">
+                          {mill.observationsStructure.startsWith('Construction Technique (Other):') 
+                            ? mill.observationsStructure.replace('Construction Technique (Other):', '').trim()
+                            : mill.observationsStructure}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="font-medium text-gray-400">-</p>
+                  )}
                 </div>
               </div>
-            )}
-            {/* Observations */}
-            {(mill.observationsStructure || mill.observationsRoof || mill.observationsHydraulic || mill.observationsMechanism || mill.observationsGeneral) && (
-              <div className="space-y-2">
-                {mill.observationsStructure && (
-                  <div>
-                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsStructure')}:</span>
-                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsStructure}</p>
-                  </div>
-                )}
-                {mill.observationsRoof && (
-                  <div>
-                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsRoof')}:</span>
-                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsRoof}</p>
-                  </div>
-                )}
-                {mill.observationsHydraulic && (
-                  <div>
-                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsHydraulic')}:</span>
-                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsHydraulic}</p>
-                  </div>
-                )}
-                {mill.observationsMechanism && (
-                  <div>
-                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsMechanism')}:</span>
-                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsMechanism}</p>
-                  </div>
-                )}
-                {mill.observationsGeneral && (
-                  <div>
-                    <span className="text-[10px] text-gray-500">{t('mill.sidebar.observationsGeneral')}:</span>
-                    <p className="text-[10px] text-gray-700 mt-0.5 leading-relaxed">{mill.observationsGeneral}</p>
-                  </div>
+
+              {/* Roof */}
+              <div>
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.roofDetail')}:</span>
+                <div className="mt-0.5">
+                  {mill.roofShape === 'false_dome' ? (
+                    <p className="font-medium">{t('taxonomy.roofShape.false_dome')}</p>
+                  ) : mill.roofMaterial === 'stone' ? (
+                    <p className="font-medium">{t('taxonomy.roofMaterial.stone')}</p>
+                  ) : mill.roofShape === 'gable' ? (
+                    <>
+                      <p className="font-medium">{t('taxonomy.roofShape.gable')}</p>
+                      {(mill.gableMaterialLusa || mill.gableMaterialMarselha || mill.gableMaterialMeiaCana) && (
+                        <div className="flex flex-wrap gap-0.5 mt-0.5">
+                          {mill.gableMaterialLusa && (
+                            <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
+                              {t('taxonomy.gableMaterial.lusa')}
+                            </span>
+                          )}
+                          {mill.gableMaterialMarselha && (
+                            <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
+                              {t('taxonomy.gableMaterial.marselha')}
+                            </span>
+                          )}
+                          {mill.gableMaterialMeiaCana && (
+                            <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
+                              {t('taxonomy.gableMaterial.meiaCana')}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  ) : mill.roofShape ? (
+                    <p className="font-medium">{t(`taxonomy.roofShape.${mill.roofShape}`)}</p>
+                  ) : (
+                    <p className="font-medium text-gray-400">-</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Dimensions */}
+              <div>
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.dimensions')}:</span>
+                <p className="font-medium mt-0.5 text-slate-900">
+                  {(mill.length || mill.width || mill.height) ? (
+                    <>
+                      {mill.length && `${mill.length}m`}
+                      {mill.length && mill.width && ' × '}
+                      {mill.width && `${mill.width}m`}
+                      {(mill.length || mill.width) && mill.height && ' × '}
+                      {mill.height && `${mill.height}m`}
+                    </>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </p>
+              </div>
+
+              {/* Current Use */}
+              <div>
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.currentUse')}:</span>
+                <p className="font-medium mt-0.5">
+                  {mill.currentUse ? t(`taxonomy.currentUse.${mill.currentUse}`) : '-'}
+                </p>
+              </div>
+
+              {/* Conservation Rating */}
+              <div>
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.conservationRating')}:</span>
+                {mill.ratingOverall ? (
+                  <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium ${getConservationColor(mill.ratingOverall)}`}>
+                    {t(`taxonomy.conservation.${mill.ratingOverall}`)}
+                  </span>
+                ) : (
+                  <p className="font-medium mt-0.5 text-gray-400">-</p>
                 )}
               </div>
-            )}
-          </div>
-        )}
+            </div>
 
-        {/* Connectivity Section */}
-        <div>
-          <h3 className="text-[10px] font-semibold text-gray-500 uppercase mb-2">
-            {t('mill.sidebar.connectivity')}
-          </h3>
-          <div className="space-y-1.5 text-xs">
-            {mill.waterLineName && mill.waterLineSlug ? (
+            {/* Connectivity Section - Compact inline layout */}
+            <div className="border-t border-gray-200 pt-2 mt-2 grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-[10px] text-gray-500">{t('mill.sidebar.linkedLevada')}:</span>
-                <Link
-                  href={`/${locale}/levada/${mill.waterLineSlug}`}
-                  className="font-medium text-blue-600 hover:text-blue-800 underline ml-1"
-                >
-                  {mill.waterLineName}
-                </Link>
+                {mill.waterLineName && mill.waterLineSlug ? (
+                  <Link
+                    href={`/${locale}/levada/${mill.waterLineSlug}`}
+                    className="font-medium text-blue-600 hover:text-blue-800 underline ml-1 text-[10px]"
+                  >
+                    {mill.waterLineName}
+                  </Link>
+                ) : (
+                  <span className="text-gray-400 ml-1 text-[10px]">-</span>
+                )}
               </div>
-            ) : (
-              <p className="text-[10px] text-gray-500">{t('mill.sidebar.linkedLevada')}: -</p>
-            )}
-            <div>
-              <span className="text-[10px] text-gray-500">{t('mill.sidebar.connectedMills')}:</span>
-              {connectedMills.length > 0 ? (
-                <ul className="mt-1 space-y-1">
-                  {connectedMills.map((connectedMill) => (
-                    <li key={connectedMill.id}>
+              <div>
+                <span className="text-[10px] text-gray-500">{t('mill.sidebar.connectedMills')}:</span>
+                {connectedMills.length > 0 ? (
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {connectedMills.slice(0, 3).map((connectedMill) => (
                       <Link
+                        key={connectedMill.id}
                         href={`/${locale}/mill/${connectedMill.slug}`}
-                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        className="text-[9px] text-blue-600 hover:text-blue-800 underline"
                       >
                         {connectedMill.title || connectedMill.slug}
                       </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-[10px] text-gray-500 mt-1">{t('mill.sidebar.noConnectedMills')}</p>
-              )}
+                    ))}
+                    {connectedMills.length > 3 && (
+                      <span className="text-[9px] text-gray-500">+{connectedMills.length - 3}</span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-gray-400 ml-1 text-[10px]">-</span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
 
-      {/* Close button - Professional software suite styling */}
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-md bg-white/90 hover:bg-white text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-150 z-10"
-          aria-label="Close"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      )}
+          {/* View Details Button - Bottom Right */}
+          <div className="mt-3 flex justify-end">
+            <Link
+              href={`/${locale}/mill/${mill.slug}`}
+              className="px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-200 transition-colors"
+            >
+              {t('map.viewDetails')}
+            </Link>
+          </div>
+        </CardContent>
       </Card>
     </div>
   );
