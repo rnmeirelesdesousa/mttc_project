@@ -12,7 +12,10 @@
     "published": "Published",
     "loading": "Loading...",
     "error": "Error",
-    "noItems": "No items found"
+    "noItems": "No items found",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this item? This action cannot be undone.",
+    "deleteError": "Failed to delete item"
   },
   "dashboard": {
     "title": "Dashboard",

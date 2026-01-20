@@ -251,7 +251,7 @@ function AddMillPageContent() {
     const fetchWaterLines = async () => {
       setLoadingWaterLines(true);
       try {
-        const result = await getWaterLinesList(locale);
+        const result = await getWaterLinesList(locale, { publishedOnly: true });
         if (result.success) {
           setWaterLines(result.data);
         } else {

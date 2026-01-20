@@ -15,9 +15,40 @@ import { generateSlug, generateUniqueSlug } from '@/lib/slug';
  */
 
 /**
- * Deletes a construction (MILL or POCA) regardless of status
+ * Gets the current user's role and ID for client-side permission checks
  * 
- * Security: Verifies that the performing user has 'admin' role
+ * Phase 5.9.7.2: Helper for UI permission checks
+ * 
+ * @returns Standardized response with user role and ID
+ */
+export async function getCurrentUserInfo(): Promise<
+  | { success: true; data: { userId: string; role: 'admin' | 'researcher' | 'public' } }
+  | { success: false; error: string }
+> {
+  try {
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const isUserAdmin = await isAdmin();
+    const isUserResearcher = await isResearcherOrAdmin();
+    
+    const role = isUserAdmin ? 'admin' : (isUserResearcher ? 'researcher' : 'public');
+
+    return { success: true, data: { userId, role } };
+  } catch (error) {
+    console.error('[getCurrentUserInfo]:', error);
+    return { success: false, error: 'An error occurred while fetching user info' };
+  }
+}
+
+/**
+ * Deletes a construction (MILL or POCA) with role-based permissions
+ * 
+ * Phase 5.9.7.2: Scoped Deletion
+ * - Researchers: Can delete ONLY if status === 'draft' AND they are the author (created_by)
+ * - Admins: Can delete ANY item in the inventory or review queue
  * 
  * @param id - Construction UUID
  * @returns Standardized response: { success: true } or { success: false, error: string }
@@ -29,10 +60,10 @@ export async function deleteConstruction(
   | { success: false; error: string }
 > {
   try {
-    // Verify admin role
-    const hasAdminRole = await isAdmin();
-    if (!hasAdminRole) {
-      return { success: false, error: 'Unauthorized: Admin role required' };
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
     }
 
     // Validate input
@@ -40,14 +71,65 @@ export async function deleteConstruction(
       return { success: false, error: 'Construction ID is required' };
     }
 
-    // Delete construction (cascade will handle related records)
+    // Get current user ID and role
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+    const isUserAdmin = await isAdmin();
+
+    // Check if construction exists and get its status and author
+    const existing = await db
+      .select({
+        id: constructions.id,
+        status: constructions.status,
+        createdBy: constructions.createdBy,
+      })
+      .from(constructions)
+      .where(eq(constructions.id, id))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return { success: false, error: 'Construction not found' };
+    }
+
+    const construction = existing[0]!;
+
+    // Phase 5.9.7.2: Scoped deletion logic
+    if (!isUserAdmin) {
+      // Researchers: Can delete ONLY if status === 'draft' AND they are the author
+      if (construction.status !== 'draft') {
+        return { success: false, error: 'Only draft constructions can be deleted by the author' };
+      }
+      if (construction.createdBy !== userId) {
+        return { success: false, error: 'Unauthorized: You can only delete your own draft constructions' };
+      }
+    }
+    // Admins: Can delete any item (no additional checks needed)
+
+    // Check if this construction is a water line and delete the water_lines record first
+    // This handles cases where the database constraint doesn't cascade properly
+    const waterLineCheck = await db
+      .select({ id: waterLines.id })
+      .from(waterLines)
+      .where(eq(waterLines.constructionId, id))
+      .limit(1);
+
+    if (waterLineCheck.length > 0) {
+      // Delete the water line first to avoid foreign key constraint violation
+      await db
+        .delete(waterLines)
+        .where(eq(waterLines.constructionId, id));
+    }
+
+    // Delete construction (cascade will handle other related records like mills_data, pocas_data, etc.)
     const result = await db
       .delete(constructions)
       .where(eq(constructions.id, id))
       .returning({ id: constructions.id });
 
     if (!result || result.length === 0) {
-      return { success: false, error: 'Construction not found' };
+      return { success: false, error: 'Failed to delete construction' };
     }
 
     // Revalidate dashboard pages
@@ -68,6 +150,9 @@ export async function deleteConstruction(
 /**
  * Updates the status of a construction
  * 
+ * Phase 5.9.7.2: Lifecycle Actions
+ * - 'Publish' (Admin only - sets status to published)
+ * 
  * Security: Verifies that the performing user has 'admin' role
  * 
  * @param id - Construction UUID
@@ -82,7 +167,7 @@ export async function updateConstructionStatus(
   | { success: false; error: string }
 > {
   try {
-    // Verify admin role
+    // Verify admin role (only admins can publish)
     const hasAdminRole = await isAdmin();
     if (!hasAdminRole) {
       return { success: false, error: 'Unauthorized: Admin role required' };
@@ -117,11 +202,105 @@ export async function updateConstructionStatus(
     revalidatePath('/pt/dashboard/review');
     revalidatePath('/en/dashboard');
     revalidatePath('/pt/dashboard');
+    revalidatePath('/en/dashboard/inventory');
+    revalidatePath('/pt/dashboard/inventory');
 
     return { success: true, data: result[0]! };
   } catch (error) {
     console.error('[updateConstructionStatus]:', error);
     return { success: false, error: 'An error occurred while updating construction status' };
+  }
+}
+
+/**
+ * Submits a construction for review (sets status to 'review')
+ * 
+ * Phase 5.9.7.2: Lifecycle Actions
+ * - 'Submit for Review' (sets status to review)
+ * 
+ * Security: Verifies that the performing user is the author or has admin role
+ * 
+ * @param id - Construction UUID
+ * @returns Standardized response: { success: true, data?: T } or { success: false, error: string }
+ */
+export async function submitForReview(
+  id: string
+): Promise<
+  | { success: true; data: { id: string; status: string } }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Validate input
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Construction ID is required' };
+    }
+
+    // Get current user ID and role
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+    const isUserAdmin = await isAdmin();
+
+    // Check if construction exists and get its status and author
+    const existing = await db
+      .select({
+        id: constructions.id,
+        status: constructions.status,
+        createdBy: constructions.createdBy,
+      })
+      .from(constructions)
+      .where(eq(constructions.id, id))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return { success: false, error: 'Construction not found' };
+    }
+
+    const construction = existing[0]!;
+
+    // Security check: Only author or admin can submit for review
+    if (!isUserAdmin && construction.createdBy !== userId) {
+      return { success: false, error: 'Unauthorized: You can only submit your own constructions for review' };
+    }
+
+    // Only allow submitting drafts for review
+    if (construction.status !== 'draft') {
+      return { success: false, error: 'Only draft constructions can be submitted for review' };
+    }
+
+    // Update construction status to 'review'
+    const result = await db
+      .update(constructions)
+      .set({
+        status: 'review',
+        updatedAt: new Date(),
+      })
+      .where(eq(constructions.id, id))
+      .returning({ id: constructions.id, status: constructions.status });
+
+    if (!result || result.length === 0) {
+      return { success: false, error: 'Failed to update construction status' };
+    }
+
+    // Revalidate dashboard pages
+    revalidatePath('/en/dashboard/review');
+    revalidatePath('/pt/dashboard/review');
+    revalidatePath('/en/dashboard');
+    revalidatePath('/pt/dashboard');
+    revalidatePath('/en/dashboard/inventory');
+    revalidatePath('/pt/dashboard/inventory');
+
+    return { success: true, data: result[0]! };
+  } catch (error) {
+    console.error('[submitForReview]:', error);
+    return { success: false, error: 'An error occurred while submitting for review' };
   }
 }
 
@@ -1198,6 +1377,7 @@ export interface InventoryItem {
   status: 'draft' | 'review' | 'published';
   createdAt: Date;
   updatedAt: Date;
+  createdBy: string | null; // Phase 5.9.7.2: Include for permission checks
 }
 
 /**
@@ -1234,11 +1414,12 @@ export async function getInventoryItems(
       return { success: false, error: 'Locale is required' };
     }
 
-    // Get current user ID if filtering by "My Projects"
-    const userId = filters?.myProjects ? await getSessionUserId() : null;
-    if (filters?.myProjects && !userId) {
+    // Phase 5.9.7.2: Get user role and ID for role-based filtering
+    const userId = await getSessionUserId();
+    if (!userId) {
       return { success: false, error: 'User not authenticated' };
     }
+    const isUserAdmin = await isAdmin();
 
     const items: InventoryItem[] = [];
 
@@ -1254,12 +1435,40 @@ export async function getInventoryItems(
       }
       // If 'ALL', include both MILL and POCA
       
-      // Phase 5.9.7.1: "My Projects" - filter by current user and draft status
+      // Phase 5.9.7.2: Role-based filtering
       if (filters?.myProjects) {
-        whereConditions.push(eq(constructions.createdBy, userId!));
+        // "My Projects" tab: show only user's drafts
+        whereConditions.push(eq(constructions.createdBy, userId));
         whereConditions.push(eq(constructions.status, 'draft'));
+      } else if (!isUserAdmin) {
+        // Researchers: see only their own draft items + all published items
+        // Apply status filter if specified, but respect role-based restrictions
+        if (filters?.status && filters.status !== 'ALL') {
+          if (filters.status === 'draft') {
+            // Only show drafts owned by the user
+            whereConditions.push(eq(constructions.createdBy, userId));
+            whereConditions.push(eq(constructions.status, 'draft'));
+          } else if (filters.status === 'published') {
+            // Show all published items
+            whereConditions.push(eq(constructions.status, 'published'));
+          } else if (filters.status === 'review') {
+            // Researchers don't see review items in inventory (only admins do)
+            whereConditions.push(sql`1 = 0`); // Always false - no results
+          }
+        } else {
+          // No status filter: show user's drafts + all published
+          whereConditions.push(
+            or(
+              and(
+                eq(constructions.createdBy, userId),
+                eq(constructions.status, 'draft')
+              ),
+              eq(constructions.status, 'published')
+            )
+          );
+        }
       } else {
-        // Apply status filter (only if not filtering by "My Projects")
+        // Admins: see everything - apply status filter if specified
         if (filters?.status && filters.status !== 'ALL') {
           whereConditions.push(eq(constructions.status, filters.status));
         }
@@ -1282,6 +1491,7 @@ export async function getInventoryItems(
           createdAt: constructions.createdAt,
           updatedAt: constructions.updatedAt,
           title: constructionTranslations.title,
+          createdBy: constructions.createdBy, // Phase 5.9.7.2: Include for permission checks
         })
         .from(constructions)
         .leftJoin(
@@ -1309,6 +1519,7 @@ export async function getInventoryItems(
           status: row.status as 'draft' | 'review' | 'published',
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
+          createdBy: row.createdBy, // Phase 5.9.7.2: Include for permission checks
         }))
       );
     }
@@ -1335,6 +1546,7 @@ export async function getInventoryItems(
           createdAt: constructions.createdAt,
           updatedAt: constructions.updatedAt,
           name: waterLineTranslations.name,
+          createdBy: constructions.createdBy, // Phase 5.9.7.2: Include for permission checks
         })
         .from(constructions)
         .innerJoin(
@@ -1366,6 +1578,7 @@ export async function getInventoryItems(
           status: 'published' as const, // Water lines are always considered published
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
+          createdBy: row.createdBy, // Phase 5.9.7.2: Include for permission checks
         }))
       );
     }

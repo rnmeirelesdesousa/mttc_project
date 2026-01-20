@@ -19,6 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Eye, Edit, Search } from 'lucide-react';
 import Link from 'next/link';
+import { DeleteButton } from '@/components/features/DeleteButton';
+import { getCurrentUserInfo } from '@/actions/admin';
 
 /**
  * Inventory Master-List Page
@@ -41,12 +43,24 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'myProjects'>('all');
+  const [userInfo, setUserInfo] = useState<{ userId: string; role: 'admin' | 'researcher' | 'public' } | null>(null);
   
   // Filters
   const [typeFilter, setTypeFilter] = useState<'MILL' | 'LEVADA' | 'POCA' | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<'draft' | 'review' | 'published' | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  // Fetch user info for permission checks
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const result = await getCurrentUserInfo();
+      if (result.success) {
+        setUserInfo(result.data);
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   // Debounce search query
   useEffect(() => {
@@ -137,6 +151,23 @@ export default function InventoryPage() {
     } else {
       return t('inventory.type.levada');
     }
+  };
+
+  // Phase 5.9.7.2: Check if user can delete an item
+  const canDeleteItem = (item: InventoryItem): boolean => {
+    if (!userInfo) return false;
+    
+    // Admins can delete any item
+    if (userInfo.role === 'admin') {
+      return true;
+    }
+    
+    // Researchers can delete only if status === 'draft' AND they are the author
+    if (userInfo.role === 'researcher') {
+      return item.status === 'draft' && item.createdBy === userInfo.userId;
+    }
+    
+    return false;
   };
 
   return (
@@ -277,6 +308,10 @@ export default function InventoryPage() {
                           {t('inventory.actions.edit')}
                         </Link>
                       </Button>
+                      <DeleteButton
+                        constructionId={item.id}
+                        canDelete={canDeleteItem(item)}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

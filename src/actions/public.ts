@@ -939,7 +939,15 @@ export interface WaterLineListItem {
  * @returns Standardized response with array of water lines (id, slug, translated name)
  */
 export async function getWaterLinesList(
-  locale: string
+  locale: string,
+  options?: {
+    /**
+     * Phase 5.9.7.2: Filter for published constructions only
+     * When true, only returns water lines where constructions.status === 'published'
+     * This is used in Mill/Poça entry forms to ensure only published levadas can be selected
+     */
+    publishedOnly?: boolean;
+  }
 ): Promise<
   | { success: true; data: WaterLineListItem[] }
   | { success: false; error: string }
@@ -950,7 +958,15 @@ export async function getWaterLinesList(
       return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
     }
 
-    // Query all water lines with their translations
+    // Build where conditions
+    const whereConditions = [eq(constructions.typeCategory, 'water_line')];
+    
+    // Phase 5.9.7.2: Filter for published constructions when requested
+    if (options?.publishedOnly) {
+      whereConditions.push(eq(constructions.status, 'published'));
+    }
+
+    // Query water lines with their translations
     // Use INNER JOIN with constructions to ensure valid parent-child relationship
     // Use inner join to only get water lines that have translations for the locale
     const results = await db
@@ -971,7 +987,7 @@ export async function getWaterLinesList(
           eq(waterLineTranslations.locale, locale)
         )
       )
-      .where(eq(constructions.typeCategory, 'water_line'))
+      .where(and(...whereConditions))
       .orderBy(waterLineTranslations.name);
 
     // Transform results
@@ -1221,6 +1237,7 @@ export async function getMapData(
     // Use INNER JOIN with constructions to ensure valid parent-child relationship
     // Use ST_AsText to get the raw PostGIS text, then parse it manually
     // since Drizzle custom types may not always parse correctly in selects
+    // Only show published water lines on the public map
     const waterLinesWithGeometry = await db
       .select({
         id: waterLines.id,
@@ -1233,7 +1250,12 @@ export async function getMapData(
         waterLines,
         eq(waterLines.constructionId, constructions.id)
       )
-      .where(eq(constructions.typeCategory, 'water_line'));
+      .where(
+        and(
+          eq(constructions.typeCategory, 'water_line'),
+          eq(constructions.status, 'published')
+        )
+      );
 
     // Combine water line data with translations
     const mapWaterLines: MapWaterLine[] = waterLinesWithGeometry

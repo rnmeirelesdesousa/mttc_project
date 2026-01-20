@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { PublishButton } from '@/components/features/PublishButton';
+import { DeleteButton } from '@/components/features/DeleteButton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Eye, Edit } from 'lucide-react';
@@ -117,7 +118,11 @@ export default async function ReviewPage({ params }: PageProps) {
                       </Button>
                       <PublishButton
                         constructionId={draft.id}
-                        currentStatus="draft"
+                        currentStatus="review"
+                      />
+                      <DeleteButton
+                        constructionId={draft.id}
+                        canDelete={true}
                       />
                     </div>
                   </TableCell>

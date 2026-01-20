@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { updateConstructionStatus } from '@/actions/admin';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 
 interface PublishButtonProps {
@@ -23,6 +23,7 @@ interface PublishButtonProps {
  */
 export const PublishButton = ({ constructionId, currentStatus }: PublishButtonProps) => {
   const t = useTranslations();
+  const locale = useLocale() as 'pt' | 'en';
   const [isPending, startTransition] = useTransition();
   const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
@@ -33,13 +34,10 @@ export const PublishButton = ({ constructionId, currentStatus }: PublishButtonPr
       
       if (result.success) {
         setIsSuccess(true);
-        // Trigger page refresh to re-fetch data and remove published item from list
-        // The query filters for draft/review, so published items won't appear
-        router.refresh();
-        // Keep success state visible briefly, then it will disappear when item is removed
+        // Phase 5.9.7.2: Redirect to dashboard after successful status update
         setTimeout(() => {
-          setIsSuccess(false);
-        }, 1500);
+          router.push(`/${locale}/dashboard`);
+        }, 500);
       } else {
         // Handle error
         console.error('[PublishButton]:', result.error);
