@@ -44,13 +44,16 @@ export async function getCurrentUserInfo(): Promise<
 }
 
 /**
- * Deletes a construction (MILL or POCA) with role-based permissions
+ * Deletes a construction (MILL, POCA, or water_line) with role-based permissions
  * 
  * Phase 5.9.7.2: Scoped Deletion
  * - Researchers: Can delete ONLY if status === 'draft' AND they are the author (created_by)
  * - Admins: Can delete ANY item in the inventory or review queue
  * 
- * @param id - Construction UUID
+ * Audit: This function receives the construction UUID from the constructions table.
+ * All queries use eq(constructions.id, id) to ensure we're targeting the correct record.
+ * 
+ * @param id - Construction UUID from the constructions table (NOT a slug or extension-specific ID)
  * @returns Standardized response: { success: true } or { success: false, error: string }
  */
 export async function deleteConstruction(
@@ -66,8 +69,8 @@ export async function deleteConstruction(
       return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
     }
 
-    // Validate input
-    if (!id || typeof id !== 'string') {
+    // Validate input - must be a valid UUID string
+    if (!id || typeof id !== 'string' || id.trim() === '') {
       return { success: false, error: 'Construction ID is required' };
     }
 
@@ -78,64 +81,140 @@ export async function deleteConstruction(
     }
     const isUserAdmin = await isAdmin();
 
+    // AUDIT: Log the ID being searched and current user ID for debugging
+    console.log('[deleteConstruction]: Attempting to delete construction', {
+      constructionId: id,
+      currentUserId: userId,
+      isAdmin: isUserAdmin,
+    });
+
+    // AUDIT: Direct find query to verify the construction exists
+    // This query targets the constructions table directly
+    const directFindResult = await db
+      .select()
+      .from(constructions)
+      .where(eq(constructions.id, id));
+    
+    console.log('[deleteConstruction]: Direct find query result', {
+      constructionId: id,
+      found: directFindResult.length > 0,
+      resultCount: directFindResult.length,
+      result: directFindResult.length > 0 ? {
+        id: directFindResult[0]!.id,
+        slug: directFindResult[0]!.slug,
+        typeCategory: directFindResult[0]!.typeCategory,
+        status: directFindResult[0]!.status,
+        createdBy: directFindResult[0]!.createdBy,
+      } : null,
+    });
+
     // Check if construction exists and get its status and author
+    // CRITICAL: Use eq(constructions.id, id) - NOT slug or extension-specific ID
+    // This query targets the constructions table
     const existing = await db
       .select({
         id: constructions.id,
         status: constructions.status,
         createdBy: constructions.createdBy,
+        typeCategory: constructions.typeCategory,
       })
       .from(constructions)
       .where(eq(constructions.id, id))
       .limit(1);
 
     if (existing.length === 0) {
+      console.log('[deleteConstruction]: Construction not found in constructions table', { 
+        constructionId: id,
+        directFindResultCount: directFindResult.length,
+      });
       return { success: false, error: 'Construction not found' };
     }
 
     const construction = existing[0]!;
 
+    // AUDIT: Log the found construction details
+    console.log('[deleteConstruction]: Found construction', {
+      constructionId: construction.id,
+      status: construction.status,
+      createdBy: construction.createdBy,
+      typeCategory: construction.typeCategory,
+      currentUserId: userId,
+    });
+
     // Phase 5.9.7.2: Scoped deletion logic - STRICT ENFORCEMENT
     // Researchers: Can delete ONLY if status === 'draft' AND they are the author
     // Admins: Can delete ANY item
     if (!isUserAdmin) {
-      // Researcher attempting to delete non-draft OR not their own construction
-      if (construction.status !== 'draft' || construction.createdBy !== userId) {
-        // THROW ERROR: Strict enforcement for researcher violations
+      // Check if record exists but createdBy doesn't match - return "Unauthorized" for better debugging
+      if (construction.createdBy !== userId) {
+        console.log('[deleteConstruction]: Unauthorized - createdBy mismatch', {
+          constructionId: construction.id,
+          constructionCreatedBy: construction.createdBy,
+          currentUserId: userId,
+        });
         return { 
           success: false, 
-          error: construction.status !== 'draft' 
-            ? 'Only draft constructions can be deleted by the author'
-            : 'Unauthorized: You can only delete your own draft constructions'
+          error: 'Unauthorized: You can only delete your own draft constructions'
+        };
+      }
+
+      // Check if status is not draft
+      if (construction.status !== 'draft') {
+        console.log('[deleteConstruction]: Unauthorized - status is not draft', {
+          constructionId: construction.id,
+          status: construction.status,
+          currentUserId: userId,
+        });
+        return { 
+          success: false, 
+          error: 'Only draft constructions can be deleted by the author'
         };
       }
     }
     // Admins: Can delete any item (no additional checks needed)
 
-    // Check if this construction is a water line and delete the water_lines record first
-    // This handles cases where the database constraint doesn't cascade properly
-    const waterLineCheck = await db
-      .select({ id: waterLines.id })
-      .from(waterLines)
-      .where(eq(waterLines.constructionId, id))
-      .limit(1);
+    // Use transaction to ensure atomicity
+    // Note: Foreign key constraints are set to onDelete: 'cascade' in schema.ts:
+    // - mills_data.constructionId -> constructions.id (cascade)
+    // - pocas_data.constructionId -> constructions.id (cascade)
+    // - construction_translations.constructionId -> constructions.id (cascade)
+    // - water_lines.constructionId -> constructions.id (cascade)
+    // However, we manually delete water_lines first as a safety measure
+    await db.transaction(async (tx) => {
+      // Check if this construction is a water line and delete the water_lines record first
+      // This handles cases where the database constraint might not cascade properly
+      const waterLineCheck = await tx
+        .select({ id: waterLines.id })
+        .from(waterLines)
+        .where(eq(waterLines.constructionId, id))
+        .limit(1);
 
-    if (waterLineCheck.length > 0) {
-      // Delete the water line first to avoid foreign key constraint violation
-      await db
-        .delete(waterLines)
-        .where(eq(waterLines.constructionId, id));
-    }
+      if (waterLineCheck.length > 0) {
+        console.log('[deleteConstruction]: Deleting water_line record first', {
+          waterLineId: waterLineCheck[0]!.id,
+          constructionId: id,
+        });
+        // Delete the water line first to avoid foreign key constraint violation
+        await tx
+          .delete(waterLines)
+          .where(eq(waterLines.constructionId, id));
+      }
 
-    // Delete construction (cascade will handle other related records like mills_data, pocas_data, etc.)
-    const result = await db
-      .delete(constructions)
-      .where(eq(constructions.id, id))
-      .returning({ id: constructions.id });
+      // Delete construction (cascade will handle other related records like mills_data, pocas_data, etc.)
+      const result = await tx
+        .delete(constructions)
+        .where(eq(constructions.id, id))
+        .returning({ id: constructions.id });
 
-    if (!result || result.length === 0) {
-      return { success: false, error: 'Failed to delete construction' };
-    }
+      if (!result || result.length === 0) {
+        throw new Error('Failed to delete construction - no rows affected');
+      }
+
+      console.log('[deleteConstruction]: Successfully deleted construction', {
+        constructionId: id,
+        deletedId: result[0]!.id,
+      });
+    });
 
     // Revalidate dashboard pages
     revalidatePath('/en/dashboard');
@@ -147,7 +226,11 @@ export async function deleteConstruction(
 
     return { success: true };
   } catch (error) {
-    console.error('[deleteConstruction]:', error);
+    console.error('[deleteConstruction]: Error occurred', {
+      constructionId: id,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return { success: false, error: 'An error occurred while deleting the construction' };
   }
 }
@@ -1571,7 +1654,7 @@ export async function getInventoryItems(
 
       const waterLinesQuery = db
         .select({
-          id: waterLines.id,
+          id: constructions.id, // BUG FIX: Use constructions.id, NOT waterLines.id
           slug: constructions.slug, // Use construction slug
           createdAt: constructions.createdAt,
           updatedAt: constructions.updatedAt,
@@ -1601,7 +1684,7 @@ export async function getInventoryItems(
 
       items.push(
         ...waterLinesResults.map((row) => ({
-          id: row.id,
+          id: row.id, // Now correctly uses constructions.id
           slug: row.slug,
           type: 'LEVADA' as const,
           title: row.name,

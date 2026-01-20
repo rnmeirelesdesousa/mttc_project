@@ -101,8 +101,7 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.7.3: GOVERNANCE & DATA INTEGRITY)**
-* **Critical Issues:** 1. Inventory Duplication: `getInventoryItems` is returning duplicate rows due to an un-discriminated JOIN Cartesian product between `mills_data` and `water_lines`.
-    2. Map ReferenceError: `getMapData` in `src/actions/public.ts` is attempting to access `whereConditions` which is out of scope.
-* **Architecture Strategy:** "Core + Extension". The `constructions` table is the parent. Extensions (`mills_data`, `water_lines`) must be joined conditionally or mapped 1:1 to avoid row multiplication.
-* **Permissions:** Researchers can ONLY delete their own 'draft' items. Admins can delete anything.
+**CURRENT CONTEXT (PHASE 5.9.7.4: DELETE ACTION DEBUG)**
+* **The Error:** `[deleteConstruction]: Construction not found` for ID `609de324-c4a0-4024-9740-1232b6fd9895`.
+* **The User:** Logged in as ADMIN (Role verified).
+* **The Goal:** Fix the mismatch between the Inventory UI and the Delete Server Action.
