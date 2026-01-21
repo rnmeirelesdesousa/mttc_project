@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { isAdmin } from '@/lib/auth';
-import { getConstructionForReview, getWaterLineByIdForEdit } from '@/actions/admin';
+import { getConstructionForReview, getWaterLineByIdForEdit, getPocaByIdForEdit } from '@/actions/admin';
+import { getWaterLinesList } from '@/actions/public';
 import { PublishButton } from '@/components/features/PublishButton';
 import { getPublicUrl } from '@/lib/storage';
 import Link from 'next/link';
@@ -21,6 +22,19 @@ const DynamicLevadaMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-md border border-input">
+        <p className="text-gray-600">Loading map...</p>
+      </div>
+    ),
+  }
+);
+
+// Dynamically import LocationMap (read-only) to avoid SSR issues with Leaflet
+const DynamicLocationMap = dynamic(
+  () => import('@/components/features/LocationMap').then((mod) => ({ default: mod.LocationMap })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[300px] bg-gray-100 rounded-md border border-input">
         <p className="text-gray-600">Loading map...</p>
       </div>
     ),
@@ -79,6 +93,130 @@ export default async function ReviewDetailPage({ params }: PageProps) {
   }
 
   const { id: constructionId, typeCategory } = constructionType[0]!;
+
+  // Handle pocas
+  if (typeCategory === 'POCA') {
+    const pocaResult = await getPocaByIdForEdit(constructionId, params.locale);
+    
+    if (!pocaResult.success) {
+      notFound();
+    }
+
+    const poca = pocaResult.data;
+
+    // Fetch water line name for display
+    const waterLinesResult = await getWaterLinesList(params.locale);
+    const waterLine = waterLinesResult.success 
+      ? waterLinesResult.data.find(wl => wl.id === poca.waterLineId)
+      : null;
+
+    return (
+      <div className="container mx-auto py-8 max-w-6xl">
+        {/* Header with back button, edit, and publish action */}
+        <div className="mb-6 flex items-center justify-between">
+          <Link href={`/${params.locale}/dashboard/review`}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('review.backToQueue')}
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+            >
+              <Link href={`/${params.locale}/dashboard/edit/${constructionId}`}>
+                <Edit className="mr-2 h-4 w-4" />
+                {t('review.editDraft')}
+              </Link>
+            </Button>
+            <PublishButton
+              constructionId={constructionId}
+              currentStatus={poca.status as 'draft' | 'review' | 'published'}
+            />
+          </div>
+        </div>
+
+        <h1 className="text-3xl font-bold mb-2">
+          {poca.title || poca.slug}
+        </h1>
+        <p className="text-muted-foreground mb-8">
+          {t('review.detail.subtitle')} • {poca.status}
+        </p>
+
+        {/* Poça Review Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Section A: Basic Information */}
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">{t('pocas.form.name')}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('common.title')}</p>
+                  <p className="font-medium">{poca.title || poca.slug}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Slug</p>
+                  <p className="font-medium font-mono text-sm">{poca.slug}</p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Section B: Location */}
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">{t('pocas.form.location')}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('mill.form.location.latitude')}</p>
+                  <p className="font-medium">{poca.latitude.toFixed(6)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('mill.form.location.longitude')}</p>
+                  <p className="font-medium">{poca.longitude.toFixed(6)}</p>
+                </div>
+              </div>
+              <div className="mt-4 h-[300px] rounded-md overflow-hidden border border-input">
+                <DynamicLocationMap
+                  latitude={poca.latitude}
+                  longitude={poca.longitude}
+                />
+              </div>
+            </Card>
+
+            {/* Section C: Water Line */}
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">{t('pocas.form.waterLine')}</h2>
+              <div>
+                <p className="text-sm text-muted-foreground">{t('pocas.form.waterLine')}</p>
+                <p className="font-medium">{waterLine?.name || poca.waterLineId}</p>
+                {waterLine && (
+                  <Link 
+                    href={`/${params.locale}/levada/${waterLine.slug}`}
+                    className="text-sm text-blue-600 hover:text-blue-800 underline mt-2 inline-block"
+                  >
+                    {t('map.viewDetails')}
+                  </Link>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column - Sidebar */}
+          <div className="space-y-6">
+            {/* Status Info */}
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">{t('common.status')}</h2>
+              <Badge variant={poca.status === 'published' ? 'default' : poca.status === 'review' ? 'secondary' : 'outline'}>
+                {t(`common.${poca.status}`)}
+              </Badge>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Handle water lines differently
   if (typeCategory === 'water_line') {
