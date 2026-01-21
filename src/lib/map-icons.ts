@@ -388,16 +388,16 @@ export async function getMarkerIconAsync(
   // Add className for CSS styling when greyed out
   const className = isGreyedOut ? 'mill-marker-greyed-out' : '';
 
-  // Phase 5.9.8: Only tint marker-lines if a water line color is provided
-  // If no color is provided, use null to skip tinting (keep original marker-lines color)
-  const fillColor = waterLineColor || null;
+  // Phase 5.9.8: Tint marker-lines with water line color if provided
+  // If no color is provided, use blue (#3b82f6) as the default for mills
+  const fillColor = waterLineColor || (type === 'mill' ? '#3b82f6' : null);
 
-  // Only fetch and tint if we have a color to apply
+  // Fetch and tint the SVG
   let tintedSvgUrl: string | null = null;
   if (fillColor) {
     tintedSvgUrl = await fetchAndTintSVG(type, fillColor);
   } else {
-    // If no water line color, fetch the original template without tinting
+    // If no color (for poca), fetch the original template without tinting
     const svgText = await fetchSVGTemplate(type);
     if (svgText) {
       const blob = new Blob([svgText], { type: 'image/svg+xml' });
