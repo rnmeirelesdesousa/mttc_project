@@ -6,7 +6,6 @@ import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { PublishedMill, MapWaterLine } from '@/actions/public';
-import { findNearestMill } from '@/lib/gis-utils';
 
 // Fix Leaflet icon issue in Next.js/Webpack
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
@@ -29,53 +28,21 @@ interface LevadaEditorProps {
 }
 
 /**
- * MapClickHandler - Handles map clicks to add points to the polyline with snap-to-mill
+ * MapClickHandler - Handles map clicks to add points to the polyline
  */
 function MapClickHandler({
   isDrawing,
   onPointAdd,
-  existingMills,
-  onSnapPreview,
 }: {
   isDrawing: boolean;
   onPointAdd: (lat: number, lng: number) => void;
-  existingMills: PublishedMill[];
-  onSnapPreview: (point: [number, number] | null) => void;
 }) {
   useMapEvents({
     click(e) {
       if (isDrawing) {
         const { lat, lng } = e.latlng;
-        
-        // Check for nearby mills and snap if within 10 meters
-        const nearest = findNearestMill(lat, lng, existingMills, 10);
-        
-        if (nearest) {
-          // Snap to the nearest mill
-          const [snappedLat, snappedLng] = nearest.snappedPoint;
-          onPointAdd(snappedLat, snappedLng);
-          onSnapPreview(null); // Clear preview after snap
-        } else {
-          // Use clicked location as-is
-          onPointAdd(lat, lng);
-          onSnapPreview(null);
-        }
-      }
-    },
-    mousemove(e) {
-      if (isDrawing) {
-        const { lat, lng } = e.latlng;
-        
-        // Check for nearby mills to show snap preview
-        const nearest = findNearestMill(lat, lng, existingMills, 10);
-        
-        if (nearest) {
-          onSnapPreview(nearest.snappedPoint);
-        } else {
-          onSnapPreview(null);
-        }
-      } else {
-        onSnapPreview(null);
+        // Use clicked location directly - no snapping
+        onPointAdd(lat, lng);
       }
     },
   });
@@ -126,7 +93,6 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
   const [isDrawing, setIsDrawing] = useState(false);
   const [path, setPath] = useState<[number, number][]>(initialPath);
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [snapPreview, setSnapPreview] = useState<[number, number] | null>(null);
 
   // Center of Portugal (approximate geographic center)
   // Phase 5.9.7.1: If path has points, center on the drawn coordinates for verification
@@ -246,7 +212,7 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
           center={portugalCenter}
           zoom={defaultZoom}
           maxZoom={20}
-          style={{ height: '500px', width: '100%', cursor: snapPreview && isDrawing ? 'crosshair' : 'default' }}
+          style={{ height: '800px', width: '100%', cursor: isDrawing ? 'crosshair' : 'default' }}
           scrollWheelZoom={true}
           className="rounded-md border border-input"
         >
@@ -331,12 +297,10 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
             zoom={defaultZoom} 
           />
 
-          {/* Handle map clicks with snap-to-mill */}
+          {/* Handle map clicks */}
           <MapClickHandler 
             isDrawing={isDrawing} 
             onPointAdd={handlePointAdd}
-            existingMills={existingMills}
-            onSnapPreview={setSnapPreview}
           />
 
           {/* Phase 5.9.3: Render existing water lines as reference (light-blue dashed lines, thicker) */}
@@ -380,20 +344,6 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
               />
             );
           })}
-
-          {/* Show snap preview indicator */}
-          {snapPreview && isDrawing && (
-            <CircleMarker
-              center={snapPreview}
-              radius={8}
-              pathOptions={{
-                color: '#10b981', // Green color for snap indicator
-                fillColor: '#10b981',
-                fillOpacity: 0.6,
-                weight: 2,
-              }}
-            />
-          )}
 
           {/* Display polyline if path has points */}
           {leafletPath.length > 1 && (

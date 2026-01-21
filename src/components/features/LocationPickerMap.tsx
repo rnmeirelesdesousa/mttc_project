@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, useMapEvents, 
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { PublishedMill, MapWaterLine } from '@/actions/public';
 import { findNearestWaterLine } from '@/lib/gis-utils';
 
@@ -73,19 +73,47 @@ function MapClickHandler({
 
 /**
  * MapCenterUpdater - Internal component to update map center when coordinates change
+ * Only updates center when latitude/longitude props actually change, not on every render
+ * Preserves user's manual zoom and pan position
  */
 function MapCenterUpdater({
-  center,
-  zoom,
+  latitude,
+  longitude,
+  initialCenter,
+  initialZoom,
 }: {
-  center: LatLngExpression;
-  zoom: number;
+  latitude: number | null;
+  longitude: number | null;
+  initialCenter: LatLngExpression;
+  initialZoom: number;
 }) {
   const map = useMap();
+  const hasInitialized = useRef(false);
+  const prevLat = useRef<number | null>(null);
+  const prevLng = useRef<number | null>(null);
   
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [map, center, zoom]);
+    if (!hasInitialized.current) {
+      // On first render, set both center and zoom
+      map.setView(initialCenter, initialZoom);
+      hasInitialized.current = true;
+      prevLat.current = latitude;
+      prevLng.current = longitude;
+    } else {
+      // Only update center if latitude/longitude actually changed
+      const latChanged = prevLat.current !== latitude;
+      const lngChanged = prevLng.current !== longitude;
+      
+      if (latChanged || lngChanged) {
+        // Only pan to new location if coordinates were actually set/changed
+        if (latitude !== null && longitude !== null) {
+          map.panTo([latitude, longitude]);
+        }
+        prevLat.current = latitude;
+        prevLng.current = longitude;
+      }
+    }
+  }, [map, latitude, longitude, initialCenter, initialZoom]);
   
   return null;
 }
@@ -224,7 +252,12 @@ export const LocationPickerMap = ({
       />
 
       {/* Update map center when coordinates change */}
-      <MapCenterUpdater center={mapCenter} zoom={initialZoom} />
+      <MapCenterUpdater 
+        latitude={latitude} 
+        longitude={longitude} 
+        initialCenter={mapCenter} 
+        initialZoom={initialZoom} 
+      />
 
       {/* Phase 5.9.3: Render existing water lines as reference (light-blue dashed lines, thicker) */}
       {existingWaterLines.map((waterLine) => {

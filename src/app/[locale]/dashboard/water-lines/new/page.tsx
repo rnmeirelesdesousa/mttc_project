@@ -16,8 +16,8 @@ const DynamicLevadaEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center h-[500px] bg-gray-100 rounded-md border border-input">
-        <p className="text-gray-600">Loading map...</p>
+      <div className="flex items-center justify-center h-[800px] bg-gray-100 rounded-md border border-input">
+        <p className="text-gray-800">Loading map...</p>
       </div>
     ),
   }
@@ -224,8 +224,8 @@ function NewWaterLinePageContent() {
               initialPath={path}
             />
           ) : (
-            <div className="flex items-center justify-center h-[500px] bg-gray-100 rounded-md border border-input">
-              <p className="text-gray-600">{t('waterLines.loadingData')}</p>
+            <div className="flex items-center justify-center h-[800px] bg-gray-100 rounded-md border border-input">
+              <p className="text-gray-800">{t('waterLines.loadingData')}</p>
             </div>
           )}
         </div>
