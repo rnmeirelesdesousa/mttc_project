@@ -53,7 +53,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         getSearchableWaterLines(locale),
         getSearchablePocas(locale),
       ]);
-      
+
       if (millsResult.success) {
         setMills(millsResult.data);
       }
@@ -84,6 +84,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
       displayName: string;
       displayLangCode?: string | null;
       subtitle?: string;
+      imageUrl?: string | null;
     }> = [];
 
     // Search mills
@@ -97,7 +98,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         for (const translation of mill.translations || []) {
           const titleMatch = translation.title?.toLowerCase().includes(query);
           const descriptionMatch = translation.description?.toLowerCase().includes(query);
-          
+
           if (titleMatch || descriptionMatch) {
             matched = true;
             // Use the title from the language that matched
@@ -107,23 +108,23 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
             }
           }
         }
-        
+
         // Search in legacy ID
         if (mill.legacyId?.toLowerCase().includes(query)) {
           matched = true;
         }
-        
+
         // Search in location data
         const districtMatch = mill.district?.toLowerCase().includes(query);
         const municipalityMatch = mill.municipality?.toLowerCase().includes(query);
         const parishMatch = mill.parish?.toLowerCase().includes(query);
         const placeMatch = mill.place?.toLowerCase().includes(query);
         const addressMatch = mill.address?.toLowerCase().includes(query);
-        
+
         if (districtMatch || municipalityMatch || parishMatch || placeMatch || addressMatch) {
           matched = true;
         }
-        
+
         // Helper function to search translated enum fields
         // Searches both the raw enum value and the translated text in current locale
         const searchTranslatedField = (value: string | null, translationKey: string): boolean => {
@@ -149,7 +150,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
             return false;
           }
         };
-        
+
         // Search in all enum fields with translations (both languages)
         const typologyMatch = searchTranslatedField(mill.typology, 'taxonomy.typology');
         const roofMaterialMatch = searchTranslatedField(mill.roofMaterial, 'taxonomy.roofMaterial');
@@ -165,7 +166,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         const planShapeMatch = searchTranslatedField(mill.planShape, 'taxonomy.planShape');
         const volumetryMatch = searchTranslatedField(mill.volumetry, 'taxonomy.volumetry');
         const exteriorFinishMatch = searchTranslatedField(mill.exteriorFinish, 'taxonomy.exteriorFinish');
-        
+
         // Hydraulic System fields
         const captationTypeMatch = searchTranslatedField(mill.captationType, 'taxonomy.captationType');
         const conductionTypeMatch = searchTranslatedField(mill.conductionType, 'taxonomy.conductionType');
@@ -174,35 +175,35 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         const admissionAzenhaMatch = searchTranslatedField(mill.admissionAzenha, 'taxonomy.admissionAzenha');
         const wheelTypeRodizioMatch = searchTranslatedField(mill.wheelTypeRodizio, 'taxonomy.wheelTypeRodizio');
         const wheelTypeAzenhaMatch = searchTranslatedField(mill.wheelTypeAzenha, 'taxonomy.wheelTypeAzenha');
-        
+
         // Grinding Mechanism
         const millstoneStateMatch = searchTranslatedField(mill.millstoneState, 'taxonomy.millstoneState');
         const millstoneDiameterMatch = mill.millstoneDiameter?.toLowerCase().includes(query) || false;
         const millstoneQtyMatch = mill.millstoneQuantity?.toString().includes(query) || false;
-        
+
         // Grinding components (boolean fields - search by component name)
         const hasTremonhaMatch = mill.hasTremonha && (
-          query.includes('tremonha') || 
+          query.includes('tremonha') ||
           t('taxonomy.grindingComponent.tremonha').toLowerCase().includes(query) ||
           (locale === 'en' ? 'hopper' : '').includes(query)
         );
         const hasQuelhaMatch = mill.hasQuelha && (
-          query.includes('quelha') || 
+          query.includes('quelha') ||
           t('taxonomy.grindingComponent.quelha').toLowerCase().includes(query)
         );
         const hasUrreiroMatch = mill.hasUrreiro && (
-          query.includes('urreiro') || 
+          query.includes('urreiro') ||
           t('taxonomy.grindingComponent.urreiro').toLowerCase().includes(query)
         );
         const hasAliviadouroMatch = mill.hasAliviadouro && (
-          query.includes('aliviadouro') || 
+          query.includes('aliviadouro') ||
           t('taxonomy.grindingComponent.aliviadouro').toLowerCase().includes(query)
         );
         const hasFarinaleiroMatch = mill.hasFarinaleiro && (
-          query.includes('farinaleiro') || 
+          query.includes('farinaleiro') ||
           t('taxonomy.grindingComponent.farinaleiro').toLowerCase().includes(query)
         );
-        
+
         // Epigraphy
         const epigraphyLocationMatch = searchTranslatedField(mill.epigraphyLocation, 'taxonomy.epigraphyLocation');
         const epigraphyTypeMatch = searchTranslatedField(mill.epigraphyType, 'taxonomy.epigraphyType');
@@ -210,32 +211,32 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         const epigraphyPresenceMatch = mill.epigraphyPresence && (
           query.includes('epigraf') || query.includes('epigraph') || query.includes('inscriç') || query.includes('inscription')
         );
-        
+
         // Conservation Ratings
         const ratingStructureMatch = searchTranslatedField(mill.ratingStructure, 'taxonomy.conservation');
         const ratingRoofMatch = searchTranslatedField(mill.ratingRoof, 'taxonomy.conservation');
         const ratingHydraulicMatch = searchTranslatedField(mill.ratingHydraulic, 'taxonomy.conservation');
         const ratingMechanismMatch = searchTranslatedField(mill.ratingMechanism, 'taxonomy.conservation');
         const ratingOverallMatch = searchTranslatedField(mill.ratingOverall, 'taxonomy.conservation');
-        
+
         // Annexes (boolean fields - search by annex name)
         const hasOvenMatch = mill.hasOven && (
-          query.includes('forno') || query.includes('oven') || 
+          query.includes('forno') || query.includes('oven') ||
           t('taxonomy.annex.oven').toLowerCase().includes(query)
         );
         const hasMillerHouseMatch = mill.hasMillerHouse && (
-          query.includes('casa') || query.includes('house') || 
+          query.includes('casa') || query.includes('house') ||
           t('taxonomy.annex.miller_house').toLowerCase().includes(query)
         );
         const hasStableMatch = mill.hasStable && (
-          query.includes('estreb') || query.includes('stable') || 
+          query.includes('estreb') || query.includes('stable') ||
           t('taxonomy.annex.stable').toLowerCase().includes(query)
         );
         const hasFullingMillMatch = mill.hasFullingMill && (
-          query.includes('pisão') || query.includes('fulling') || 
+          query.includes('pisão') || query.includes('fulling') ||
           t('taxonomy.annex.fulling_mill').toLowerCase().includes(query)
         );
-        
+
         // Stone Materials (boolean fields - search by stone type)
         const stoneGraniteMatch = mill.stoneTypeGranite && (
           query.includes('granit') || query.includes('granito')
@@ -247,43 +248,43 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
           query.includes('outro') || query.includes('other')
         );
         const stoneDescriptionMatch = mill.stoneMaterialDescription?.toLowerCase().includes(query) || false;
-        
+
         // Gable Materials (boolean fields)
         const gableLusaMatch = mill.gableMaterialLusa && (
           query.includes('lusa') || t('taxonomy.gableMaterial.lusa').toLowerCase().includes(query)
         );
         const gableMarselhaMatch = mill.gableMaterialMarselha && (
-          query.includes('marselha') || query.includes('marseille') || 
+          query.includes('marselha') || query.includes('marseille') ||
           t('taxonomy.gableMaterial.marselha').toLowerCase().includes(query)
         );
         const gableMeiaCanaMatch = mill.gableMaterialMeiaCana && (
-          query.includes('meia') || query.includes('cana') || 
+          query.includes('meia') || query.includes('cana') ||
           t('taxonomy.gableMaterial.meiaCana').toLowerCase().includes(query)
         );
-        
+
         // Dimensions (search as numbers)
         const lengthMatch = mill.length?.toString().includes(query) || false;
         const widthMatch = mill.width?.toString().includes(query) || false;
         const heightMatch = mill.height?.toString().includes(query) || false;
-        
+
         // Rodizio/Azenha quantities
         const rodizioQtyMatch = mill.rodizioQty?.toString().includes(query) || false;
         const azenhaQtyMatch = mill.azenhaQty?.toString().includes(query) || false;
 
-        if (typologyMatch || roofMaterialMatch || roofShapeMatch || accessMatch || 
-            motiveApparatusMatch || epochMatch || currentUseMatch || settingMatch ||
-            legalProtectionMatch || propertyStatusMatch || constructionTechniqueMatch ||
-            planShapeMatch || volumetryMatch || exteriorFinishMatch ||
-            captationTypeMatch || conductionTypeMatch || conductionStateMatch ||
-            admissionRodizioMatch || admissionAzenhaMatch || wheelTypeRodizioMatch || wheelTypeAzenhaMatch ||
-            millstoneStateMatch || millstoneDiameterMatch || millstoneQtyMatch ||
-            hasTremonhaMatch || hasQuelhaMatch || hasUrreiroMatch || hasAliviadouroMatch || hasFarinaleiroMatch ||
-            epigraphyLocationMatch || epigraphyTypeMatch || epigraphyDescriptionMatch || epigraphyPresenceMatch ||
-            ratingStructureMatch || ratingRoofMatch || ratingHydraulicMatch || ratingMechanismMatch || ratingOverallMatch ||
-            hasOvenMatch || hasMillerHouseMatch || hasStableMatch || hasFullingMillMatch ||
-            stoneGraniteMatch || stoneSchistMatch || stoneOtherMatch || stoneDescriptionMatch ||
-            gableLusaMatch || gableMarselhaMatch || gableMeiaCanaMatch ||
-            lengthMatch || widthMatch || heightMatch || rodizioQtyMatch || azenhaQtyMatch) {
+        if (typologyMatch || roofMaterialMatch || roofShapeMatch || accessMatch ||
+          motiveApparatusMatch || epochMatch || currentUseMatch || settingMatch ||
+          legalProtectionMatch || propertyStatusMatch || constructionTechniqueMatch ||
+          planShapeMatch || volumetryMatch || exteriorFinishMatch ||
+          captationTypeMatch || conductionTypeMatch || conductionStateMatch ||
+          admissionRodizioMatch || admissionAzenhaMatch || wheelTypeRodizioMatch || wheelTypeAzenhaMatch ||
+          millstoneStateMatch || millstoneDiameterMatch || millstoneQtyMatch ||
+          hasTremonhaMatch || hasQuelhaMatch || hasUrreiroMatch || hasAliviadouroMatch || hasFarinaleiroMatch ||
+          epigraphyLocationMatch || epigraphyTypeMatch || epigraphyDescriptionMatch || epigraphyPresenceMatch ||
+          ratingStructureMatch || ratingRoofMatch || ratingHydraulicMatch || ratingMechanismMatch || ratingOverallMatch ||
+          hasOvenMatch || hasMillerHouseMatch || hasStableMatch || hasFullingMillMatch ||
+          stoneGraniteMatch || stoneSchistMatch || stoneOtherMatch || stoneDescriptionMatch ||
+          gableLusaMatch || gableMarselhaMatch || gableMeiaCanaMatch ||
+          lengthMatch || widthMatch || heightMatch || rodizioQtyMatch || azenhaQtyMatch) {
           matched = true;
         }
 
@@ -298,7 +299,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
           displayLangCode: matchedLangCode || mill.titleLangCode,
         };
       })
-      .filter((mill): mill is SearchableMill & { displayTitle: string | null; displayLangCode: string | null } => mill !== null);
+      .filter((mill): mill is SearchableMill & { displayTitle: string; displayLangCode: string | null } => mill !== null);
 
     // Add mills to results
     filteredMills.forEach((mill) => {
@@ -306,9 +307,9 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         mill.district,
         mill.typology ? t(`taxonomy.typology.${mill.typology}`) : null,
       ].filter(Boolean).join(' • ');
-      
+
       const imageUrl = mill.mainImage ? getPublicUrl(mill.mainImage) : null;
-      
+
       results.push({
         type: 'mill',
         id: mill.id,
@@ -331,7 +332,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         for (const translation of wl.translations || []) {
           const nameMatch = translation.name?.toLowerCase().includes(query);
           const descriptionMatch = translation.description?.toLowerCase().includes(query);
-          
+
           if (nameMatch || descriptionMatch) {
             matched = true;
             if (nameMatch && !matchedName) {
@@ -356,7 +357,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
           displayLangCode: matchedLangCode || wl.nameLangCode,
         };
       })
-      .filter((wl): wl is SearchableWaterLine & { displayName: string | null; displayLangCode: string | null } => wl !== null);
+      .filter((wl): wl is SearchableWaterLine & { displayName: string; displayLangCode: string | null } => wl !== null);
 
     // Add water lines to results
     filteredWaterLines.forEach((wl) => {
@@ -382,7 +383,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         for (const translation of poca.translations || []) {
           const titleMatch = translation.title?.toLowerCase().includes(query);
           const descriptionMatch = translation.description?.toLowerCase().includes(query);
-          
+
           if (titleMatch || descriptionMatch) {
             matched = true;
             if (titleMatch && !matchedTitle) {
@@ -407,7 +408,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
           displayLangCode: matchedLangCode || poca.titleLangCode,
         };
       })
-      .filter((poca): poca is SearchablePoca & { displayTitle: string | null; displayLangCode: string | null } => poca !== null);
+      .filter((poca): poca is SearchablePoca & { displayTitle: string; displayLangCode: string | null } => poca !== null);
 
     // Add pocas to results
     filteredPocas.forEach((poca) => {
@@ -415,7 +416,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
         poca.waterLineName ? `${t('inventory.type.levada')}: ${poca.waterLineName}` : null,
         t('inventory.type.poca'),
       ].filter(Boolean).join(' • ');
-      
+
       results.push({
         type: 'poca',
         id: poca.id,
@@ -452,10 +453,10 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
   }) => {
     setSearchQuery('');
     setIsOpen(false);
-    
+
     const homePath = `/${locale}`;
     const isOnHomePage = pathname === homePath || pathname === `/${locale}/map`;
-    
+
     if (item.type === 'mill') {
       // Navigate to home page (which now serves the map) with millId param
       if (isOnHomePage) {
@@ -560,7 +561,7 @@ export const GlobalSearch = ({ locale }: GlobalSearchProps) => {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">

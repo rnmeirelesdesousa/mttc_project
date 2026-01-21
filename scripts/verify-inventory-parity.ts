@@ -39,9 +39,9 @@ const db = drizzle(client);
 const ADMIN_USER_ID = '79ba2960-6c22-4cb7-b6ce-65fe4a83f661';
 
 // Type guard to check if error is a PostgresError
-function isPostgresError(error: unknown): error is { 
-  code?: string; 
-  detail?: string; 
+function isPostgresError(error: unknown): error is {
+  code?: string;
+  detail?: string;
   message?: string;
   column?: string;
 } {
@@ -56,7 +56,7 @@ function isPostgresError(error: unknown): error is {
 // Pattern: "invalid input value for enum <enum_name>: \"<value>\""
 function extractEnumValueFromError(detail: string | undefined): { enumName: string; value: string } | null {
   if (!detail) return null;
-  
+
   // Pattern: "invalid input value for enum <enum_name>: \"<value>\""
   const enumMatch = detail.match(/invalid input value for enum\s+(\w+):\s*"([^"]+)"/i);
   if (enumMatch) {
@@ -65,7 +65,7 @@ function extractEnumValueFromError(detail: string | undefined): { enumName: stri
       value: enumMatch[2] || 'Unknown',
     };
   }
-  
+
   // Alternative pattern: "invalid input value for enum <enum_name>"
   const simpleMatch = detail.match(/invalid input value for enum\s+(\w+)/i);
   if (simpleMatch) {
@@ -74,7 +74,7 @@ function extractEnumValueFromError(detail: string | undefined): { enumName: stri
       value: 'Unknown',
     };
   }
-  
+
   return null;
 }
 
@@ -107,7 +107,7 @@ async function runTest(
     legalProtection?: 'inexistent' | 'under_study' | 'classified';
     propertyStatus?: 'private' | 'public' | 'unknown';
     // Architecture
-    planShape?: 'circular' | 'rectangular' | 'square' | 'polygonal' | 'irregular' | 'circular_tower' | 'quadrangular';
+    planShape?: 'circular' | 'quadrangular' | 'rectangular' | 'irregular';
     volumetry?: 'cylindrical' | 'conical' | 'prismatic_sq_rec';
     constructionTechnique?: 'dry_stone' | 'mortared_stone' | 'mixed_other';
     exteriorFinish?: 'exposed' | 'plastered' | 'whitewashed';
@@ -163,10 +163,10 @@ async function runTest(
   console.log(`\n${'='.repeat(60)}`);
   console.log(`🧪 ${testName}`);
   console.log('='.repeat(60));
-  
+
   const slug = generateTestSlug(testData.title);
   let constructionId: string | null = null;
-  
+
   try {
     // Use database transaction to ensure atomicity
     const result = await db.transaction(async (tx) => {
@@ -282,7 +282,7 @@ async function runTest(
     // Extract and log PostgresError details
     if (isPostgresError(error)) {
       const enumInfo = extractEnumValueFromError(error.detail);
-      
+
       if (enumInfo) {
         console.log(`❌ FAILED: Enum "${enumInfo.enumName}" - Value "${enumInfo.value}" is missing in Supabase`);
         console.log(`   Error Code: ${error.code || 'Unknown'}`);
@@ -298,7 +298,7 @@ async function runTest(
       }
     } else if (error instanceof Error) {
       console.log(`❌ FAILED: ${error.message}`);
-      
+
       // Try to extract enum info from error message
       const enumInfo = extractEnumValueFromError(error.message);
       if (enumInfo) {
@@ -392,7 +392,7 @@ async function main() {
       legalProtection: 'under_study',
       propertyStatus: 'public',
       // Architecture (Section III)
-      planShape: 'circular_tower',
+      planShape: 'circular',
       volumetry: 'cylindrical',
       constructionTechnique: 'dry_stone',
       exteriorFinish: 'whitewashed',

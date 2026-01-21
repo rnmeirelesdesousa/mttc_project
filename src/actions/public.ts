@@ -120,7 +120,7 @@ export async function getPublishedMills(
 
     // Apply typology filter (if provided)
     if (filters?.typology && filters.typology.length > 0) {
-      whereConditions.push(inArray(millsData.typology, filters.typology));
+      whereConditions.push(inArray(millsData.typology, filters.typology as any));
     }
 
     // Apply district filter (if provided)
@@ -130,67 +130,67 @@ export async function getPublishedMills(
 
     // Apply roof material filter (if provided)
     if (filters?.roofMaterial && filters.roofMaterial.length > 0) {
-      whereConditions.push(inArray(millsData.roofMaterial, filters.roofMaterial));
+      whereConditions.push(inArray(millsData.roofMaterial, filters.roofMaterial as any));
     }
 
     // Apply roof shape filter (if provided)
     if (filters?.roofShape && filters.roofShape.length > 0) {
-      whereConditions.push(inArray(millsData.roofShape, filters.roofShape));
+      whereConditions.push(inArray(millsData.roofShape, filters.roofShape as any));
     }
 
     // Apply access filter (if provided)
     if (filters?.access && filters.access.length > 0) {
-      whereConditions.push(inArray(millsData.access, filters.access));
+      whereConditions.push(inArray(millsData.access, filters.access as any));
     }
 
     // Apply motive apparatus filter (if provided)
     if (filters?.motiveApparatus && filters.motiveApparatus.length > 0) {
-      whereConditions.push(inArray(millsData.motiveApparatus, filters.motiveApparatus));
+      whereConditions.push(inArray(millsData.motiveApparatus, filters.motiveApparatus as any));
     }
 
     // Apply epoch filter (if provided)
     if (filters?.epoch && filters.epoch.length > 0) {
-      whereConditions.push(inArray(millsData.epoch, filters.epoch));
+      whereConditions.push(inArray(millsData.epoch, filters.epoch as any));
     }
 
     // Apply current use filter (if provided)
     if (filters?.currentUse && filters.currentUse.length > 0) {
-      whereConditions.push(inArray(millsData.currentUse, filters.currentUse));
+      whereConditions.push(inArray(millsData.currentUse, filters.currentUse as any));
     }
 
     // Apply setting filter (if provided)
     if (filters?.setting && filters.setting.length > 0) {
-      whereConditions.push(inArray(millsData.setting, filters.setting));
+      whereConditions.push(inArray(millsData.setting, filters.setting as any));
     }
 
     // Apply legal protection filter (if provided)
     if (filters?.legalProtection && filters.legalProtection.length > 0) {
-      whereConditions.push(inArray(millsData.legalProtection, filters.legalProtection));
+      whereConditions.push(inArray(millsData.legalProtection, filters.legalProtection as any));
     }
 
     // Apply property status filter (if provided)
     if (filters?.propertyStatus && filters.propertyStatus.length > 0) {
-      whereConditions.push(inArray(millsData.propertyStatus, filters.propertyStatus));
+      whereConditions.push(inArray(millsData.propertyStatus, filters.propertyStatus as any));
     }
 
     // Apply construction technique filter (if provided)
     if (filters?.constructionTechnique && filters.constructionTechnique.length > 0) {
-      whereConditions.push(inArray(millsData.constructionTechnique, filters.constructionTechnique));
+      whereConditions.push(inArray(millsData.constructionTechnique, filters.constructionTechnique as any));
     }
 
     // Apply plan shape filter (if provided)
     if (filters?.planShape && filters.planShape.length > 0) {
-      whereConditions.push(inArray(millsData.planShape, filters.planShape));
+      whereConditions.push(inArray(millsData.planShape, filters.planShape as any));
     }
 
     // Apply volumetry filter (if provided)
     if (filters?.volumetry && filters.volumetry.length > 0) {
-      whereConditions.push(inArray(millsData.volumetry, filters.volumetry));
+      whereConditions.push(inArray(millsData.volumetry, filters.volumetry as any));
     }
 
     // Apply exterior finish filter (if provided)
     if (filters?.exteriorFinish && filters.exteriorFinish.length > 0) {
-      whereConditions.push(inArray(millsData.exteriorFinish, filters.exteriorFinish));
+      whereConditions.push(inArray(millsData.exteriorFinish, filters.exteriorFinish as any));
     }
 
     // Query published mills with joins and PostGIS coordinate extraction
@@ -249,13 +249,13 @@ export async function getPublishedMills(
       .map((row) => {
         const lat = row.lat !== null ? Number(row.lat) : null;
         const lng = row.lng !== null ? Number(row.lng) : null;
-        
+
         // Skip mills with invalid coordinates
         if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
           console.warn('[getPublishedMills]: Skipping mill with invalid coordinates:', row.slug);
           return null;
         }
-        
+
         return {
           id: row.id,
           slug: row.slug,
@@ -264,6 +264,7 @@ export async function getPublishedMills(
           municipality: row.municipality,
           parish: row.parish,
           address: row.address,
+          place: row.place,
           drainageBasin: row.drainageBasin,
           mainImage: row.mainImage,
           galleryImages: row.galleryImages,
@@ -278,7 +279,7 @@ export async function getPublishedMills(
           waterLineColor: row.waterLineColor,
           title: row.title,
           description: row.description,
-        };
+        } as PublishedMill;
       })
       .filter((mill): mill is PublishedMill => mill !== null);
 
@@ -619,7 +620,7 @@ export async function getMillBySlug(
     // Validate and extract coordinates with error handling
     const lat = row.lat !== null ? Number(row.lat) : null;
     const lng = row.lng !== null ? Number(row.lng) : null;
-    
+
     // Return null if coordinates are invalid
     if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
       console.error('[getMillBySlug]: Invalid coordinates for slug:', slug);
@@ -677,13 +678,13 @@ export async function getMillBySlug(
       millstoneQuantity: row.millstoneQuantity,
       millstoneDiameter: row.millstoneDiameter,
       millstoneState: row.millstoneState,
-      hasTremonha: row.hasTremonha,
-      hasQuelha: row.hasQuelha,
-      hasUrreiro: row.hasUrreiro,
-      hasAliviadouro: row.hasAliviadouro,
-      hasFarinaleiro: row.hasFarinaleiro,
+      hasTremonha: row.hasTremonha ?? false,
+      hasQuelha: row.hasQuelha ?? false,
+      hasUrreiro: row.hasUrreiro ?? false,
+      hasAliviadouro: row.hasAliviadouro ?? false,
+      hasFarinaleiro: row.hasFarinaleiro ?? false,
       // Epigraphy
-      epigraphyPresence: row.epigraphyPresence,
+      epigraphyPresence: row.epigraphyPresence ?? false,
       epigraphyLocation: row.epigraphyLocation,
       epigraphyType: row.epigraphyType,
       epigraphyDescription: row.epigraphyDescription,
@@ -694,10 +695,10 @@ export async function getMillBySlug(
       ratingMechanism: row.ratingMechanism,
       ratingOverall: row.ratingOverall,
       // Annexes
-      hasOven: row.hasOven,
-      hasMillerHouse: row.hasMillerHouse,
-      hasStable: row.hasStable,
-      hasFullingMill: row.hasFullingMill,
+      hasOven: row.hasOven ?? false,
+      hasMillerHouse: row.hasMillerHouse ?? false,
+      hasStable: row.hasStable ?? false,
+      hasFullingMill: row.hasFullingMill ?? false,
       // Characterization
       epoch: row.epoch,
       setting: row.setting,
@@ -706,14 +707,14 @@ export async function getMillBySlug(
       waterLineName: row.waterLineName,
       waterLineSlug: row.waterLineSlug,
       // Phase 5.9.4: Stone material boolean flags
-      stoneTypeGranite: row.stoneTypeGranite,
-      stoneTypeSchist: row.stoneTypeSchist,
-      stoneTypeOther: row.stoneTypeOther,
+      stoneTypeGranite: row.stoneTypeGranite ?? false,
+      stoneTypeSchist: row.stoneTypeSchist ?? false,
+      stoneTypeOther: row.stoneTypeOther ?? false,
       stoneMaterialDescription: row.stoneMaterialDescription,
       // Phase 5.9.4: Gable roof material boolean flags
-      gableMaterialLusa: row.gableMaterialLusa,
-      gableMaterialMarselha: row.gableMaterialMarselha,
-      gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+      gableMaterialLusa: row.gableMaterialLusa ?? false,
+      gableMaterialMarselha: row.gableMaterialMarselha ?? false,
+      gableMaterialMeiaCana: row.gableMaterialMeiaCana ?? false,
       // Phase 5.9.20: Conservation observations
       observationsStructure: row.observationsStructure,
       observationsRoof: row.observationsRoof,
@@ -882,7 +883,7 @@ export async function getMillById(
     // Validate and extract coordinates with error handling
     const lat = row.lat !== null ? Number(row.lat) : null;
     const lng = row.lng !== null ? Number(row.lng) : null;
-    
+
     // Return null if coordinates are invalid
     if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
       console.error('[getMillById]: Invalid coordinates for id:', id);
@@ -940,13 +941,13 @@ export async function getMillById(
       millstoneQuantity: row.millstoneQuantity,
       millstoneDiameter: row.millstoneDiameter,
       millstoneState: row.millstoneState,
-      hasTremonha: row.hasTremonha,
-      hasQuelha: row.hasQuelha,
-      hasUrreiro: row.hasUrreiro,
-      hasAliviadouro: row.hasAliviadouro,
-      hasFarinaleiro: row.hasFarinaleiro,
+      hasTremonha: row.hasTremonha ?? false,
+      hasQuelha: row.hasQuelha ?? false,
+      hasUrreiro: row.hasUrreiro ?? false,
+      hasAliviadouro: row.hasAliviadouro ?? false,
+      hasFarinaleiro: row.hasFarinaleiro ?? false,
       // Epigraphy
-      epigraphyPresence: row.epigraphyPresence,
+      epigraphyPresence: row.epigraphyPresence ?? false,
       epigraphyLocation: row.epigraphyLocation,
       epigraphyType: row.epigraphyType,
       epigraphyDescription: row.epigraphyDescription,
@@ -957,10 +958,10 @@ export async function getMillById(
       ratingMechanism: row.ratingMechanism,
       ratingOverall: row.ratingOverall,
       // Annexes
-      hasOven: row.hasOven,
-      hasMillerHouse: row.hasMillerHouse,
-      hasStable: row.hasStable,
-      hasFullingMill: row.hasFullingMill,
+      hasOven: row.hasOven ?? false,
+      hasMillerHouse: row.hasMillerHouse ?? false,
+      hasStable: row.hasStable ?? false,
+      hasFullingMill: row.hasFullingMill ?? false,
       // Characterization
       epoch: row.epoch,
       setting: row.setting,
@@ -969,14 +970,14 @@ export async function getMillById(
       waterLineName: row.waterLineName,
       waterLineSlug: row.waterLineSlug,
       // Phase 5.9.4: Stone material boolean flags
-      stoneTypeGranite: row.stoneTypeGranite,
-      stoneTypeSchist: row.stoneTypeSchist,
-      stoneTypeOther: row.stoneTypeOther,
+      stoneTypeGranite: row.stoneTypeGranite ?? false,
+      stoneTypeSchist: row.stoneTypeSchist ?? false,
+      stoneTypeOther: row.stoneTypeOther ?? false,
       stoneMaterialDescription: row.stoneMaterialDescription,
       // Phase 5.9.4: Gable roof material boolean flags
-      gableMaterialLusa: row.gableMaterialLusa,
-      gableMaterialMarselha: row.gableMaterialMarselha,
-      gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+      gableMaterialLusa: row.gableMaterialLusa ?? false,
+      gableMaterialMarselha: row.gableMaterialMarselha ?? false,
+      gableMaterialMeiaCana: row.gableMaterialMeiaCana ?? false,
       // Phase 5.9.20: Conservation observations
       observationsStructure: row.observationsStructure,
       observationsRoof: row.observationsRoof,
@@ -1088,13 +1089,13 @@ export async function getConnectedMills(
       .map((row) => {
         const lat = row.lat !== null ? Number(row.lat) : null;
         const lng = row.lng !== null ? Number(row.lng) : null;
-        
+
         // Skip mills with invalid coordinates
         if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
           console.warn('[getConnectedMills]: Skipping mill with invalid coordinates:', row.slug);
           return null;
         }
-        
+
         return {
           id: row.id,
           slug: row.slug,
@@ -1103,6 +1104,7 @@ export async function getConnectedMills(
           municipality: row.municipality,
           parish: row.parish,
           address: row.address,
+          place: row.place,
           drainageBasin: row.drainageBasin,
           mainImage: row.mainImage,
           galleryImages: row.galleryImages,
@@ -1116,7 +1118,7 @@ export async function getConnectedMills(
           waterLineId: row.waterLineId,
           title: row.title,
           description: row.description,
-        };
+        } as PublishedMill;
       })
       .filter((mill): mill is PublishedMill => mill !== null);
 
@@ -1205,7 +1207,7 @@ export async function getWaterLinesList(
 
     // Build where conditions
     const whereConditions = [eq(constructions.typeCategory, 'water_line')];
-    
+
     // Phase 5.9.7.2: Filter for published constructions when requested
     if (options?.publishedOnly) {
       whereConditions.push(eq(constructions.status, 'published'));
@@ -1338,7 +1340,7 @@ export async function getWaterLineBySlug(
 
     const coordsStr = match[1];
     const coordPairs = coordsStr.split(',').map(coord => coord.trim());
-    
+
     // Parse coordinates and convert from [lng, lat] to [lat, lng] for Leaflet
     const leafletPath: [number, number][] = coordPairs.map(coord => {
       const [lng, lat] = coord.split(/\s+/).map(parseFloat);
@@ -1406,13 +1408,13 @@ export async function getWaterLineBySlug(
       .map((row) => {
         const lat = row.lat !== null ? Number(row.lat) : null;
         const lng = row.lng !== null ? Number(row.lng) : null;
-        
+
         // Skip mills with invalid coordinates
         if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
           console.warn('[getWaterLineBySlug]: Skipping mill with invalid coordinates:', row.slug);
           return null;
         }
-        
+
         return {
           id: row.id,
           slug: row.slug,
@@ -1421,6 +1423,7 @@ export async function getWaterLineBySlug(
           municipality: row.municipality,
           parish: row.parish,
           address: row.address,
+          place: row.place,
           drainageBasin: row.drainageBasin,
           mainImage: row.mainImage,
           galleryImages: row.galleryImages,
@@ -1437,7 +1440,7 @@ export async function getWaterLineBySlug(
           waterLineColor: row.waterLineColor,
           title: row.title,
           description: row.description,
-        };
+        } as PublishedMill;
       })
       .filter((mill): mill is PublishedMill => mill !== null);
 
@@ -1542,7 +1545,7 @@ export async function getMapData(
 
         const coordsStr = match[1];
         const coordPairs = coordsStr.split(',').map(coord => coord.trim());
-        
+
         // Parse coordinates and convert from [lng, lat] to [lat, lng] for Leaflet
         const leafletPath: [number, number][] = coordPairs.map(coord => {
           const [lng, lat] = coord.split(/\s+/).map(parseFloat);
@@ -1869,7 +1872,7 @@ export async function getSearchableMills(
     for (const row of results) {
       const lat = row.lat !== null ? Number(row.lat) : null;
       const lng = row.lng !== null ? Number(row.lng) : null;
-      
+
       // Skip mills with invalid coordinates
       if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
         continue;
@@ -1913,13 +1916,13 @@ export async function getSearchableMills(
           millstoneQuantity: row.millstoneQuantity,
           millstoneDiameter: row.millstoneDiameter,
           millstoneState: row.millstoneState,
-          hasTremonha: row.hasTremonha,
-          hasQuelha: row.hasQuelha,
-          hasUrreiro: row.hasUrreiro,
-          hasAliviadouro: row.hasAliviadouro,
-          hasFarinaleiro: row.hasFarinaleiro,
+          hasTremonha: row.hasTremonha ?? false,
+          hasQuelha: row.hasQuelha ?? false,
+          hasUrreiro: row.hasUrreiro ?? false,
+          hasAliviadouro: row.hasAliviadouro ?? false,
+          hasFarinaleiro: row.hasFarinaleiro ?? false,
           // Epigraphy
-          epigraphyPresence: row.epigraphyPresence,
+          epigraphyPresence: row.epigraphyPresence ?? false,
           epigraphyLocation: row.epigraphyLocation,
           epigraphyType: row.epigraphyType,
           epigraphyDescription: row.epigraphyDescription,
@@ -1930,19 +1933,19 @@ export async function getSearchableMills(
           ratingMechanism: row.ratingMechanism,
           ratingOverall: row.ratingOverall,
           // Annexes
-          hasOven: row.hasOven,
-          hasMillerHouse: row.hasMillerHouse,
-          hasStable: row.hasStable,
-          hasFullingMill: row.hasFullingMill,
+          hasOven: row.hasOven ?? false,
+          hasMillerHouse: row.hasMillerHouse ?? false,
+          hasStable: row.hasStable ?? false,
+          hasFullingMill: row.hasFullingMill ?? false,
           // Stone Materials
-          stoneTypeGranite: row.stoneTypeGranite,
-          stoneTypeSchist: row.stoneTypeSchist,
-          stoneTypeOther: row.stoneTypeOther,
+          stoneTypeGranite: row.stoneTypeGranite ?? false,
+          stoneTypeSchist: row.stoneTypeSchist ?? false,
+          stoneTypeOther: row.stoneTypeOther ?? false,
           stoneMaterialDescription: row.stoneMaterialDescription,
           // Gable Materials
-          gableMaterialLusa: row.gableMaterialLusa,
-          gableMaterialMarselha: row.gableMaterialMarselha,
-          gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+          gableMaterialLusa: row.gableMaterialLusa ?? false,
+          gableMaterialMarselha: row.gableMaterialMarselha ?? false,
+          gableMaterialMeiaCana: row.gableMaterialMeiaCana ?? false,
           // Dimensions
           length: row.length,
           width: row.width,
@@ -1955,7 +1958,7 @@ export async function getSearchableMills(
       }
 
       const mill = millsMap.get(row.id)!;
-      
+
       // Add translation if it exists and hasn't been added yet
       if (row.translationLangCode && row.translationTitle) {
         const existingTranslation = mill.translations.find(
@@ -2174,7 +2177,7 @@ export async function getSearchableWaterLines(
       }
 
       const waterLine = waterLinesMap.get(row.id)!;
-      
+
       // Add translation if it exists and hasn't been added yet
       if (row.translationLangCode && row.translationName) {
         const existingTranslation = waterLine.translations.find(
@@ -2191,7 +2194,7 @@ export async function getSearchableWaterLines(
     }
 
     // Transform to SearchableWaterLine format
-    const waterLines: SearchableWaterLine[] = Array.from(waterLinesMap.values())
+    const searchableWaterLines: SearchableWaterLine[] = Array.from(waterLinesMap.values())
       .map((wl) => {
         // Find name from current locale (fallback), or first available
         const currentLocaleTranslation = wl.translations.find(
@@ -2208,7 +2211,7 @@ export async function getSearchableWaterLines(
         };
       });
 
-    return { success: true, data: waterLines };
+    return { success: true, data: searchableWaterLines };
   } catch (error) {
     console.error('[getSearchableWaterLines]:', error);
     return {
@@ -2296,7 +2299,7 @@ export async function getSearchablePocas(
     for (const row of results) {
       const lat = row.lat !== null ? Number(row.lat) : null;
       const lng = row.lng !== null ? Number(row.lng) : null;
-      
+
       // Skip pocas with invalid coordinates
       if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
         continue;
@@ -2315,7 +2318,7 @@ export async function getSearchablePocas(
       }
 
       const poca = pocasMap.get(row.id)!;
-      
+
       // Add translation if it exists and hasn't been added yet
       if (row.translationLangCode && row.translationTitle) {
         const existingTranslation = poca.translations.find(

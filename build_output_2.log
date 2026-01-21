@@ -1,0 +1,40 @@
+
+> mttc-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/app/[locale]/dashboard/add/page.tsx
+83:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+1892:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/[locale]/dashboard/review/[slug]/page.tsx
+714:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+729:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/features/GlobalSearch.tsx
+542:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+Failed to compile.
+
+./scripts/seed.ts:45:32
+Type error: No overload matches this call.
+  Overload 1 of 2, '(value: { typology: "azenha" | "rodizio" | "mare" | "torre_fixa" | "giratorio" | "velas" | "armacao" | SQL<unknown> | Placeholder<string, any>; constructionId: string | SQL<...> | Placeholder<...>; ... 53 more ...; gableMaterialMeiaCana?: boolean | ... 3 more ... | undefined; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'waterCaptation' does not exist in type '{ typology: "azenha" | "rodizio" | "mare" | "torre_fixa" | "giratorio" | "velas" | "armacao" | SQL<unknown> | Placeholder<string, any>; constructionId: string | SQL<...> | Placeholder<...>; ... 53 more ...; gableMaterialMeiaCana?: boolean | ... 3 more ... | undefined; }'.
+  Overload 2 of 2, '(values: { typology: "azenha" | "rodizio" | "mare" | "torre_fixa" | "giratorio" | "velas" | "armacao" | SQL<unknown> | Placeholder<string, any>; constructionId: string | SQL<...> | Placeholder<...>; ... 53 more ...; gableMaterialMeiaCana?: boolean | ... 3 more ... | undefined; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'constructionId' does not exist in type '{ typology: "azenha" | "rodizio" | "mare" | "torre_fixa" | "giratorio" | "velas" | "armacao" | SQL<unknown> | Placeholder<string, any>; constructionId: string | SQL<...> | Placeholder<...>; ... 53 more ...; gableMaterialMeiaCana?: boolean | ... 3 more ... | undefined; }[]'.
+
+[0m [90m 43 |[39m     [36mconst[39m mill1Id [33m=[39m mill1Construction[[35m0[39m][33m![39m[33m.[39mid[33m;[39m[0m
+[0m [90m 44 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 45 |[39m     [36mawait[39m db[33m.[39minsert(millsData)[33m.[39mvalues({[0m
+[0m [90m    |[39m                                [31m[1m^[22m[39m[0m
+[0m [90m 46 |[39m       constructionId[33m:[39m mill1Id[33m,[39m[0m
+[0m [90m 47 |[39m       typology[33m:[39m [32m'rodizio'[39m[33m,[39m[0m
+[0m [90m 48 |[39m       access[33m:[39m [32m'pedestrian'[39m[33m,[39m[0m
+Next.js build worker exited with code: 1 and signal: null

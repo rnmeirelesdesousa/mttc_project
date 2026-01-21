@@ -54,7 +54,7 @@ export default async function MillDetailPage({ params }: PageProps) {
 
   // Get image URLs
   const mainImageUrl = mill.mainImage ? getPublicUrl(mill.mainImage) : null;
-  const galleryUrls = mill.galleryImages?.map(img => getPublicUrl(img)) || [];
+  const galleryUrls = mill.galleryImages?.map(img => getPublicUrl(img)).filter((url): url is string => url !== null) || [];
 
   return (
     <div className="min-h-screen bg-white">
@@ -69,7 +69,7 @@ export default async function MillDetailPage({ params }: PageProps) {
               <ArrowLeft className="mr-1.5 h-3 w-3" />
               {t('map.backToMap')}
             </Link>
-            
+
             {canEdit && (
               <Button asChild variant="ghost" size="sm" className="text-xs h-7">
                 <Link href={`/${params.locale}/dashboard/edit/${mill.id}`}>
@@ -497,41 +497,41 @@ export default async function MillDetailPage({ params }: PageProps) {
                     </dd>
                   </div>
                 )}
-                {(mill.hasTremonha || mill.hasQuelha || mill.hasUrreiro || 
+                {(mill.hasTremonha || mill.hasQuelha || mill.hasUrreiro ||
                   mill.hasAliviadouro || mill.hasFarinaleiro) && (
-                  <div>
-                    <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-1.5">
-                      {t('add.form.mechanism.grinding.components')}
-                    </dt>
-                    <dd className="flex flex-wrap gap-1.5">
-                      {mill.hasTremonha && (
-                        <span className="text-xs px-1.5 py-0.5 border border-gray-300">
-                          {t('taxonomy.grindingComponent.tremonha')}
-                        </span>
-                      )}
-                      {mill.hasQuelha && (
-                        <span className="text-xs px-1.5 py-0.5 border border-gray-300">
-                          {t('taxonomy.grindingComponent.quelha')}
-                        </span>
-                      )}
-                      {mill.hasUrreiro && (
-                        <span className="text-xs px-1.5 py-0.5 border border-gray-300">
-                          {t('taxonomy.grindingComponent.urreiro')}
-                        </span>
-                      )}
-                      {mill.hasAliviadouro && (
-                        <span className="text-xs px-1.5 py-0.5 border border-gray-300">
-                          {t('taxonomy.grindingComponent.aliviadouro')}
-                        </span>
-                      )}
-                      {mill.hasFarinaleiro && (
-                        <span className="text-xs px-1.5 py-0.5 border border-gray-300">
-                          {t('taxonomy.grindingComponent.farinaleiro')}
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                )}
+                    <div>
+                      <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-1.5">
+                        {t('add.form.mechanism.grinding.components')}
+                      </dt>
+                      <dd className="flex flex-wrap gap-1.5">
+                        {mill.hasTremonha && (
+                          <span className="text-xs px-1.5 py-0.5 border border-gray-300">
+                            {t('taxonomy.grindingComponent.tremonha')}
+                          </span>
+                        )}
+                        {mill.hasQuelha && (
+                          <span className="text-xs px-1.5 py-0.5 border border-gray-300">
+                            {t('taxonomy.grindingComponent.quelha')}
+                          </span>
+                        )}
+                        {mill.hasUrreiro && (
+                          <span className="text-xs px-1.5 py-0.5 border border-gray-300">
+                            {t('taxonomy.grindingComponent.urreiro')}
+                          </span>
+                        )}
+                        {mill.hasAliviadouro && (
+                          <span className="text-xs px-1.5 py-0.5 border border-gray-300">
+                            {t('taxonomy.grindingComponent.aliviadouro')}
+                          </span>
+                        )}
+                        {mill.hasFarinaleiro && (
+                          <span className="text-xs px-1.5 py-0.5 border border-gray-300">
+                            {t('taxonomy.grindingComponent.farinaleiro')}
+                          </span>
+                        )}
+                      </dd>
+                    </div>
+                  )}
                 {mill.waterLineName && (
                   <div>
                     <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
@@ -558,66 +558,66 @@ export default async function MillDetailPage({ params }: PageProps) {
           {/* Right Column */}
           <div className="space-y-10">
             {/* Conservation */}
-            {(mill.ratingStructure || mill.ratingRoof || mill.ratingHydraulic || 
+            {(mill.ratingStructure || mill.ratingRoof || mill.ratingHydraulic ||
               mill.ratingMechanism || mill.ratingOverall) && (
-              <section>
-                <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-5 border-b border-gray-300 pb-1.5">
-                  IV. {t('mill.detail.conservation')}
-                </h2>
-                <dl className="space-y-3.5">
-                  {mill.ratingOverall && (
-                    <div>
-                      <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
-                        {t('mill.detail.overallRating')}
-                      </dt>
-                      <dd className="text-xs text-gray-700 font-normal">
-                        {getTranslatedValue('conservation', mill.ratingOverall)}
-                      </dd>
-                    </div>
-                  )}
-                  {mill.ratingStructure && (
-                    <div>
-                      <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
-                        {t('mill.detail.structure')}
-                      </dt>
-                      <dd className="text-xs text-gray-700 font-normal">
-                        {getTranslatedValue('conservation', mill.ratingStructure)}
-                      </dd>
-                    </div>
-                  )}
-                  {mill.ratingRoof && (
-                    <div>
-                      <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
-                        {t('mill.detail.roof')}
-                      </dt>
-                      <dd className="text-xs text-gray-700 font-normal">
-                        {getTranslatedValue('conservation', mill.ratingRoof)}
-                      </dd>
-                    </div>
-                  )}
-                  {mill.ratingHydraulic && (
-                    <div>
-                      <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
-                        {t('add.form.conservation.ratingHydraulic')}
-                      </dt>
-                      <dd className="text-xs text-gray-700 font-normal">
-                        {getTranslatedValue('conservation', mill.ratingHydraulic)}
-                      </dd>
-                    </div>
-                  )}
-                  {mill.ratingMechanism && (
-                    <div>
-                      <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
-                        {t('add.form.conservation.ratingMechanism')}
-                      </dt>
-                      <dd className="text-xs text-gray-700 font-normal">
-                        {getTranslatedValue('conservation', mill.ratingMechanism)}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </section>
-            )}
+                <section>
+                  <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-5 border-b border-gray-300 pb-1.5">
+                    IV. {t('mill.detail.conservation')}
+                  </h2>
+                  <dl className="space-y-3.5">
+                    {mill.ratingOverall && (
+                      <div>
+                        <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
+                          {t('mill.detail.overallRating')}
+                        </dt>
+                        <dd className="text-xs text-gray-700 font-normal">
+                          {getTranslatedValue('conservation', mill.ratingOverall)}
+                        </dd>
+                      </div>
+                    )}
+                    {mill.ratingStructure && (
+                      <div>
+                        <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
+                          {t('mill.detail.structure')}
+                        </dt>
+                        <dd className="text-xs text-gray-700 font-normal">
+                          {getTranslatedValue('conservation', mill.ratingStructure)}
+                        </dd>
+                      </div>
+                    )}
+                    {mill.ratingRoof && (
+                      <div>
+                        <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
+                          {t('mill.detail.roof')}
+                        </dt>
+                        <dd className="text-xs text-gray-700 font-normal">
+                          {getTranslatedValue('conservation', mill.ratingRoof)}
+                        </dd>
+                      </div>
+                    )}
+                    {mill.ratingHydraulic && (
+                      <div>
+                        <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
+                          {t('add.form.conservation.ratingHydraulic')}
+                        </dt>
+                        <dd className="text-xs text-gray-700 font-normal">
+                          {getTranslatedValue('conservation', mill.ratingHydraulic)}
+                        </dd>
+                      </div>
+                    )}
+                    {mill.ratingMechanism && (
+                      <div>
+                        <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
+                          {t('add.form.conservation.ratingMechanism')}
+                        </dt>
+                        <dd className="text-xs text-gray-700 font-normal">
+                          {getTranslatedValue('conservation', mill.ratingMechanism)}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                </section>
+              )}
 
             {/* Epigraphy */}
             {(mill.epigraphyPresence || mill.epigraphyLocation || mill.epigraphyType || mill.epigraphyDescription) && (
@@ -702,66 +702,66 @@ export default async function MillDetailPage({ params }: PageProps) {
         </div>
 
         {/* Field Observations */}
-        {(mill.observationsStructure || mill.observationsRoof || mill.observationsHydraulic || 
+        {(mill.observationsStructure || mill.observationsRoof || mill.observationsHydraulic ||
           mill.observationsMechanism || mill.observationsGeneral) && (
-          <section className="mb-12 max-w-4xl">
-            <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-5 border-b border-gray-300 pb-1.5">
-              Field Observations
-            </h2>
-            <div className="space-y-6">
-              {mill.observationsStructure && (
-                <div>
-                  <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
-                    {t('mill.sidebar.observationsStructure')}
-                  </h3>
-                  <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
-                    {mill.observationsStructure}
-                  </p>
-                </div>
-              )}
-              {mill.observationsRoof && (
-                <div>
-                  <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
-                    {t('mill.sidebar.observationsRoof')}
-                  </h3>
-                  <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
-                    {mill.observationsRoof}
-                  </p>
-                </div>
-              )}
-              {mill.observationsHydraulic && (
-                <div>
-                  <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
-                    {t('mill.sidebar.observationsHydraulic')}
-                  </h3>
-                  <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
-                    {mill.observationsHydraulic}
-                  </p>
-                </div>
-              )}
-              {mill.observationsMechanism && (
-                <div>
-                  <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
-                    {t('mill.sidebar.observationsMechanism')}
-                  </h3>
-                  <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
-                    {mill.observationsMechanism}
-                  </p>
-                </div>
-              )}
-              {mill.observationsGeneral && (
-                <div>
-                  <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
-                    {t('mill.sidebar.observationsGeneral')}
-                  </h3>
-                  <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
-                    {mill.observationsGeneral}
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
+            <section className="mb-12 max-w-4xl">
+              <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-5 border-b border-gray-300 pb-1.5">
+                Field Observations
+              </h2>
+              <div className="space-y-6">
+                {mill.observationsStructure && (
+                  <div>
+                    <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
+                      {t('mill.sidebar.observationsStructure')}
+                    </h3>
+                    <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
+                      {mill.observationsStructure}
+                    </p>
+                  </div>
+                )}
+                {mill.observationsRoof && (
+                  <div>
+                    <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
+                      {t('mill.sidebar.observationsRoof')}
+                    </h3>
+                    <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
+                      {mill.observationsRoof}
+                    </p>
+                  </div>
+                )}
+                {mill.observationsHydraulic && (
+                  <div>
+                    <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
+                      {t('mill.sidebar.observationsHydraulic')}
+                    </h3>
+                    <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
+                      {mill.observationsHydraulic}
+                    </p>
+                  </div>
+                )}
+                {mill.observationsMechanism && (
+                  <div>
+                    <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
+                      {t('mill.sidebar.observationsMechanism')}
+                    </h3>
+                    <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
+                      {mill.observationsMechanism}
+                    </p>
+                  </div>
+                )}
+                {mill.observationsGeneral && (
+                  <div>
+                    <h3 className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-2">
+                      {t('mill.sidebar.observationsGeneral')}
+                    </h3>
+                    <p className="text-xs text-gray-600 font-normal leading-relaxed whitespace-pre-wrap">
+                      {mill.observationsGeneral}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
         {/* Gallery Images - Bottom */}
         {galleryUrls.length > 0 && (

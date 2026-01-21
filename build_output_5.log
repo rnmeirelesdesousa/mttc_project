@@ -1,0 +1,37 @@
+
+> mttc-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/app/[locale]/dashboard/add/page.tsx
+83:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+1892:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/[locale]/dashboard/review/[slug]/page.tsx
+714:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+729:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/features/GlobalSearch.tsx
+542:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+Failed to compile.
+
+./src/actions/admin.ts:799:9
+Type error: Type 'boolean | null' is not assignable to type 'boolean'.
+  Type 'null' is not assignable to type 'boolean'.
+
+[0m [90m 797 |[39m         width[33m:[39m row[33m.[39mwidth[33m,[39m[0m
+[0m [90m 798 |[39m         height[33m:[39m row[33m.[39mheight[33m,[39m[0m
+[0m[31m[1m>[22m[39m[90m 799 |[39m         stoneTypeGranite[33m:[39m row[33m.[39mstoneTypeGranite[33m,[39m[0m
+[0m [90m     |[39m         [31m[1m^[22m[39m[0m
+[0m [90m 800 |[39m         stoneTypeSchist[33m:[39m row[33m.[39mstoneTypeSchist[33m,[39m[0m
+[0m [90m 801 |[39m         stoneTypeOther[33m:[39m row[33m.[39mstoneTypeOther[33m,[39m[0m
+[0m [90m 802 |[39m         stoneMaterialDescription[33m:[39m row[33m.[39mstoneMaterialDescription[33m,[39m[0m
+Next.js build worker exited with code: 1 and signal: null

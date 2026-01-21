@@ -65,7 +65,7 @@ interface PageProps {
  */
 export default async function ReviewDetailPage({ params }: PageProps) {
   const t = await getTranslations();
-  
+
   // Security: Verify admin role
   const hasAdminAccess = await isAdmin();
   if (!hasAdminAccess) {
@@ -97,7 +97,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
   // Handle pocas
   if (typeCategory === 'POCA') {
     const pocaResult = await getPocaByIdForEdit(constructionId, params.locale);
-    
+
     if (!pocaResult.success) {
       notFound();
     }
@@ -106,7 +106,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
     // Fetch water line name for display
     const waterLinesResult = await getWaterLinesList(params.locale);
-    const waterLine = waterLinesResult.success 
+    const waterLine = waterLinesResult.success
       ? waterLinesResult.data.find(wl => wl.id === poca.waterLineId)
       : null;
 
@@ -192,7 +192,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                 <p className="text-sm text-muted-foreground">{t('pocas.form.waterLine')}</p>
                 <p className="font-medium">{waterLine?.name || poca.waterLineId}</p>
                 {waterLine && (
-                  <Link 
+                  <Link
                     href={`/${params.locale}/levada/${waterLine.slug}`}
                     className="text-sm text-blue-600 hover:text-blue-800 underline mt-2 inline-block"
                   >
@@ -221,7 +221,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
   // Handle water lines differently
   if (typeCategory === 'water_line') {
     const waterLineResult = await getWaterLineByIdForEdit(constructionId, params.locale);
-    
+
     if (!waterLineResult.success) {
       notFound();
     }
@@ -282,7 +282,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
                 <div>
                   <p className="text-sm text-muted-foreground">{t('waterLines.form.color')}</p>
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="w-8 h-8 rounded border border-gray-300"
                       style={{ backgroundColor: waterLine.color }}
                     />
@@ -336,7 +336,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
   // Handle mills (existing logic)
   const result = await getConstructionForReview(params.slug, params.locale);
-  
+
   if (!result.success) {
     notFound();
   }
@@ -386,7 +386,7 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
   // Get image URL
   const imageUrl = getPublicUrl(construction.mainImage);
-  const galleryUrls = construction.galleryImages?.map(img => getPublicUrl(img)) || [];
+  const galleryUrls = construction.galleryImages?.map(img => getPublicUrl(img)).filter((url): url is string => url !== null) || [];
 
   return (
     <div className="container mx-auto py-8 max-w-6xl">
@@ -778,71 +778,71 @@ export default async function ReviewDetailPage({ params }: PageProps) {
             <h2 className="text-xl font-semibold mb-4">{t('mill.detail.mechanism')}</h2>
             <div className="space-y-4">
               {/* Hydraulic System */}
-              {(construction.captationType || construction.conductionType || construction.conductionState || 
-                construction.admissionRodizio || construction.admissionAzenha || 
+              {(construction.captationType || construction.conductionType || construction.conductionState ||
+                construction.admissionRodizio || construction.admissionAzenha ||
                 construction.wheelTypeRodizio || construction.wheelTypeAzenha ||
                 construction.rodizioQty !== null || construction.azenhaQty !== null) && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground">{t('add.form.mechanism.hydraulic.title')}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4">
-                    {construction.captationType && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.captationType')}</p>
-                        <p className="font-medium">{getTranslatedValue('captationType', construction.captationType)}</p>
-                      </div>
-                    )}
-                    {construction.conductionType && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.conductionType')}</p>
-                        <p className="font-medium">{getTranslatedValue('conductionType', construction.conductionType)}</p>
-                      </div>
-                    )}
-                    {construction.conductionState && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.conductionState')}</p>
-                        <p className="font-medium">{getTranslatedValue('conductionState', construction.conductionState)}</p>
-                      </div>
-                    )}
-                    {construction.admissionRodizio && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.admissionRodizio')}</p>
-                        <p className="font-medium">{getTranslatedValue('admissionRodizio', construction.admissionRodizio)}</p>
-                      </div>
-                    )}
-                    {construction.admissionAzenha && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.admissionAzenha')}</p>
-                        <p className="font-medium">{getTranslatedValue('admissionAzenha', construction.admissionAzenha)}</p>
-                      </div>
-                    )}
-                    {construction.wheelTypeRodizio && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.wheelTypeRodizio')}</p>
-                        <p className="font-medium">{getTranslatedValue('wheelTypeRodizio', construction.wheelTypeRodizio)}</p>
-                      </div>
-                    )}
-                    {construction.wheelTypeAzenha && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.wheelTypeAzenha')}</p>
-                        <p className="font-medium">{getTranslatedValue('wheelTypeAzenha', construction.wheelTypeAzenha)}</p>
-                      </div>
-                    )}
-                    {construction.rodizioQty !== null && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.rodizioQty')}</p>
-                        <p className="font-medium">{construction.rodizioQty}</p>
-                      </div>
-                    )}
-                    {construction.azenhaQty !== null && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.azenhaQty')}</p>
-                        <p className="font-medium">{construction.azenhaQty}</p>
-                      </div>
-                    )}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground">{t('add.form.mechanism.hydraulic.title')}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4">
+                      {construction.captationType && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.captationType')}</p>
+                          <p className="font-medium">{getTranslatedValue('captationType', construction.captationType)}</p>
+                        </div>
+                      )}
+                      {construction.conductionType && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.conductionType')}</p>
+                          <p className="font-medium">{getTranslatedValue('conductionType', construction.conductionType)}</p>
+                        </div>
+                      )}
+                      {construction.conductionState && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.conductionState')}</p>
+                          <p className="font-medium">{getTranslatedValue('conductionState', construction.conductionState)}</p>
+                        </div>
+                      )}
+                      {construction.admissionRodizio && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.admissionRodizio')}</p>
+                          <p className="font-medium">{getTranslatedValue('admissionRodizio', construction.admissionRodizio)}</p>
+                        </div>
+                      )}
+                      {construction.admissionAzenha && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.admissionAzenha')}</p>
+                          <p className="font-medium">{getTranslatedValue('admissionAzenha', construction.admissionAzenha)}</p>
+                        </div>
+                      )}
+                      {construction.wheelTypeRodizio && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.wheelTypeRodizio')}</p>
+                          <p className="font-medium">{getTranslatedValue('wheelTypeRodizio', construction.wheelTypeRodizio)}</p>
+                        </div>
+                      )}
+                      {construction.wheelTypeAzenha && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.wheelTypeAzenha')}</p>
+                          <p className="font-medium">{getTranslatedValue('wheelTypeAzenha', construction.wheelTypeAzenha)}</p>
+                        </div>
+                      )}
+                      {construction.rodizioQty !== null && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.rodizioQty')}</p>
+                          <p className="font-medium">{construction.rodizioQty}</p>
+                        </div>
+                      )}
+                      {construction.azenhaQty !== null && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.azenhaQty')}</p>
+                          <p className="font-medium">{construction.azenhaQty}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-              
+                )}
+
               {/* Wind System */}
               {construction.motiveApparatus && (
                 <div className="space-y-3">
@@ -856,56 +856,56 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
               {/* Grinding Mechanism */}
               {(construction.millstoneQuantity !== null || construction.millstoneDiameter || construction.millstoneState ||
-                construction.hasTremonha || construction.hasQuelha || construction.hasUrreiro || 
+                construction.hasTremonha || construction.hasQuelha || construction.hasUrreiro ||
                 construction.hasAliviadouro || construction.hasFarinaleiro) && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground">{t('add.form.mechanism.grinding.title')}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4">
-                    {construction.millstoneQuantity !== null && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneQuantity')}</p>
-                        <p className="font-medium">{construction.millstoneQuantity}</p>
-                      </div>
-                    )}
-                    {construction.millstoneDiameter && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneDiameter')}</p>
-                        <p className="font-medium">{construction.millstoneDiameter} cm</p>
-                      </div>
-                    )}
-                    {construction.millstoneState && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneState')}</p>
-                        <p className="font-medium">{getTranslatedValue('millstoneState', construction.millstoneState)}</p>
-                      </div>
-                    )}
-                    {/* Grinding Components */}
-                    {(construction.hasTremonha || construction.hasQuelha || construction.hasUrreiro || 
-                      construction.hasAliviadouro || construction.hasFarinaleiro) && (
-                      <div className="md:col-span-2">
-                        <p className="text-sm text-muted-foreground mb-2">{t('add.form.mechanism.grinding.components')}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {construction.hasTremonha && (
-                            <Badge variant="secondary">{t('taxonomy.grindingComponent.tremonha')}</Badge>
-                          )}
-                          {construction.hasQuelha && (
-                            <Badge variant="secondary">{t('taxonomy.grindingComponent.quelha')}</Badge>
-                          )}
-                          {construction.hasUrreiro && (
-                            <Badge variant="secondary">{t('taxonomy.grindingComponent.urreiro')}</Badge>
-                          )}
-                          {construction.hasAliviadouro && (
-                            <Badge variant="secondary">{t('taxonomy.grindingComponent.aliviadouro')}</Badge>
-                          )}
-                          {construction.hasFarinaleiro && (
-                            <Badge variant="secondary">{t('taxonomy.grindingComponent.farinaleiro')}</Badge>
-                          )}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground">{t('add.form.mechanism.grinding.title')}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4">
+                      {construction.millstoneQuantity !== null && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneQuantity')}</p>
+                          <p className="font-medium">{construction.millstoneQuantity}</p>
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {construction.millstoneDiameter && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneDiameter')}</p>
+                          <p className="font-medium">{construction.millstoneDiameter} cm</p>
+                        </div>
+                      )}
+                      {construction.millstoneState && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">{t('add.form.mechanism.grinding.millstoneState')}</p>
+                          <p className="font-medium">{getTranslatedValue('millstoneState', construction.millstoneState)}</p>
+                        </div>
+                      )}
+                      {/* Grinding Components */}
+                      {(construction.hasTremonha || construction.hasQuelha || construction.hasUrreiro ||
+                        construction.hasAliviadouro || construction.hasFarinaleiro) && (
+                          <div className="md:col-span-2">
+                            <p className="text-sm text-muted-foreground mb-2">{t('add.form.mechanism.grinding.components')}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {construction.hasTremonha && (
+                                <Badge variant="secondary">{t('taxonomy.grindingComponent.tremonha')}</Badge>
+                              )}
+                              {construction.hasQuelha && (
+                                <Badge variant="secondary">{t('taxonomy.grindingComponent.quelha')}</Badge>
+                              )}
+                              {construction.hasUrreiro && (
+                                <Badge variant="secondary">{t('taxonomy.grindingComponent.urreiro')}</Badge>
+                              )}
+                              {construction.hasAliviadouro && (
+                                <Badge variant="secondary">{t('taxonomy.grindingComponent.aliviadouro')}</Badge>
+                              )}
+                              {construction.hasFarinaleiro && (
+                                <Badge variant="secondary">{t('taxonomy.grindingComponent.farinaleiro')}</Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </Card>
 

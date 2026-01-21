@@ -1,0 +1,58 @@
+src/app/[locale]/(public)/levada/[slug]/page.tsx(68,19): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; size: "sm"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/(public)/mill/[slug]/page.tsx(74,23): error TS2322: Type '{ children: Element; asChild: true; variant: "ghost"; size: "sm"; className: string; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/(public)/mill/[slug]/page.tsx(776,21): error TS2322: Type 'string | null' is not assignable to type 'string | StaticImport'.
+  Type 'null' is not assignable to type 'string | StaticImport'.
+src/app/[locale]/dashboard/add/page.tsx(333,25): error TS2339: Property 'place' does not exist on type '{ id: string; slug: string; status: string; legacyId: string | null; district: string | null; municipality: string | null; parish: string | null; address: string | null; drainageBasin: string | null; ... 65 more ...; createdBy: string | null; }'.
+src/app/[locale]/dashboard/inventory/page.tsx(294,27): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; size: "sm"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/dashboard/inventory/page.tsx(305,25): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; size: "sm"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/dashboard/review/[slug]/page.tsx(125,15): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; size: "sm"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/dashboard/review/[slug]/page.tsx(243,15): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; size: "sm"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/dashboard/review/[slug]/page.tsx(403,13): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; size: "sm"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/dashboard/review/[slug]/page.tsx(731,25): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/app/[locale]/dashboard/review/page.tsx(106,25): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; size: "sm"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/dashboard/review/page.tsx(116,25): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; size: "sm"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/app/[locale]/page.tsx(187,9): error TS2322: Type '{ mills: PublishedMill[]; pocas: PublishedPoca[]; waterLines: MapWaterLine[]; locale: string; availableDistricts: string[]; }' is not assignable to type 'IntrinsicAttributes & MapWithSidebarProps'.
+  Property 'pocas' does not exist on type 'IntrinsicAttributes & MapWithSidebarProps'.
+src/components/features/DeleteButton.tsx(62,7): error TS2322: Type '"destructive"' is not assignable to type '"default" | "outline" | "ghost" | undefined'.
+src/components/features/GlobalSearch.tsx(319,9): error TS2353: Object literal may only specify known properties, and 'imageUrl' does not exist in type '{ type: "mill" | "waterLine" | "poca"; id: string; slug: string; displayName: string; displayLangCode?: string | null | undefined; subtitle?: string | undefined; }'.
+src/components/features/GlobalSearch.tsx(359,27): error TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type 'SearchableWaterLine & { displayName: string | null; displayLangCode: string | null; }' is not assignable to type '{ displayName: string; displayLangCode: string | null; id: string; slug: string; name: string | null; nameLangCode: string | null; translations: { langCode: string; name: string; description: string | null; }[]; } | null'.
+    Type 'SearchableWaterLine & { displayName: string | null; displayLangCode: string | null; }' is not assignable to type '{ displayName: string; displayLangCode: string | null; id: string; slug: string; name: string | null; nameLangCode: string | null; translations: Array<{ langCode: string; name: string; description: string | null; }>; }'.
+      Types of property 'displayName' are incompatible.
+        Type 'string | null' is not assignable to type 'string'.
+          Type 'null' is not assignable to type 'string'.
+src/components/features/GlobalSearch.tsx(365,13): error TS18047: 'wl' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(366,15): error TS18047: 'wl' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(367,22): error TS18047: 'wl' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(367,40): error TS18047: 'wl' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(367,51): error TS18047: 'wl' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(368,26): error TS18047: 'wl' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(368,48): error TS18047: 'wl' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(370,9): error TS2353: Object literal may only specify known properties, and 'imageUrl' does not exist in type '{ type: "mill" | "waterLine" | "poca"; id: string; slug: string; displayName: string; displayLangCode?: string | null | undefined; subtitle?: string | undefined; }'.
+src/components/features/GlobalSearch.tsx(410,31): error TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type 'SearchablePoca & { displayTitle: string | null; displayLangCode: string | null; }' is not assignable to type '{ displayTitle: string; displayLangCode: string | null; id: string; slug: string; title: string | null; titleLangCode: string | null; waterLineId: string; waterLineName: string | null; translations: { ...; }[]; lat: number; lng: number; } | null'.
+    Type 'SearchablePoca & { displayTitle: string | null; displayLangCode: string | null; }' is not assignable to type '{ displayTitle: string; displayLangCode: string | null; id: string; slug: string; title: string | null; titleLangCode: string | null; waterLineId: string; waterLineName: string | null; translations: Array<{ langCode: string; title: string; description: string | null; }>; lat: number; lng: number; }'.
+      Types of property 'displayTitle' are incompatible.
+        Type 'string | null' is not assignable to type 'string'.
+          Type 'null' is not assignable to type 'string'.
+src/components/features/GlobalSearch.tsx(415,9): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(415,64): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(421,13): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(422,15): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(423,22): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(423,43): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(423,57): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(424,26): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(424,50): error TS18047: 'poca' is possibly 'null'.
+src/components/features/GlobalSearch.tsx(426,9): error TS2353: Object literal may only specify known properties, and 'imageUrl' does not exist in type '{ type: "mill" | "waterLine" | "poca"; id: string; slug: string; displayName: string; displayLangCode?: string | null | undefined; subtitle?: string | undefined; }'.
+src/components/features/MapWithSidebar.tsx(41,41): error TS2339: Property 'pocas' does not exist on type 'MapWithSidebarProps'.

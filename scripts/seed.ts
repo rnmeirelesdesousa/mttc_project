@@ -24,7 +24,7 @@ async function seed() {
     // MILL 1: Rodízio in Northern Portugal (negative longitude)
     // ============================================================================
     console.log('📝 Inserting Mill 1: Rodízio (Northern Portugal)...');
-    
+
     const mill1Construction = await db
       .insert(constructions)
       .values({
@@ -49,11 +49,11 @@ async function seed() {
       legalProtection: 'classified',
       propertyStatus: 'private',
       planShape: 'circular',
-      constructionTechnique: 'stone_masonry',
+      constructionTechnique: 'mortared_stone',
       roofShape: 'conical',
-      waterCaptation: 'direct',
+      captationType: 'direct',
       rodizioQty: 2,
-      millstonesPairs: 1,
+      millstoneQuantity: 1,
       ratingOverall: 'good',
       epoch: '19th_c',
       currentUse: 'tourism',
@@ -82,7 +82,7 @@ async function seed() {
     // MILL 2: Azenha with 'Published' status
     // ============================================================================
     console.log('📝 Inserting Mill 2: Azenha (Published)...');
-    
+
     const mill2Construction = await db
       .insert(constructions)
       .values({
@@ -107,10 +107,10 @@ async function seed() {
       legalProtection: 'under_study',
       propertyStatus: 'public',
       planShape: 'rectangular',
-      constructionTechnique: 'stone_masonry',
-      roofShape: 'gabled',
-      waterCaptation: 'channel',
-      millstonesPairs: 2,
+      constructionTechnique: 'mortared_stone',
+      roofShape: 'gable',
+      conductionType: 'levada',
+      millstoneQuantity: 2,
       ratingOverall: 'very_good',
       epoch: '18th_c',
       currentUse: 'milling',
@@ -142,7 +142,7 @@ async function seed() {
     // MILL 3: Windmill (Velas) in 'Draft' status
     // ============================================================================
     console.log('📝 Inserting Mill 3: Windmill/Velas (Draft)...');
-    
+
     const mill3Construction = await db
       .insert(constructions)
       .values({
@@ -166,10 +166,10 @@ async function seed() {
       legalProtection: 'inexistent',
       propertyStatus: 'unknown',
       planShape: 'circular',
-      constructionTechnique: 'stone_masonry',
+      constructionTechnique: 'mortared_stone',
       roofShape: 'conical',
-      windApparatus: 'rotating',
-      millstonesPairs: 1,
+      motiveApparatus: 'sails',
+      millstoneQuantity: 1,
       ratingOverall: 'bad',
       epoch: '19th_c',
       currentUse: 'ruin',

@@ -26,6 +26,7 @@ const DynamicMillMap = dynamic(
 
 interface MapWithSidebarProps {
   mills: PublishedMill[];
+  pocas: PublishedPoca[];
   waterLines: MapWaterLine[];
   locale: string;
   availableDistricts: string[];
@@ -140,7 +141,7 @@ export const MapWithSidebar = ({ mills, pocas = [], waterLines, locale, availabl
           onClose={handleCloseSidebar}
           sidebarRef={sidebarRef}
         />
-        
+
         {/* Filter Menu Icon - Fixed position on left side */}
         <div className="absolute top-4 left-4 z-[1002]">
           <Button

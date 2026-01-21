@@ -33,7 +33,7 @@ export async function getCurrentUserInfo(): Promise<
 
     const isUserAdmin = await isAdmin();
     const isUserResearcher = await isResearcherOrAdmin();
-    
+
     const role = isUserAdmin ? 'admin' : (isUserResearcher ? 'researcher' : 'public');
 
     return { success: true, data: { userId, role } };
@@ -94,7 +94,7 @@ export async function deleteConstruction(
       .select()
       .from(constructions)
       .where(eq(constructions.id, id));
-    
+
     console.log('[deleteConstruction]: Direct find query result', {
       constructionId: id,
       found: directFindResult.length > 0,
@@ -123,7 +123,7 @@ export async function deleteConstruction(
       .limit(1);
 
     if (existing.length === 0) {
-      console.log('[deleteConstruction]: Construction not found in constructions table', { 
+      console.log('[deleteConstruction]: Construction not found in constructions table', {
         constructionId: id,
         directFindResultCount: directFindResult.length,
       });
@@ -152,8 +152,8 @@ export async function deleteConstruction(
           constructionCreatedBy: construction.createdBy,
           currentUserId: userId,
         });
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: 'Unauthorized: You can only delete your own draft constructions'
         };
       }
@@ -165,8 +165,8 @@ export async function deleteConstruction(
           status: construction.status,
           currentUserId: userId,
         });
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: 'Only draft constructions can be deleted by the author'
         };
       }
@@ -401,12 +401,12 @@ export async function submitForReview(
  */
 export async function getUserConstructionStats(): Promise<
   | {
-      success: true;
-      data: {
-        draft: number;
-        published: number;
-      };
-    }
+    success: true;
+    data: {
+      draft: number;
+      published: number;
+    };
+  }
   | { success: false; error: string }
 > {
   try {
@@ -461,15 +461,15 @@ export async function getUserConstructionStats(): Promise<
  */
 export async function getDashboardStats(): Promise<
   | {
-      success: true;
-      data: {
-        totalMills: number;
-        totalLevadas: number;
-        pendingReviews: number;
-        draftCount: number;
-        publishedCount: number;
-      };
-    }
+    success: true;
+    data: {
+      totalMills: number;
+      totalLevadas: number;
+      pendingReviews: number;
+      draftCount: number;
+      publishedCount: number;
+    };
+  }
   | { success: false; error: string }
 > {
   try {
@@ -565,84 +565,86 @@ export async function getConstructionForReview(
   locale: string
 ): Promise<
   | {
-      success: true;
-      data: {
-        id: string;
-        slug: string;
-        status: string;
-        legacyId: string | null;
-        district: string | null;
-        municipality: string | null;
-        parish: string | null;
-        address: string | null;
-        drainageBasin: string | null;
-        mainImage: string | null;
-        galleryImages: string[] | null;
-        lat: number;
-        lng: number;
-        title: string | null;
-        description: string | null;
-        // Mills data fields
-        typology: string;
-        epoch: string | null;
-        setting: string | null;
-        currentUse: string | null;
-        access: string | null;
-        legalProtection: string | null;
-        propertyStatus: string | null;
-        planShape: string | null;
-        volumetry: string | null;
-        constructionTechnique: string | null;
-        exteriorFinish: string | null;
-        roofShape: string | null;
-        roofMaterial: string | null;
-        length: number | null;
-        width: number | null;
-        height: number | null;
-        stoneTypeGranite: boolean;
-        stoneTypeSchist: boolean;
-        stoneTypeOther: boolean;
-        gableMaterialLusa: boolean;
-        gableMaterialMarselha: boolean;
-        gableMaterialMeiaCana: boolean;
-        captationType: string | null;
-        conductionType: string | null;
-        conductionState: string | null;
-        admissionRodizio: string | null;
-        admissionAzenha: string | null;
-        wheelTypeRodizio: string | null;
-        wheelTypeAzenha: string | null;
-        rodizioQty: number | null;
-        azenhaQty: number | null;
-        motiveApparatus: string | null;
-        millstoneQuantity: number | null;
-        millstoneDiameter: string | null;
-        millstoneState: string | null;
-        hasTremonha: boolean;
-        hasQuelha: boolean;
-        hasUrreiro: boolean;
-        hasAliviadouro: boolean;
-        hasFarinaleiro: boolean;
-        epigraphyPresence: boolean;
-        epigraphyLocation: string | null;
-        epigraphyType: string | null;
-        epigraphyDescription: string | null;
-        ratingStructure: string | null;
-        ratingRoof: string | null;
-        ratingHydraulic: string | null;
-        ratingMechanism: string | null;
-        ratingOverall: string | null;
-        observationsStructure: string | null;
-        observationsRoof: string | null;
-        observationsHydraulic: string | null;
-        observationsMechanism: string | null;
-        observationsGeneral: string | null;
-        hasOven: boolean;
-        hasMillerHouse: boolean;
-        hasStable: boolean;
-        hasFullingMill: boolean;
-      };
-    }
+    success: true;
+    data: {
+      id: string;
+      slug: string;
+      status: string;
+      legacyId: string | null;
+      district: string | null;
+      municipality: string | null;
+      parish: string | null;
+      place: string | null;
+      address: string | null;
+      drainageBasin: string | null;
+      mainImage: string | null;
+      galleryImages: string[] | null;
+      lat: number;
+      lng: number;
+      title: string | null;
+      description: string | null;
+      // Mills data fields
+      typology: string;
+      epoch: string | null;
+      setting: string | null;
+      currentUse: string | null;
+      access: string | null;
+      legalProtection: string | null;
+      propertyStatus: string | null;
+      planShape: string | null;
+      volumetry: string | null;
+      constructionTechnique: string | null;
+      exteriorFinish: string | null;
+      roofShape: string | null;
+      roofMaterial: string | null;
+      length: number | null;
+      width: number | null;
+      height: number | null;
+      stoneTypeGranite: boolean;
+      stoneTypeSchist: boolean;
+      stoneTypeOther: boolean;
+      stoneMaterialDescription: string | null;
+      gableMaterialLusa: boolean;
+      gableMaterialMarselha: boolean;
+      gableMaterialMeiaCana: boolean;
+      captationType: string | null;
+      conductionType: string | null;
+      conductionState: string | null;
+      admissionRodizio: string | null;
+      admissionAzenha: string | null;
+      wheelTypeRodizio: string | null;
+      wheelTypeAzenha: string | null;
+      rodizioQty: number | null;
+      azenhaQty: number | null;
+      motiveApparatus: string | null;
+      millstoneQuantity: number | null;
+      millstoneDiameter: string | null;
+      millstoneState: string | null;
+      hasTremonha: boolean;
+      hasQuelha: boolean;
+      hasUrreiro: boolean;
+      hasAliviadouro: boolean;
+      hasFarinaleiro: boolean;
+      epigraphyPresence: boolean;
+      epigraphyLocation: string | null;
+      epigraphyType: string | null;
+      epigraphyDescription: string | null;
+      ratingStructure: string | null;
+      ratingRoof: string | null;
+      ratingHydraulic: string | null;
+      ratingMechanism: string | null;
+      ratingOverall: string | null;
+      observationsStructure: string | null;
+      observationsRoof: string | null;
+      observationsHydraulic: string | null;
+      observationsMechanism: string | null;
+      observationsGeneral: string | null;
+      hasOven: boolean;
+      hasMillerHouse: boolean;
+      hasStable: boolean;
+      hasFullingMill: boolean;
+    };
+  }
   | { success: false; error: string }
 > {
   try {
@@ -672,6 +674,7 @@ export async function getConstructionForReview(
         district: constructions.district,
         municipality: constructions.municipality,
         parish: constructions.parish,
+        place: constructions.place,
         address: constructions.address,
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
@@ -772,6 +775,7 @@ export async function getConstructionForReview(
         district: row.district,
         municipality: row.municipality,
         parish: row.parish,
+        place: row.place,
         address: row.address,
         drainageBasin: row.drainageBasin,
         mainImage: row.mainImage,
@@ -796,13 +800,13 @@ export async function getConstructionForReview(
         length: row.length,
         width: row.width,
         height: row.height,
-        stoneTypeGranite: row.stoneTypeGranite,
-        stoneTypeSchist: row.stoneTypeSchist,
-        stoneTypeOther: row.stoneTypeOther,
+        stoneTypeGranite: row.stoneTypeGranite ?? false,
+        stoneTypeSchist: row.stoneTypeSchist ?? false,
+        stoneTypeOther: row.stoneTypeOther ?? false,
         stoneMaterialDescription: row.stoneMaterialDescription,
-        gableMaterialLusa: row.gableMaterialLusa,
-        gableMaterialMarselha: row.gableMaterialMarselha,
-        gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+        gableMaterialLusa: row.gableMaterialLusa ?? false,
+        gableMaterialMarselha: row.gableMaterialMarselha ?? false,
+        gableMaterialMeiaCana: row.gableMaterialMeiaCana ?? false,
         captationType: row.captationType,
         conductionType: row.conductionType,
         conductionState: row.conductionState,
@@ -816,12 +820,12 @@ export async function getConstructionForReview(
         millstoneQuantity: row.millstoneQuantity,
         millstoneDiameter: row.millstoneDiameter,
         millstoneState: row.millstoneState,
-        hasTremonha: row.hasTremonha,
-        hasQuelha: row.hasQuelha,
-        hasUrreiro: row.hasUrreiro,
-        hasAliviadouro: row.hasAliviadouro,
-        hasFarinaleiro: row.hasFarinaleiro,
-        epigraphyPresence: row.epigraphyPresence,
+        hasTremonha: row.hasTremonha ?? false,
+        hasQuelha: row.hasQuelha ?? false,
+        hasUrreiro: row.hasUrreiro ?? false,
+        hasAliviadouro: row.hasAliviadouro ?? false,
+        hasFarinaleiro: row.hasFarinaleiro ?? false,
+        epigraphyPresence: row.epigraphyPresence ?? false,
         epigraphyLocation: row.epigraphyLocation,
         epigraphyType: row.epigraphyType,
         epigraphyDescription: row.epigraphyDescription,
@@ -835,10 +839,10 @@ export async function getConstructionForReview(
         observationsHydraulic: row.observationsHydraulic,
         observationsMechanism: row.observationsMechanism,
         observationsGeneral: row.observationsGeneral,
-        hasOven: row.hasOven,
-        hasMillerHouse: row.hasMillerHouse,
-        hasStable: row.hasStable,
-        hasFullingMill: row.hasFullingMill,
+        hasOven: row.hasOven ?? false,
+        hasMillerHouse: row.hasMillerHouse ?? false,
+        hasStable: row.hasStable ?? false,
+        hasFullingMill: row.hasFullingMill ?? false,
       },
     };
   } catch (error) {
@@ -859,16 +863,16 @@ export async function getReviewQueue(
   locale: string
 ): Promise<
   | {
-      success: true;
-      data: Array<{
-        id: string;
-        slug: string;
-        title: string | null;
-        typeCategory: string;
-        createdAt: Date;
-        updatedAt: Date;
-      }>;
-    }
+    success: true;
+    data: Array<{
+      id: string;
+      slug: string;
+      title: string | null;
+      typeCategory: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
+  }
   | { success: false; error: string }
 > {
   try {
@@ -945,7 +949,7 @@ const createMillConstructionSchema = z.object({
   description: z.string().optional(),
   legacyId: z.string().optional(), // Original paper inventory code or external reference
   locale: z.enum(['pt', 'en']),
-  
+
   // Location
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
@@ -955,18 +959,18 @@ const createMillConstructionSchema = z.object({
   address: z.string().optional(),
   place: z.string().optional(), // Phase 5.9.20.10: Lugar field
   drainageBasin: z.string().optional(),
-  
+
   // Characterization (Section II)
   typology: z.enum(['azenha', 'rodizio', 'mare', 'torre_fixa', 'giratorio', 'velas', 'armacao']),
   epoch: z.enum(['18th_c', '19th_c', '20th_c', 'pre_18th_c']).optional(),
   setting: z.enum(['rural', 'urban', 'isolated', 'riverbank']).optional(),
   currentUse: z.enum(['milling', 'housing', 'tourism', 'ruin', 'museum']).optional(),
-  
+
   // Access & Legal
   access: z.enum(['pedestrian', 'car', 'difficult_none', 'traditional_track']).optional(),
   legalProtection: z.enum(['inexistent', 'under_study', 'classified']).optional(),
   propertyStatus: z.enum(['private', 'public', 'unknown']).optional(),
-  
+
   // Architecture (Section III)
   // Phase 5.9.20.4: Restricted to 4 approved plan shapes
   planShape: z.enum(['circular', 'quadrangular', 'rectangular', 'irregular']).optional(),
@@ -979,20 +983,20 @@ const createMillConstructionSchema = z.object({
   length: z.number().min(0).optional(),
   width: z.number().min(0).optional(),
   height: z.number().min(0).optional(),
-  
+
   // Data Transition: Stone Material (replacing packed strings in observations)
   // Use default(false) to ensure field is always present, even when form sends false
   stoneTypeGranite: z.boolean().default(false),
   stoneTypeSchist: z.boolean().default(false),
   stoneTypeOther: z.boolean().default(false),
   stoneMaterialDescription: z.string().optional(),
-  
+
   // Data Transition: Gable Roof Materials (replacing packed strings in observations)
   // Use default(false) to ensure field is always present, even when form sends false
   gableMaterialLusa: z.boolean().default(false),
   gableMaterialMarselha: z.boolean().default(false),
   gableMaterialMeiaCana: z.boolean().default(false),
-  
+
   // Motive Systems - Hydraulic (Section IV)
   captationType: z.enum(['weir', 'pool', 'direct']).optional(),
   conductionType: z.enum(['levada', 'modern_pipe']).optional(),
@@ -1003,10 +1007,10 @@ const createMillConstructionSchema = z.object({
   wheelTypeAzenha: z.enum(['copeira', 'dezio_palas']).optional(),
   rodizioQty: z.number().int().min(0).optional(),
   azenhaQty: z.number().int().min(0).optional(),
-  
+
   // Motive Systems - Wind
   motiveApparatus: z.enum(['sails', 'shells', 'tail', 'cap']).optional(),
-  
+
   // Grinding Mechanism
   millstoneQuantity: z.number().int().min(0).optional(),
   millstoneDiameter: z.string().optional(), // Float as string for precision
@@ -1016,13 +1020,13 @@ const createMillConstructionSchema = z.object({
   hasUrreiro: z.boolean().optional(),
   hasAliviadouro: z.boolean().optional(),
   hasFarinaleiro: z.boolean().optional(),
-  
+
   // Epigraphy (Section V)
   epigraphyPresence: z.boolean().optional(),
   epigraphyLocation: z.enum(['door_jambs', 'interior_walls', 'millstones', 'other']).optional(),
   epigraphyType: z.enum(['dates', 'initials', 'religious_symbols', 'counting_marks']).optional(),
   epigraphyDescription: z.string().optional(),
-  
+
   // Conservation Ratings (Section VI)
   ratingStructure: z.enum(['very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin']).optional(),
   ratingRoof: z.enum(['very_good', 'good', 'reasonable', 'bad', 'very_bad_ruin']).optional(),
@@ -1034,20 +1038,20 @@ const createMillConstructionSchema = z.object({
   observationsHydraulic: z.string().optional(),
   observationsMechanism: z.string().optional(),
   observationsGeneral: z.string().optional(),
-  
+
   // Annexes
   hasOven: z.boolean().optional(),
   hasMillerHouse: z.boolean().optional(),
   hasStable: z.boolean().optional(),
   hasFullingMill: z.boolean().optional(),
-  
+
   // Hydraulic Infrastructure (Phase 5.9.2.3)
   waterLineId: z.string().uuid().optional().nullable(),
-  
+
   // Images
   mainImage: z.string().optional(),
   galleryImages: z.array(z.string()).optional(),
-  
+
   // Phase 5.9.7.1: Status for workflow
   status: z.enum(['draft', 'review']).optional(),
 });
@@ -1087,7 +1091,7 @@ export async function createMillConstruction(
     // Validate input with Zod
     const validationResult = createMillConstructionSchema.safeParse(data);
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      const errors = validationResult.error.issues.map((e) => e.message).join(', ');
       return { success: false, error: `Validation failed: ${errors}` };
     }
 
@@ -1095,7 +1099,7 @@ export async function createMillConstruction(
 
     // Generate unique slug from title
     const baseSlug = generateSlug(validated.title);
-    
+
     // Check if slug exists
     const slugExists = async (slug: string): Promise<boolean> => {
       const existing = await db
@@ -1122,16 +1126,16 @@ export async function createMillConstruction(
         address: validated.address || null,
         drainageBasin: validated.drainageBasin || null,
         mainImage: validated.mainImage || null,
-        galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
-          ? validated.galleryImages 
+        galleryImages: validated.galleryImages && validated.galleryImages.length > 0
+          ? validated.galleryImages
           : null,
         status: (validated.status || 'draft') as 'draft' | 'review', // Phase 5.9.7.1: Use provided status or default to draft
         createdBy: userId,
       };
-      
+
       // Debug logging: Print the exact values being sent to the database
       console.log('[createMillConstruction]: Inserting into constructions table with values:', JSON.stringify(insertValues, null, 2));
-      
+
       const [newConstruction] = await tx
         .insert(constructions)
         .values(insertValues)
@@ -1290,7 +1294,7 @@ export async function createWaterLine(
     // Validate input with Zod
     const validationResult = createWaterLineSchema.safeParse(data);
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      const errors = validationResult.error.issues.map((e) => e.message).join(', ');
       return { success: false, error: `Validation failed: ${errors}` };
     }
 
@@ -1303,7 +1307,7 @@ export async function createWaterLine(
 
     // Generate unique slug from name
     const baseSlug = generateSlug(validated.name);
-    
+
     // Check if slug exists in constructions (since water lines now use construction slugs)
     const slugExists = async (slug: string): Promise<boolean> => {
       const existing = await db
@@ -1323,7 +1327,7 @@ export async function createWaterLine(
       // Path is in [lng, lat] format (PostGIS format), which is what constructions.geom expects
       const firstPoint = validated.path[0]!;
       const [lng, lat] = firstPoint; // Already in [lng, lat] format
-      
+
       const [newConstruction] = await tx
         .insert(constructions)
         .values({
@@ -1384,14 +1388,14 @@ const createPocaConstructionSchema = z.object({
   // General Info
   title: z.string().min(1, 'Title is required'),
   locale: z.enum(['pt', 'en']),
-  
+
   // Location
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  
+
   // Link to water line (required)
   waterLineId: z.string().uuid('Valid water line ID is required'),
-  
+
   // Phase 5.9.7.1: Status for workflow
   status: z.enum(['draft', 'review']).optional(),
 });
@@ -1431,7 +1435,7 @@ export async function createPocaConstruction(
     // Validate input with Zod
     const validationResult = createPocaConstructionSchema.safeParse(data);
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      const errors = validationResult.error.issues.map((e) => e.message).join(', ');
       return { success: false, error: `Validation failed: ${errors}` };
     }
 
@@ -1439,7 +1443,7 @@ export async function createPocaConstruction(
 
     // Generate unique slug from title
     const baseSlug = generateSlug(validated.title);
-    
+
     // Check if slug exists
     const slugExists = async (slug: string): Promise<boolean> => {
       const existing = await db
@@ -1562,7 +1566,7 @@ export async function getInventoryItems(
     // Extension data (mills_data, pocas_data) is not needed for the inventory list
     if (!filters?.type || filters.type === 'MILL' || filters.type === 'POCA' || filters.type === 'ALL') {
       const whereConditions = [];
-      
+
       // Filter by type category if specific type requested
       // Only include constructions that match the requested type_category
       if (filters?.type === 'MILL') {
@@ -1579,7 +1583,7 @@ export async function getInventoryItems(
         );
       }
       // If no type filter, default behavior includes MILL and POCA
-      
+
       // Phase 5.9.7.2: Role-based filtering
       if (filters?.myProjects) {
         // "My Projects" tab: show only user's drafts
@@ -1618,7 +1622,7 @@ export async function getInventoryItems(
           whereConditions.push(eq(constructions.status, filters.status));
         }
       }
-      
+
       // Apply search query (searches in title)
       if (searchQuery && searchQuery.trim()) {
         const searchPattern = `%${searchQuery.trim()}%`;
@@ -1688,7 +1692,7 @@ export async function getInventoryItems(
       const whereConditions = [
         eq(constructions.typeCategory, 'water_line'), // Only water_line constructions
       ];
-      
+
       // Phase 5.9.7.2: Role-based filtering for water lines (same as mills)
       if (filters?.myProjects) {
         // "My Projects" tab: show only user's drafts
@@ -1718,7 +1722,7 @@ export async function getInventoryItems(
                 eq(constructions.status, 'draft')
               ),
               eq(constructions.status, 'published')
-            )
+            )!
           );
         }
       } else {
@@ -1727,7 +1731,7 @@ export async function getInventoryItems(
           whereConditions.push(eq(constructions.status, filters.status));
         }
       }
-      
+
       // Apply search query (searches in name)
       if (searchQuery && searchQuery.trim()) {
         const searchPattern = `%${searchQuery.trim()}%`;
@@ -1874,85 +1878,86 @@ export async function getConstructionByIdForEdit(
   locale: string
 ): Promise<
   | {
-      success: true;
-      data: {
-        id: string;
-        slug: string;
-        status: string;
-        legacyId: string | null;
-        district: string | null;
-        municipality: string | null;
-        parish: string | null;
-        address: string | null;
-        drainageBasin: string | null;
-        mainImage: string | null;
-        galleryImages: string[] | null;
-        lat: number;
-        lng: number;
-        title: string | null;
-        description: string | null;
-        typology: string;
-        epoch: string | null;
-        setting: string | null;
-        currentUse: string | null;
-        access: string | null;
-        legalProtection: string | null;
-        propertyStatus: string | null;
-        planShape: string | null;
-        volumetry: string | null;
-        constructionTechnique: string | null;
-        exteriorFinish: string | null;
-        roofShape: string | null;
-        roofMaterial: string | null;
-        length: number | null;
-        width: number | null;
-        height: number | null;
-        stoneTypeGranite: boolean;
-        stoneTypeSchist: boolean;
-        stoneTypeOther: boolean;
-        gableMaterialLusa: boolean;
-        gableMaterialMarselha: boolean;
-        gableMaterialMeiaCana: boolean;
-        captationType: string | null;
-        conductionType: string | null;
-        conductionState: string | null;
-        admissionRodizio: string | null;
-        admissionAzenha: string | null;
-        wheelTypeRodizio: string | null;
-        wheelTypeAzenha: string | null;
-        rodizioQty: number | null;
-        azenhaQty: number | null;
-        motiveApparatus: string | null;
-        millstoneQuantity: number | null;
-        millstoneDiameter: string | null;
-        millstoneState: string | null;
-        hasTremonha: boolean;
-        hasQuelha: boolean;
-        hasUrreiro: boolean;
-        hasAliviadouro: boolean;
-        hasFarinaleiro: boolean;
-        epigraphyPresence: boolean;
-        epigraphyLocation: string | null;
-        epigraphyType: string | null;
-        epigraphyDescription: string | null;
-        ratingStructure: string | null;
-        ratingRoof: string | null;
-        ratingHydraulic: string | null;
-        ratingMechanism: string | null;
-        ratingOverall: string | null;
-        observationsStructure: string | null;
-        observationsRoof: string | null;
-        observationsHydraulic: string | null;
-        observationsMechanism: string | null;
-        observationsGeneral: string | null;
-        hasOven: boolean;
-        hasMillerHouse: boolean;
-        hasStable: boolean;
-        hasFullingMill: boolean;
-        waterLineId: string | null;
-        createdBy: string | null;
-      };
-    }
+    success: true;
+    data: {
+      id: string;
+      slug: string;
+      status: string;
+      legacyId: string | null;
+      district: string | null;
+      municipality: string | null;
+      parish: string | null;
+      place: string | null;
+      address: string | null;
+      drainageBasin: string | null;
+      mainImage: string | null;
+      galleryImages: string[] | null;
+      lat: number;
+      lng: number;
+      title: string | null;
+      description: string | null;
+      typology: string;
+      epoch: string | null;
+      setting: string | null;
+      currentUse: string | null;
+      access: string | null;
+      legalProtection: string | null;
+      propertyStatus: string | null;
+      planShape: string | null;
+      volumetry: string | null;
+      constructionTechnique: string | null;
+      exteriorFinish: string | null;
+      roofShape: string | null;
+      roofMaterial: string | null;
+      length: number | null;
+      width: number | null;
+      height: number | null;
+      stoneTypeGranite: boolean;
+      stoneTypeSchist: boolean;
+      stoneTypeOther: boolean;
+      gableMaterialLusa: boolean;
+      gableMaterialMarselha: boolean;
+      gableMaterialMeiaCana: boolean;
+      captationType: string | null;
+      conductionType: string | null;
+      conductionState: string | null;
+      admissionRodizio: string | null;
+      admissionAzenha: string | null;
+      wheelTypeRodizio: string | null;
+      wheelTypeAzenha: string | null;
+      rodizioQty: number | null;
+      azenhaQty: number | null;
+      motiveApparatus: string | null;
+      millstoneQuantity: number | null;
+      millstoneDiameter: string | null;
+      millstoneState: string | null;
+      hasTremonha: boolean;
+      hasQuelha: boolean;
+      hasUrreiro: boolean;
+      hasAliviadouro: boolean;
+      hasFarinaleiro: boolean;
+      epigraphyPresence: boolean;
+      epigraphyLocation: string | null;
+      epigraphyType: string | null;
+      epigraphyDescription: string | null;
+      ratingStructure: string | null;
+      ratingRoof: string | null;
+      ratingHydraulic: string | null;
+      ratingMechanism: string | null;
+      ratingOverall: string | null;
+      observationsStructure: string | null;
+      observationsRoof: string | null;
+      observationsHydraulic: string | null;
+      observationsMechanism: string | null;
+      observationsGeneral: string | null;
+      hasOven: boolean;
+      hasMillerHouse: boolean;
+      hasStable: boolean;
+      hasFullingMill: boolean;
+      waterLineId: string | null;
+      createdBy: string | null;
+    };
+  }
   | { success: false; error: string }
 > {
   try {
@@ -1991,8 +1996,8 @@ export async function getConstructionByIdForEdit(
         district: constructions.district,
         municipality: constructions.municipality,
         parish: constructions.parish,
+        place: constructions.place,
         address: constructions.address,
-        place: constructions.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
@@ -2098,8 +2103,8 @@ export async function getConstructionByIdForEdit(
         district: row.district,
         municipality: row.municipality,
         parish: row.parish,
+        place: row.place,
         address: row.address,
-        place: row.place, // Phase 5.9.20.10: Lugar field
         drainageBasin: row.drainageBasin,
         mainImage: row.mainImage,
         galleryImages: row.galleryImages || [],
@@ -2123,12 +2128,12 @@ export async function getConstructionByIdForEdit(
         length: row.length,
         width: row.width,
         height: row.height,
-        stoneTypeGranite: row.stoneTypeGranite,
-        stoneTypeSchist: row.stoneTypeSchist,
-        stoneTypeOther: row.stoneTypeOther,
-        gableMaterialLusa: row.gableMaterialLusa,
-        gableMaterialMarselha: row.gableMaterialMarselha,
-        gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+        stoneTypeGranite: row.stoneTypeGranite ?? false,
+        stoneTypeSchist: row.stoneTypeSchist ?? false,
+        stoneTypeOther: row.stoneTypeOther ?? false,
+        gableMaterialLusa: row.gableMaterialLusa ?? false,
+        gableMaterialMarselha: row.gableMaterialMarselha ?? false,
+        gableMaterialMeiaCana: row.gableMaterialMeiaCana ?? false,
         captationType: row.captationType,
         conductionType: row.conductionType,
         conductionState: row.conductionState,
@@ -2142,12 +2147,12 @@ export async function getConstructionByIdForEdit(
         millstoneQuantity: row.millstoneQuantity,
         millstoneDiameter: row.millstoneDiameter,
         millstoneState: row.millstoneState,
-        hasTremonha: row.hasTremonha,
-        hasQuelha: row.hasQuelha,
-        hasUrreiro: row.hasUrreiro,
-        hasAliviadouro: row.hasAliviadouro,
-        hasFarinaleiro: row.hasFarinaleiro,
-        epigraphyPresence: row.epigraphyPresence,
+        hasTremonha: row.hasTremonha ?? false,
+        hasQuelha: row.hasQuelha ?? false,
+        hasUrreiro: row.hasUrreiro ?? false,
+        hasAliviadouro: row.hasAliviadouro ?? false,
+        hasFarinaleiro: row.hasFarinaleiro ?? false,
+        epigraphyPresence: row.epigraphyPresence ?? false,
         epigraphyLocation: row.epigraphyLocation,
         epigraphyType: row.epigraphyType,
         epigraphyDescription: row.epigraphyDescription,
@@ -2161,10 +2166,10 @@ export async function getConstructionByIdForEdit(
         observationsHydraulic: row.observationsHydraulic,
         observationsMechanism: row.observationsMechanism,
         observationsGeneral: row.observationsGeneral,
-        hasOven: row.hasOven,
-        hasMillerHouse: row.hasMillerHouse,
-        hasStable: row.hasStable,
-        hasFullingMill: row.hasFullingMill,
+        hasOven: row.hasOven ?? false,
+        hasMillerHouse: row.hasMillerHouse ?? false,
+        hasStable: row.hasStable ?? false,
+        hasFullingMill: row.hasFullingMill ?? false,
         waterLineId: row.waterLineId,
         createdBy: row.createdBy,
       },
@@ -2189,17 +2194,17 @@ export async function getWaterLineByIdForEdit(
   locale: string
 ): Promise<
   | {
-      success: true;
-      data: {
-        id: string;
-        slug: string;
-        name: string;
-        description: string | null;
-        color: string;
-        path: [number, number][]; // Array of [lng, lat] coordinate pairs
-        status: 'draft' | 'review' | 'published'; // Phase 5.9.7.1: Status for workflow
-      };
-    }
+    success: true;
+    data: {
+      id: string;
+      slug: string;
+      name: string;
+      description: string | null;
+      color: string;
+      path: [number, number][]; // Array of [lng, lat] coordinate pairs
+      status: 'draft' | 'review' | 'published'; // Phase 5.9.7.1: Status for workflow
+    };
+  }
   | { success: false; error: string }
 > {
   try {
@@ -2265,7 +2270,7 @@ export async function getWaterLineByIdForEdit(
 
     const coordsStr = match[1];
     const coordPairs = coordsStr.split(',').map(coord => coord.trim());
-    
+
     // Parse coordinates - keep as [lng, lat] for database format
     const path: [number, number][] = coordPairs.map(coord => {
       const [lng, lat] = coord.split(/\s+/).map(parseFloat);
@@ -2309,17 +2314,17 @@ export async function getPocaByIdForEdit(
   locale: string
 ): Promise<
   | {
-      success: true;
-      data: {
-        id: string;
-        slug: string;
-        title: string;
-        latitude: number;
-        longitude: number;
-        waterLineId: string;
-        status: 'draft' | 'review' | 'published';
-      };
-    }
+    success: true;
+    data: {
+      id: string;
+      slug: string;
+      title: string;
+      latitude: number;
+      longitude: number;
+      waterLineId: string;
+      status: 'draft' | 'review' | 'published';
+    };
+  }
   | { success: false; error: string }
 > {
   try {
@@ -2462,7 +2467,7 @@ export async function updateMillConstruction(
     // Validate input with Zod
     const validationResult = updateMillConstructionSchema.safeParse(data);
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      const errors = validationResult.error.issues.map((e) => e.message).join(', ');
       return { success: false, error: `Validation failed: ${errors}` };
     }
 
@@ -2514,17 +2519,17 @@ export async function updateMillConstruction(
         place: validated.place || null, // Phase 5.9.20.10: Lugar field
         drainageBasin: validated.drainageBasin || null,
         mainImage: validated.mainImage || null,
-        galleryImages: validated.galleryImages && validated.galleryImages.length > 0 
-          ? validated.galleryImages 
+        galleryImages: validated.galleryImages && validated.galleryImages.length > 0
+          ? validated.galleryImages
           : null,
         updatedAt: new Date(),
       };
-      
+
       // Only update status if provided (allows changing from draft to review)
       if (validated.status) {
         updateData.status = validated.status;
       }
-      
+
       const [updatedConstruction] = await tx
         .update(constructions)
         .set(updateData)
@@ -2712,7 +2717,7 @@ export async function updateWaterLine(
     // Validate input with Zod
     const validationResult = updateWaterLineSchema.safeParse(data);
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      const errors = validationResult.error.issues.map((e) => e.message).join(', ');
       return { success: false, error: `Validation failed: ${errors}` };
     }
 
@@ -2725,8 +2730,8 @@ export async function updateWaterLine(
 
     // Check if water line exists and get its constructionId
     const existing = await db
-      .select({ 
-        id: waterLines.id, 
+      .select({
+        id: waterLines.id,
         slug: waterLines.slug,
         constructionId: waterLines.constructionId,
       })
@@ -2746,7 +2751,7 @@ export async function updateWaterLine(
       // Use the first point of the path as the representative location
       const firstPoint = validated.path[0]!;
       const [lng, lat] = firstPoint; // Already in [lng, lat] format
-      
+
       // Update construction with new geom and status if provided
       const updateData: {
         geom: [number, number];
@@ -2756,12 +2761,12 @@ export async function updateWaterLine(
         geom: [lng, lat] as [number, number], // PostGIS: [lng, lat]
         updatedAt: new Date(),
       };
-      
+
       // Only update status if provided (allows changing from draft to review)
       if (validated.status) {
         updateData.status = validated.status;
       }
-      
+
       await tx
         .update(constructions)
         .set(updateData)
@@ -2881,7 +2886,7 @@ export async function updatePocaConstruction(
     // Validate input with Zod
     const validationResult = updatePocaConstructionSchema.safeParse(data);
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      const errors = validationResult.error.issues.map((e) => e.message).join(', ');
       return { success: false, error: `Validation failed: ${errors}` };
     }
 
@@ -2954,7 +2959,6 @@ export async function updatePocaConstruction(
           .update(constructionTranslations)
           .set({
             title: validated.title,
-            updatedAt: new Date(),
           })
           .where(
             and(
