@@ -10,7 +10,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import MarkerClusterGroup from 'react-leaflet-cluster';
-import type { PublishedMill, MapWaterLine } from '@/actions/public';
+import type { PublishedMill, PublishedPoca, MapWaterLine } from '@/actions/public';
 import { getMillIcon } from '@/lib/map-icons';
 import { ConnectionLine } from './ConnectionLine';
 import { DynamicSVGMarker } from './DynamicSVGMarker';
@@ -105,6 +105,7 @@ L.Icon.Default.mergeOptions({
 
 interface MillMapProps {
   mills: PublishedMill[];
+  pocas?: PublishedPoca[];
   waterLines: MapWaterLine[];
   locale: string;
   onMillClick?: (millId: string) => void;
@@ -132,7 +133,7 @@ interface MillMapProps {
  * @param onMillClick - Callback when a mill marker is clicked
  * @param onMapClick - Callback when map background is clicked
  */
-export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, selectedMillCoords, mapContainerRef, selectedMillId, sidebarRef }: MillMapProps) => {
+export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, onMapClick, selectedMillCoords, mapContainerRef, selectedMillId, sidebarRef }: MillMapProps) => {
   const t = useTranslations();
 
   // Center of Portugal (approximate geographic center)
@@ -313,6 +314,7 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
             <DynamicSVGMarker
               key={mill.id}
               mill={mill}
+              type="mill"
               position={position}
               isSelected={isSelected}
               isGreyedOut={isGreyedOut}
@@ -323,6 +325,45 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
                   // Call onMillClick callback if provided
                   if (onMillClick) {
                     onMillClick(mill.id);
+                  }
+                },
+              }}
+            />
+          );
+        })}
+        {pocas.map((poca: PublishedPoca) => {
+          // Skip pocas without valid coordinates
+          if (!poca.lat || !poca.lng || isNaN(poca.lat) || isNaN(poca.lng)) {
+            return null;
+          }
+
+          const position: LatLngExpression = [poca.lat, poca.lng];
+          const isSelected = selectedMillId === poca.id;
+          const isGreyedOut = selectedMillId !== null && !isSelected;
+          
+          // Phase 5.9.8: Use DynamicSVGMarker for async SVG tinting with Levada colors
+          // Uses global template (poca.svg) and tints it with the associated Levada's color
+          // Convert poca to mill-like object for DynamicSVGMarker compatibility
+          const pocaAsMill = {
+            ...poca,
+            waterLineColor: poca.waterLineColor,
+          } as PublishedMill;
+          
+          return (
+            <DynamicSVGMarker
+              key={poca.id}
+              mill={pocaAsMill}
+              type="poca"
+              position={position}
+              isSelected={isSelected}
+              isGreyedOut={isGreyedOut}
+              eventHandlers={{
+                click: (e) => {
+                  // Prevent map background click from firing
+                  e.originalEvent.stopPropagation();
+                  // Call onMillClick callback if provided (pocas can use the same handler)
+                  if (onMillClick) {
+                    onMillClick(poca.id);
                   }
                 },
               }}

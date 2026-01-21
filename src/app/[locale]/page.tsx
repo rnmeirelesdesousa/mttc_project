@@ -106,12 +106,13 @@ export default async function RootLocalePage({ params, searchParams }: RootLocal
     );
   }
 
-  const { mills, waterLines } = result.data;
+  const { mills, pocas, waterLines } = result.data;
 
   return (
     <div className="fixed inset-x-0 top-20 bottom-0 w-full h-[calc(100vh-5rem)] overflow-hidden">
       <DynamicMapWithSidebar 
-        mills={mills} 
+        mills={mills}
+        pocas={pocas}
         waterLines={waterLines} 
         locale={params.locale}
         availableDistricts={availableDistricts}

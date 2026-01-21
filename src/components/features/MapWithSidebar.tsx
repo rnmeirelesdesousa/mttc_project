@@ -9,7 +9,7 @@ import { MillSidebar } from './MillSidebar';
 import { MapSidebar } from './MapSidebar';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { PublishedMill, MapWaterLine } from '@/actions/public';
+import type { PublishedMill, PublishedPoca, MapWaterLine } from '@/actions/public';
 
 // Dynamically import MillMap to avoid SSR issues with Leaflet
 const DynamicMillMap = dynamic(
@@ -38,7 +38,7 @@ interface MapWithSidebarProps {
  * Handles mill selection and map click events.
  * Full-page map interface with filter sidebar accessible via menu icon.
  */
-export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }: MapWithSidebarProps) => {
+export const MapWithSidebar = ({ mills, pocas = [], waterLines, locale, availableDistricts }: MapWithSidebarProps) => {
   const t = useTranslations();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -124,6 +124,7 @@ export const MapWithSidebar = ({ mills, waterLines, locale, availableDistricts }
       <div className="flex-1 relative h-full w-full">
         <DynamicMillMap
           mills={mills}
+          pocas={pocas}
           waterLines={waterLines}
           locale={locale}
           onMillClick={handleMillClick}

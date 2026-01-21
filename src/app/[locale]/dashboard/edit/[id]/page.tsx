@@ -40,6 +40,9 @@ export default async function EditPage({ params }: PageProps) {
   // Redirect to appropriate form with edit parameter
   if (type === 'MILL') {
     redirect(`/${params.locale}/dashboard/add?edit=${params.id}`);
+  } else if (type === 'POCA') {
+    // For poças, redirect to poça creation page with edit parameter
+    redirect(`/${params.locale}/dashboard/pocas/new?edit=${params.id}`);
   } else {
     // For water lines, redirect to water line creation page with edit parameter
     redirect(`/${params.locale}/dashboard/water-lines/new?edit=${params.id}`);

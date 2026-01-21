@@ -2295,6 +2295,128 @@ export async function getWaterLineByIdForEdit(
 }
 
 /**
+ * Gets poça data by construction ID for editing
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * Also verifies that the user is the author or an admin
+ * 
+ * @param id - Construction ID (UUID)
+ * @param locale - Locale code ('pt' or 'en')
+ * @returns Standardized response with poça data or error
+ */
+export async function getPocaByIdForEdit(
+  id: string,
+  locale: string
+): Promise<
+  | {
+      success: true;
+      data: {
+        id: string;
+        slug: string;
+        title: string;
+        latitude: number;
+        longitude: number;
+        waterLineId: string;
+        status: 'draft' | 'review' | 'published';
+      };
+    }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Validate inputs
+    if (!id || typeof id !== 'string') {
+      return { success: false, error: 'Construction ID is required' };
+    }
+
+    if (!locale || typeof locale !== 'string') {
+      return { success: false, error: 'Locale is required' };
+    }
+
+    // Get current user ID for permission check
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const isUserAdmin = await isAdmin();
+
+    // Query poça by construction ID with translation and pocas_data
+    const results = await db
+      .select({
+        id: constructions.id,
+        slug: constructions.slug,
+        status: constructions.status,
+        geomText: sql<string>`ST_AsText(${constructions.geom})`.as('geom_text'),
+        title: constructionTranslations.title,
+        waterLineId: pocasData.waterLineId,
+        createdBy: constructions.createdBy,
+      })
+      .from(constructions)
+      .innerJoin(pocasData, eq(pocasData.constructionId, constructions.id))
+      .leftJoin(
+        constructionTranslations,
+        and(
+          eq(constructionTranslations.constructionId, constructions.id),
+          eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .where(
+        and(
+          eq(constructions.id, id),
+          eq(constructions.typeCategory, 'POCA')
+        )
+      )
+      .limit(1);
+
+    if (results.length === 0) {
+      return { success: false, error: 'Poça not found' };
+    }
+
+    const row = results[0]!;
+
+    // Security check: Only author or admin can edit
+    if (!isUserAdmin && row.createdBy !== userId) {
+      return { success: false, error: 'Unauthorized: You can only edit your own poças' };
+    }
+
+    // Parse PostGIS POINT format: POINT(lng lat)
+    const geomMatch = row.geomText.match(/POINT\((.+)\)/);
+    if (!geomMatch) {
+      return { success: false, error: 'Invalid poça geometry' };
+    }
+
+    const coords = geomMatch[1].split(/\s+/).map(parseFloat);
+    if (coords.length !== 2) {
+      return { success: false, error: 'Invalid poça coordinates' };
+    }
+
+    const [longitude, latitude] = coords; // PostGIS format: [lng, lat]
+
+    return {
+      success: true,
+      data: {
+        id: row.id,
+        slug: row.slug,
+        title: row.title || row.slug,
+        latitude,
+        longitude,
+        waterLineId: row.waterLineId,
+        status: row.status as 'draft' | 'review' | 'published',
+      },
+    };
+  } catch (error) {
+    console.error('[getPocaByIdForEdit]:', error);
+    return { success: false, error: 'An error occurred while fetching poça data' };
+  }
+}
+
+/**
  * Zod schema for mill construction update (same as create, but with id)
  */
 const updateMillConstructionSchema = createMillConstructionSchema.extend({
@@ -2711,5 +2833,164 @@ export async function updateWaterLine(
   } catch (error) {
     console.error('[updateWaterLine]:', error);
     return { success: false, error: 'An error occurred while updating the water line' };
+  }
+}
+
+/**
+ * Zod schema for poça construction update (same as create, but with id)
+ */
+const updatePocaConstructionSchema = createPocaConstructionSchema.extend({
+  id: z.string().uuid('Invalid construction ID'),
+});
+
+/**
+ * Updates an existing poça construction with all related data
+ * 
+ * Security: Verifies that the performing user has 'researcher' or 'admin' role
+ * Also verifies that the user is the author or an admin
+ * 
+ * This action uses a database transaction to ensure atomicity:
+ * 1. Updates constructions (core data including geom)
+ * 2. Updates or inserts construction_translations (title for locale)
+ * 3. Updates pocas_data (link to water line)
+ * 
+ * @param data - Form data containing poça information including id
+ * @returns Standardized response: { success: true, data?: { id: string, slug: string } } or { success: false, error: string }
+ */
+export async function updatePocaConstruction(
+  data: z.infer<typeof updatePocaConstructionSchema>
+): Promise<
+  | { success: true; data: { id: string; slug: string } }
+  | { success: false; error: string }
+> {
+  try {
+    // Verify researcher or admin role
+    const hasPermission = await isResearcherOrAdmin();
+    if (!hasPermission) {
+      return { success: false, error: 'Unauthorized: Researcher or Admin role required' };
+    }
+
+    // Get current user ID for permission check
+    const userId = await getSessionUserId();
+    if (!userId) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const isUserAdmin = await isAdmin();
+
+    // Validate input with Zod
+    const validationResult = updatePocaConstructionSchema.safeParse(data);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map((e) => e.message).join(', ');
+      return { success: false, error: `Validation failed: ${errors}` };
+    }
+
+    const validated = validationResult.data;
+
+    // Verify poça exists and user has permission to edit
+    const existingPoca = await db
+      .select({
+        id: constructions.id,
+        slug: constructions.slug,
+        constructionId: pocasData.constructionId,
+        createdBy: constructions.createdBy,
+      })
+      .from(constructions)
+      .innerJoin(pocasData, eq(pocasData.constructionId, constructions.id))
+      .where(
+        and(
+          eq(constructions.id, validated.id),
+          eq(constructions.typeCategory, 'POCA')
+        )
+      )
+      .limit(1);
+
+    if (existingPoca.length === 0) {
+      return { success: false, error: 'Poça not found' };
+    }
+
+    // Security check: Only author or admin can edit
+    if (!isUserAdmin && existingPoca[0]!.createdBy !== userId) {
+      return { success: false, error: 'Unauthorized: You can only edit your own poças' };
+    }
+
+    // Use database transaction to ensure atomicity
+    const result = await db.transaction(async (tx) => {
+      // Step 1: Update constructions (core data including geom)
+      const updateData: {
+        geom: [number, number];
+        updatedAt: Date;
+        status?: 'draft' | 'review';
+      } = {
+        geom: [validated.longitude, validated.latitude] as [number, number], // PostGIS: [lng, lat]
+        updatedAt: new Date(),
+      };
+
+      // Only update status if provided (allows changing from draft to review)
+      if (validated.status) {
+        updateData.status = validated.status;
+      }
+
+      await tx
+        .update(constructions)
+        .set(updateData)
+        .where(eq(constructions.id, validated.id));
+
+      // Step 2: Update or insert construction_translations (i18n)
+      const existingTranslation = await tx
+        .select({ constructionId: constructionTranslations.constructionId })
+        .from(constructionTranslations)
+        .where(
+          and(
+            eq(constructionTranslations.constructionId, validated.id),
+            eq(constructionTranslations.langCode, validated.locale)
+          )
+        )
+        .limit(1);
+
+      if (existingTranslation.length > 0) {
+        // Update existing translation
+        await tx
+          .update(constructionTranslations)
+          .set({
+            title: validated.title,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(constructionTranslations.constructionId, validated.id),
+              eq(constructionTranslations.langCode, validated.locale)
+            )
+          );
+      } else {
+        // Insert new translation
+        await tx.insert(constructionTranslations).values({
+          constructionId: validated.id,
+          langCode: validated.locale,
+          title: validated.title,
+        });
+      }
+
+      // Step 3: Update pocas_data (link to water line)
+      await tx
+        .update(pocasData)
+        .set({
+          waterLineId: validated.waterLineId,
+        })
+        .where(eq(pocasData.constructionId, validated.id));
+
+      return existingPoca[0]!;
+    });
+
+    // Revalidate dashboard pages
+    revalidatePath('/en/dashboard');
+    revalidatePath('/pt/dashboard');
+    revalidatePath('/en/dashboard/inventory');
+    revalidatePath('/pt/dashboard/inventory');
+
+    return { success: true, data: { id: result.id, slug: result.slug } };
+  } catch (error) {
+    console.error('[updatePocaConstruction]:', error);
+    return { success: false, error: 'An error occurred while updating the poça' };
   }
 }

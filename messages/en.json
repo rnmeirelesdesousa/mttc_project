@@ -626,6 +626,10 @@
       "title": "New Poça",
       "description": "Create a new poça (water pool) linked to a levada"
     },
+    "edit": {
+      "title": "Edit Poça",
+      "description": "Edit an existing poça"
+    },
     "form": {
       "name": "Name",
       "namePlaceholder": "E.g.: Poça do Açude",

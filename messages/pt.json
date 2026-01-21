@@ -626,6 +626,10 @@
       "title": "Nova Poça",
       "description": "Criar uma nova poça (reservatório de água) ligada a uma levada"
     },
+    "edit": {
+      "title": "Editar Poça",
+      "description": "Editar uma poça existente"
+    },
     "form": {
       "name": "Nome",
       "namePlaceholder": "Ex: Poça do Açude",

@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { constructions, millsData, constructionTranslations, waterLines, waterLineTranslations } from '@/db/schema';
+import { constructions, millsData, constructionTranslations, waterLines, waterLineTranslations, pocasData } from '@/db/schema';
 import { eq, and, sql, inArray, or, ne } from 'drizzle-orm';
 
 /**
@@ -41,6 +41,22 @@ export interface PublishedMill {
   // Translation (may be null if translation for locale doesn't exist)
   title: string | null;
   description: string | null;
+}
+
+/**
+ * Type definition for a published poça with all related data
+ */
+export interface PublishedPoca {
+  id: string;
+  slug: string;
+  lat: number;
+  lng: number;
+  // Translation (may be null if translation for locale doesn't exist)
+  title: string | null;
+  // Water line reference
+  waterLineId: string;
+  // Phase 5.9.8: Water line color for dynamic SVG marker tinting
+  waterLineColor: string | null;
 }
 
 /**
@@ -219,6 +235,102 @@ export async function getPublishedMills(
       success: false,
       error: 'An error occurred while fetching published mills',
     };
+  }
+}
+
+/**
+ * Fetches all published pocas with their related data
+ * 
+ * Security: Only returns constructions with status = 'published' and typeCategory = 'POCA'
+ * GIS Logic: Extracts lat/lng from PostGIS geom field using ST_X/ST_Y
+ * Localization: Fetches translation matching the provided locale
+ * 
+ * @param locale - Language code ('pt' | 'en')
+ * @returns Standardized response with array of published pocas
+ */
+export async function getPublishedPocas(
+  locale: string
+): Promise<
+  | { success: true; data: PublishedPoca[] }
+  | { success: false; error: string }
+> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
+    }
+
+    // Query published pocas with translations and water line colors
+    // Use leftJoin for waterLines in case a poça references a deleted/unpublished water line
+    const results = await db
+      .select({
+        id: constructions.id,
+        slug: constructions.slug,
+        // PostGIS coordinate extraction: ST_X returns longitude, ST_Y returns latitude
+        // Cast geography to geometry for ST_X/ST_Y functions
+        // Wrap in COALESCE to handle null/errors gracefully
+        lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
+        lat: sql<number | null>`COALESCE(ST_Y(${constructions.geom}::geometry), NULL)`,
+        title: constructionTranslations.title,
+        waterLineId: pocasData.waterLineId,
+        waterLineColor: waterLines.color,
+      })
+      .from(constructions)
+      .innerJoin(pocasData, eq(pocasData.constructionId, constructions.id))
+      .leftJoin(waterLines, eq(waterLines.id, pocasData.waterLineId))
+      .leftJoin(
+        constructionTranslations,
+        and(
+          eq(constructionTranslations.constructionId, constructions.id),
+          eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .where(
+        and(
+          eq(constructions.status, 'published'),
+          eq(constructions.typeCategory, 'POCA')
+        )
+      );
+
+    // Transform results to PublishedPoca format
+    const pocas: PublishedPoca[] = results
+      .map((row) => {
+        // Validate coordinates
+        if (
+          row.lat === null ||
+          row.lng === null ||
+          isNaN(Number(row.lat)) ||
+          isNaN(Number(row.lng))
+        ) {
+          console.warn('[getPublishedPocas]: Skipping poça with invalid coordinates:', row.slug);
+          return null;
+        }
+
+        // Ensure waterLineId is not null (it's required in schema, but check for safety)
+        if (!row.waterLineId) {
+          console.warn('[getPublishedPocas]: Skipping poça with missing waterLineId:', row.slug);
+          return null;
+        }
+
+        return {
+          id: row.id,
+          slug: row.slug,
+          lat: Number(row.lat),
+          lng: Number(row.lng),
+          title: row.title,
+          waterLineId: row.waterLineId,
+          waterLineColor: row.waterLineColor || null,
+        };
+      })
+      .filter((poca): poca is PublishedPoca => poca !== null);
+
+    return { success: true, data: pocas };
+  } catch (error) {
+    console.error('[getPublishedPocas]:', error);
+    // Log the actual error for debugging
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[getPublishedPocas]: Error details:', errorMessage);
+    return { success: false, error: `An error occurred while fetching published pocas: ${errorMessage}` };
   }
 }
 
@@ -1100,6 +1212,7 @@ export interface WaterLineDetail {
  */
 export interface MapData {
   mills: PublishedMill[];
+  pocas: PublishedPoca[];
   waterLines: MapWaterLine[];
 }
 
@@ -1318,6 +1431,12 @@ export async function getMapData(
       return millsResult;
     }
 
+    // Fetch published pocas
+    const pocasResult = await getPublishedPocas(locale);
+    if (!pocasResult.success) {
+      return pocasResult;
+    }
+
     // Fetch all water lines with translations (separate call)
     // This fetches the list of water lines with their translated names
     const waterLinesResult = await getWaterLinesList(locale);
@@ -1390,6 +1509,7 @@ export async function getMapData(
       success: true,
       data: {
         mills: millsResult.data,
+        pocas: pocasResult.data,
         waterLines: mapWaterLines,
       },
     };

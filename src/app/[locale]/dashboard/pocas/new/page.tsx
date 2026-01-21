@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { createPocaConstruction } from '@/actions/admin';
+import { createPocaConstruction, updatePocaConstruction, getPocaByIdForEdit } from '@/actions/admin';
 import { getWaterLinesList, getMapData, type WaterLineListItem } from '@/actions/public';
 import dynamic from 'next/dynamic';
 
@@ -37,6 +37,14 @@ function NewPocaPageContent() {
   const t = useTranslations();
   const locale = useLocale() as 'pt' | 'en';
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Edit mode state
+  const editId = searchParams.get('edit');
+  const [isEditMode, setIsEditMode] = useState(!!editId);
+  const [isLoadingData, setIsLoadingData] = useState(!!editId);
+  const [pocaId, setPocaId] = useState<string | null>(editId);
+  const [initialStatus, setInitialStatus] = useState<'draft' | 'review' | 'published' | null>(null);
 
   // Form state
   const [name, setName] = useState('');
@@ -98,6 +106,41 @@ function NewPocaPageContent() {
     fetchMapData();
   }, [locale]);
 
+  // Fetch existing poça data if in edit mode
+  useEffect(() => {
+    const fetchPocaData = async () => {
+      if (!editId || !isEditMode) return;
+
+      setIsLoadingData(true);
+      setError(null);
+
+      try {
+        const result = await getPocaByIdForEdit(editId, locale);
+        
+        if (result.success) {
+          const data = result.data;
+          setPocaId(data.id);
+          
+          // Populate form fields
+          setName(data.title || data.slug || '');
+          setLatitude(data.latitude);
+          setLongitude(data.longitude);
+          setWaterLineId(data.waterLineId);
+          setInitialStatus(data.status);
+        } else {
+          setError(result.error);
+        }
+      } catch (err) {
+        console.error('[NewPocaPage]: Error fetching poça data:', err);
+        setError('Failed to load poça data');
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchPocaData();
+  }, [editId, isEditMode, locale]);
+
   const handleSubmit = async (e: React.FormEvent, status: 'draft' | 'review') => {
     e.preventDefault();
     setError(null);
@@ -123,15 +166,25 @@ function NewPocaPageContent() {
         return;
       }
 
-      // Call server action
-      const result = await createPocaConstruction({
-        title: name.trim(),
-        locale,
-        latitude,
-        longitude,
-        waterLineId: waterLineId.trim(),
-        status, // Phase 5.9.7.1: Pass status
-      });
+      // Call appropriate server action (create or update)
+      const result = isEditMode && pocaId
+        ? await updatePocaConstruction({
+            id: pocaId,
+            title: name.trim(),
+            locale,
+            latitude,
+            longitude,
+            waterLineId: waterLineId.trim(),
+            status, // Pass status for update
+          })
+        : await createPocaConstruction({
+            title: name.trim(),
+            locale,
+            latitude,
+            longitude,
+            waterLineId: waterLineId.trim(),
+            status, // Phase 5.9.7.1: Pass status
+          });
 
       if (result.success) {
         // Redirect to dashboard with success message
@@ -149,11 +202,24 @@ function NewPocaPageContent() {
     }
   };
 
+  // Show loading state while fetching data in edit mode
+  if (isLoadingData) {
+    return (
+      <div className="container mx-auto py-8 max-w-4xl">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">{t('common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-2">{t('pocas.new.title')}</h1>
+      <h1 className="text-3xl font-bold mb-2">
+        {isEditMode ? t('pocas.edit.title') : t('pocas.new.title')}
+      </h1>
       <p className="text-muted-foreground mb-8">
-        {t('pocas.new.description')}
+        {isEditMode ? t('pocas.edit.description') : t('pocas.new.description')}
       </p>
 
       {error && (
@@ -202,7 +268,7 @@ function NewPocaPageContent() {
             value={waterLineId}
             onChange={(e) => setWaterLineId(e.target.value)}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={loadingWaterLines}
+            disabled={loadingWaterLines || isLoadingData}
             required
           >
             <option value="">{t('pocas.form.selectWaterLine')}</option>
@@ -229,21 +295,26 @@ function NewPocaPageContent() {
           >
             {t('pocas.form.cancel')}
           </Button>
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={(e) => handleSubmit(e, 'draft')} 
-            disabled={isSubmitting || loadingWaterLines}
-          >
-            {isSubmitting ? t('pocas.form.savingDraft') : t('pocas.form.saveAsDraft')}
-          </Button>
-          <Button 
-            type="button"
-            onClick={(e) => handleSubmit(e, 'review')} 
-            disabled={isSubmitting || loadingWaterLines}
-          >
-            {isSubmitting ? t('pocas.form.submittingForReview') : t('pocas.form.submitForReview')}
-          </Button>
+          {/* Only show draft/review buttons if not published or if in edit mode with draft/review status */}
+          {(!isEditMode || !initialStatus || initialStatus !== 'published') && (
+            <>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={(e) => handleSubmit(e, 'draft')} 
+                disabled={isSubmitting || loadingWaterLines || isLoadingData}
+              >
+                {isSubmitting ? t('pocas.form.savingDraft') : t('pocas.form.saveAsDraft')}
+              </Button>
+              <Button 
+                type="button"
+                onClick={(e) => handleSubmit(e, 'review')} 
+                disabled={isSubmitting || loadingWaterLines || isLoadingData}
+              >
+                {isSubmitting ? t('pocas.form.submittingForReview') : t('pocas.form.submitForReview')}
+              </Button>
+            </>
+          )}
         </div>
       </form>
     </div>
