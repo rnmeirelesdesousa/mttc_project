@@ -884,7 +884,7 @@ export async function getReviewQueue(
     }
 
     // Query constructions with status = 'review' (Phase 5.9.7.1: Review queue shows only 'review' status)
-    // Join with construction_translations to get title for current locale
+    // Join with construction_translations for mills/pocas and water_line_translations for water lines
     const drafts = await db
       .select({
         id: constructions.id,
@@ -893,6 +893,7 @@ export async function getReviewQueue(
         createdAt: constructions.createdAt,
         updatedAt: constructions.updatedAt,
         title: constructionTranslations.title,
+        waterLineName: waterLineTranslations.name,
       })
       .from(constructions)
       .leftJoin(
@@ -900,6 +901,17 @@ export async function getReviewQueue(
         and(
           eq(constructionTranslations.constructionId, constructions.id),
           eq(constructionTranslations.langCode, locale)
+        )
+      )
+      .leftJoin(
+        waterLines,
+        eq(waterLines.constructionId, constructions.id)
+      )
+      .leftJoin(
+        waterLineTranslations,
+        and(
+          eq(waterLineTranslations.waterLineId, waterLines.id),
+          eq(waterLineTranslations.locale, locale)
         )
       )
       .where(eq(constructions.status, 'review'))
@@ -910,7 +922,8 @@ export async function getReviewQueue(
       data: drafts.map((draft) => ({
         id: draft.id,
         slug: draft.slug,
-        title: draft.title,
+        // Use water line name if it's a water line, otherwise use construction title
+        title: draft.typeCategory === 'water_line' ? draft.waterLineName : draft.title,
         typeCategory: draft.typeCategory,
         createdAt: draft.createdAt,
         updatedAt: draft.updatedAt,
@@ -1239,8 +1252,7 @@ const createWaterLineSchema = z.object({
   color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Invalid color format'),
   path: z.array(z.tuple([z.number(), z.number()])).min(2, 'Path must have at least 2 points'),
   locale: z.enum(['pt', 'en']),
-  // Phase 5.9.7.1: Status for workflow (water lines don't have status in schema, but we'll handle it if added later)
-  // Note: Water lines currently don't have status field, so this is for future compatibility
+  status: z.enum(['draft', 'review']).optional(), // Phase 5.9.7.1: Status for workflow
 });
 
 /**
@@ -1318,7 +1330,7 @@ export async function createWaterLine(
           slug: uniqueSlug,
           typeCategory: 'water_line',
           geom: [lng, lat] as [number, number], // PostGIS: [lng, lat]
-          status: 'published', // Water lines are always considered published
+          status: (validated.status || 'draft') as 'draft' | 'review', // Phase 5.9.7.1: Use provided status or default to draft
           createdBy: userId,
         })
         .returning({ id: constructions.id, slug: constructions.slug });
@@ -1672,10 +1684,49 @@ export async function getInventoryItems(
 
     // Fetch water lines (levadas) - using INNER JOIN with constructions
     if (!filters?.type || filters.type === 'LEVADA' || filters.type === 'ALL') {
-      // Note: Water lines don't have status, so we only filter by search query
+      // Phase 5.9.7.1: Water lines now have status, apply same filtering logic as mills
       const whereConditions = [
         eq(constructions.typeCategory, 'water_line'), // Only water_line constructions
       ];
+      
+      // Phase 5.9.7.2: Role-based filtering for water lines (same as mills)
+      if (filters?.myProjects) {
+        // "My Projects" tab: show only user's drafts
+        whereConditions.push(eq(constructions.createdBy, userId));
+        whereConditions.push(eq(constructions.status, 'draft'));
+      } else if (!isUserAdmin) {
+        // Researchers: see only their own draft items + all published items
+        // Apply status filter if specified, but respect role-based restrictions
+        if (filters?.status && filters.status !== 'ALL') {
+          if (filters.status === 'draft') {
+            // Only show drafts owned by the user
+            whereConditions.push(eq(constructions.createdBy, userId));
+            whereConditions.push(eq(constructions.status, 'draft'));
+          } else if (filters.status === 'published') {
+            // Show all published items
+            whereConditions.push(eq(constructions.status, 'published'));
+          } else if (filters.status === 'review') {
+            // Researchers don't see review items in inventory (only admins do)
+            whereConditions.push(sql`1 = 0`); // Always false - no results
+          }
+        } else {
+          // No status filter: show user's drafts + all published
+          whereConditions.push(
+            or(
+              and(
+                eq(constructions.createdBy, userId),
+                eq(constructions.status, 'draft')
+              ),
+              eq(constructions.status, 'published')
+            )
+          );
+        }
+      } else {
+        // Admins: see everything - apply status filter if specified
+        if (filters?.status && filters.status !== 'ALL') {
+          whereConditions.push(eq(constructions.status, filters.status));
+        }
+      }
       
       // Apply search query (searches in name)
       if (searchQuery && searchQuery.trim()) {
@@ -1692,6 +1743,7 @@ export async function getInventoryItems(
           createdAt: constructions.createdAt,
           updatedAt: constructions.updatedAt,
           name: waterLineTranslations.name,
+          status: constructions.status, // Phase 5.9.7.1: Include actual status from database
           createdBy: constructions.createdBy, // Phase 5.9.7.2: Include for permission checks
         })
         .from(constructions)
@@ -1721,7 +1773,7 @@ export async function getInventoryItems(
           slug: row.slug,
           type: 'LEVADA' as const,
           title: row.name,
-          status: 'published' as const, // Water lines are always considered published
+          status: (row.status || 'draft') as 'draft' | 'review' | 'published', // Phase 5.9.7.1: Use actual status from database
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
           createdBy: row.createdBy, // Phase 5.9.7.2: Include for permission checks
@@ -2128,7 +2180,7 @@ export async function getConstructionByIdForEdit(
  * 
  * Security: Verifies that the performing user has 'researcher' or 'admin' role
  * 
- * @param id - Water line UUID
+ * @param id - Construction UUID (water lines are identified by their construction ID in edit URLs)
  * @param locale - Current locale code ('en' | 'pt')
  * @returns Standardized response with water line data
  */
@@ -2145,6 +2197,7 @@ export async function getWaterLineByIdForEdit(
         description: string | null;
         color: string;
         path: [number, number][]; // Array of [lng, lat] coordinate pairs
+        status: 'draft' | 'review' | 'published'; // Phase 5.9.7.1: Status for workflow
       };
     }
   | { success: false; error: string }
@@ -2158,15 +2211,16 @@ export async function getWaterLineByIdForEdit(
 
     // Validate inputs
     if (!id || typeof id !== 'string') {
-      return { success: false, error: 'Water line ID is required' };
+      return { success: false, error: 'Construction ID is required' };
     }
 
     if (!locale || typeof locale !== 'string') {
       return { success: false, error: 'Locale is required' };
     }
 
-    // Query water line by ID with translation
+    // Query water line by construction ID with translation
     // Use INNER JOIN with constructions to ensure valid parent-child relationship
+    // The edit URL uses construction ID, so we query by that
     const results = await db
       .select({
         id: waterLines.id,
@@ -2175,6 +2229,7 @@ export async function getWaterLineByIdForEdit(
         color: waterLines.color,
         name: waterLineTranslations.name,
         description: waterLineTranslations.description,
+        status: constructions.status, // Phase 5.9.7.1: Include status for edit mode
       })
       .from(constructions)
       .innerJoin(
@@ -2190,7 +2245,7 @@ export async function getWaterLineByIdForEdit(
       )
       .where(
         and(
-          eq(waterLines.id, id),
+          eq(constructions.id, id), // Query by construction ID (not water line ID)
           eq(constructions.typeCategory, 'water_line')
         )
       )
@@ -2230,6 +2285,7 @@ export async function getWaterLineByIdForEdit(
         description: row.description,
         color: row.color,
         path,
+        status: row.status as 'draft' | 'review' | 'published', // Phase 5.9.7.1: Include status
       },
     };
   } catch (error) {
@@ -2569,12 +2625,24 @@ export async function updateWaterLine(
       const firstPoint = validated.path[0]!;
       const [lng, lat] = firstPoint; // Already in [lng, lat] format
       
+      // Update construction with new geom and status if provided
+      const updateData: {
+        geom: [number, number];
+        updatedAt: Date;
+        status?: 'draft' | 'review';
+      } = {
+        geom: [lng, lat] as [number, number], // PostGIS: [lng, lat]
+        updatedAt: new Date(),
+      };
+      
+      // Only update status if provided (allows changing from draft to review)
+      if (validated.status) {
+        updateData.status = validated.status;
+      }
+      
       await tx
         .update(constructions)
-        .set({
-          geom: [lng, lat] as [number, number], // PostGIS: [lng, lat]
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(constructions.id, existingWaterLine.constructionId));
 
       // Step 2: Update water_lines (core data with PostGIS LineString)

@@ -43,6 +43,7 @@ function NewWaterLinePageContent() {
   const [isEditMode, setIsEditMode] = useState(!!editId);
   const [isLoadingData, setIsLoadingData] = useState(!!editId);
   const [waterLineId, setWaterLineId] = useState<string | null>(editId);
+  const [initialStatus, setInitialStatus] = useState<'draft' | 'review' | 'published' | null>(null);
 
   // Form state
   const [name, setName] = useState('');
@@ -97,9 +98,11 @@ function NewWaterLinePageContent() {
           setWaterLineId(data.id);
           
           // Populate form fields
-          setName(data.name);
+          // Use name or fallback to slug if name is missing (shouldn't happen, but safety check)
+          setName(data.name || data.slug || '');
           setDescription(data.description || '');
           setColor(data.color);
+          setInitialStatus(data.status); // Phase 5.9.7.1: Store initial status
           
           // Convert path from [lng, lat] to [lat, lng] for Leaflet
           const leafletPath: [number, number][] = data.path.map(([lng, lat]) => [lat, lng]);
@@ -150,7 +153,6 @@ function NewWaterLinePageContent() {
       const dbPath: [number, number][] = path.map(([lat, lng]) => [lng, lat]);
 
       // Call appropriate server action (create or update)
-      // Note: Water lines don't currently have status field, but we pass it for future compatibility
       const result = isEditMode && waterLineId
         ? await updateWaterLine({
             id: waterLineId,
@@ -159,6 +161,7 @@ function NewWaterLinePageContent() {
             color,
             path: dbPath,
             locale,
+            status, // Pass status for update
           })
         : await createWaterLine({
             name: name.trim(),
@@ -166,6 +169,7 @@ function NewWaterLinePageContent() {
             color,
             path: dbPath,
             locale,
+            status, // Pass status for create
           });
 
       if (result.success) {
@@ -185,7 +189,7 @@ function NewWaterLinePageContent() {
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-6xl">
+    <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-2">
         {isEditMode ? t('waterLines.editTitle') : t('waterLines.new.title')}
       </h1>
@@ -206,80 +210,78 @@ function NewWaterLinePageContent() {
       )}
 
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Map Section */}
-          <div className="space-y-4">
-            <Label>{t('waterLines.form.map')}</Label>
+        {/* Map Section - Full Width */}
+        <div className="space-y-4">
+          <Label>{t('waterLines.form.map')}</Label>
+          {/* Only render map when not loading data in edit mode, or when we have the path data */}
+          {(!isEditMode || !isLoadingData || path.length > 0) ? (
             <DynamicLevadaEditor 
+              key={isEditMode ? `${waterLineId || editId}-${path.length > 0 ? 'loaded' : 'new'}` : 'new'} // Force re-render when data is loaded in edit mode
               color={color} 
               onPathChange={handlePathChange}
               existingMills={mapData?.mills || []}
               existingWaterLines={mapData?.waterLines || []}
               initialPath={path}
             />
+          ) : (
+            <div className="flex items-center justify-center h-[500px] bg-gray-100 rounded-md border border-input">
+              <p className="text-gray-600">{t('waterLines.loadingData')}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Form Fields Section - Below Map */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+          <div className="space-y-2">
+            <Label htmlFor="name">{t('waterLines.form.name')}</Label>
+            <Input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('waterLines.form.namePlaceholder')}
+              required
+            />
           </div>
 
-          {/* Form Fields Section */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">{t('waterLines.form.name')}</Label>
+          <div className="space-y-2">
+            <Label htmlFor="color">{t('waterLines.form.color')}</Label>
+            <div className="flex gap-3 items-center">
               <Input
-                id="name"
+                id="color"
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="h-10 w-20 cursor-pointer"
+              />
+              <Input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('waterLines.form.namePlaceholder')}
-                required
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                placeholder="#3b82f6"
+                className="flex-1"
+                pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
               />
             </div>
+            <p className="text-sm text-muted-foreground">
+              {t('waterLines.form.colorDescription')}
+            </p>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">{t('waterLines.form.description')}</Label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t('waterLines.form.descriptionPlaceholder')}
-                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                rows={5}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="color">{t('waterLines.form.color')}</Label>
-              <div className="flex gap-3 items-center">
-                <Input
-                  id="color"
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="h-10 w-20 cursor-pointer"
-                />
-                <Input
-                  type="text"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  placeholder="#3b82f6"
-                  className="flex-1"
-                  pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {t('waterLines.form.colorDescription')}
-              </p>
-            </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="description">{t('waterLines.form.description')}</Label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t('waterLines.form.descriptionPlaceholder')}
+              className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              rows={5}
+            />
           </div>
         </div>
 
         <div className="flex justify-end gap-4 pt-4 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isSubmitting}
-          >
-            {t('waterLines.form.cancel')}
-          </Button>
           {!isEditMode && (
             <>
               <Button 
@@ -299,10 +301,40 @@ function NewWaterLinePageContent() {
               </Button>
             </>
           )}
-          {isEditMode && (
+          {isEditMode && initialStatus === 'draft' && (
+            <>
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={(e) => handleSubmit(e, 'draft')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting ? t('waterLines.form.savingDraft') : t('waterLines.form.saveAsDraft')}
+              </Button>
+              <Button 
+                type="button"
+                onClick={(e) => handleSubmit(e, 'review')} 
+                disabled={isSubmitting || isLoadingData}
+              >
+                {isSubmitting ? t('waterLines.form.submittingForReview') : t('waterLines.form.submitForReview')}
+              </Button>
+            </>
+          )}
+          {isEditMode && initialStatus === 'review' && (
             <Button 
               type="button"
-              onClick={(e) => handleSubmit(e, 'draft')} 
+              variant="outline"
+              onClick={(e) => handleSubmit(e, 'review')} 
+              disabled={isSubmitting || isLoadingData}
+            >
+              {isSubmitting ? t('waterLines.form.updating') : t('waterLines.form.update')}
+            </Button>
+          )}
+          {isEditMode && initialStatus === 'published' && (
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={(e) => handleSubmit(e, 'review')} 
               disabled={isSubmitting || isLoadingData}
             >
               {isSubmitting ? t('waterLines.form.updating') : t('waterLines.form.update')}

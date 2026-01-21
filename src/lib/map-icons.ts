@@ -11,7 +11,7 @@
 import L from 'leaflet';
 
 // Base marker size in pixels
-const BASE_MARKER_SIZE = 60;
+const BASE_MARKER_SIZE = 70;
 
 // Phase 5.9.8: Cache for raw SVG templates to avoid re-fetching
 const svgTemplateCache = new Map<string, string>();

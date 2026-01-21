@@ -88,7 +88,13 @@ export default async function ReviewPage({ params }: PageProps) {
                   <TableCell className="font-medium">
                     {draft.title || draft.slug}
                   </TableCell>
-                  <TableCell>{draft.typeCategory}</TableCell>
+                  <TableCell>
+                    {draft.typeCategory === 'water_line' 
+                      ? t('inventory.type.levada')
+                      : draft.typeCategory === 'POCA'
+                      ? t('inventory.type.poca')
+                      : t('inventory.type.mill')}
+                  </TableCell>
                   <TableCell>
                     {draft.createdAt
                       ? new Date(draft.createdAt).toLocaleDateString(params.locale)

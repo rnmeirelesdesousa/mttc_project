@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Polyline, CircleMarker, useMapEvents, useMap } from 'react-leaflet';
+import { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Polyline, CircleMarker, useMapEvents, useMap, LayersControl } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -18,6 +18,8 @@ L.Icon.Default.mergeOptions({
 
 interface LevadaEditorProps {
   color: string;
+  // onPathChange receives path in Leaflet format: [lat, lng][]
+  // The parent component should convert to PostGIS format [lng, lat] when saving to database
   onPathChange: (path: [number, number][]) => void;
   // Phase 5.9.3: Contextual creation layer - existing data for reference
   existingMills?: PublishedMill[];
@@ -81,20 +83,26 @@ function MapClickHandler({
 }
 
 /**
- * MapCenterUpdater - Updates map center when needed
+ * MapCenterUpdater - Updates map center only on initial load when initialPath is provided
  */
 function MapCenterUpdater({
+  shouldCenter,
   center,
   zoom,
 }: {
+  shouldCenter: boolean;
   center: LatLngExpression;
   zoom: number;
 }) {
   const map = useMap();
+  const hasCentered = useRef(false);
   
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [map, center, zoom]);
+    if (shouldCenter && !hasCentered.current) {
+      map.setView(center, zoom);
+      hasCentered.current = true;
+    }
+  }, [map, shouldCenter, center, zoom]);
   
   return null;
 }
@@ -117,7 +125,7 @@ function MapCenterUpdater({
 export const LevadaEditor = ({ color, onPathChange, existingMills = [], existingWaterLines = [], initialPath = [] }: LevadaEditorProps) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [path, setPath] = useState<[number, number][]>(initialPath);
-  const [hasInitialized, setHasInitialized] = useState(initialPath.length > 0);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const [snapPreview, setSnapPreview] = useState<[number, number] | null>(null);
 
   // Center of Portugal (approximate geographic center)
@@ -131,24 +139,42 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
   const defaultZoom = (path.length > 0 || initialPath.length > 0) ? 12 : 7;
 
   // Update path when initialPath changes (for edit mode)
-  // Only set once when initialPath becomes available
+  // This handles both initial load and updates when initialPath prop changes
   useEffect(() => {
-    if (initialPath.length > 0 && !hasInitialized) {
-      setPath(initialPath);
+    if (initialPath.length > 0) {
+      // Always update if initialPath has data and is different from current path
+      setPath((currentPath) => {
+        const currentPathStr = JSON.stringify(currentPath);
+        const newPathStr = JSON.stringify(initialPath);
+        if (currentPathStr !== newPathStr) {
+          return initialPath;
+        }
+        return currentPath;
+      });
+      // Mark as initialized once we have data
+      if (!hasInitialized) {
+        setHasInitialized(true);
+      }
+    } else if (!hasInitialized) {
+      // Mark as initialized if initialPath is empty (new creation mode)
       setHasInitialized(true);
     }
-  }, [initialPath, hasInitialized]);
+  }, [initialPath, hasInitialized]); // Include hasInitialized to track initialization state
 
-  // Convert path from [lat, lng] to [lng, lat] for GeoJSON and notify parent
+  // Notify parent of path changes (keep in Leaflet format [lat, lng])
+  // The parent component will handle conversion to PostGIS format [lng, lat] when saving
+  // Skip notification during initialization to avoid overwriting parent's state
   useEffect(() => {
-    if (path.length > 0) {
-      // Convert from Leaflet's [lat, lng] to GeoJSON's [lng, lat]
-      const geoJsonPath: [number, number][] = path.map(([lat, lng]) => [lng, lat]);
-      onPathChange(geoJsonPath);
-    } else {
-      onPathChange([]);
+    // Only notify parent after initialization is complete
+    if (hasInitialized) {
+      if (path.length > 0) {
+        // Pass path in Leaflet format [lat, lng] - parent will convert to [lng, lat] for database
+        onPathChange(path);
+      } else {
+        onPathChange([]);
+      }
     }
-  }, [path, onPathChange]);
+  }, [path, onPathChange, hasInitialized]);
 
   const handlePointAdd = (lat: number, lng: number) => {
     setPath((prev) => [...prev, [lat, lng]]);
@@ -173,6 +199,10 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
 
   // Convert path to Leaflet format [lat, lng] for display
   const leafletPath: LatLngExpression[] = path.map(([lat, lng]) => [lat, lng]);
+
+  // Get API keys from environment variables
+  const thunderforestApiKey = process.env.NEXT_PUBLIC_THUNDERFOREST_API_KEY;
+  const stadiaApiKey = process.env.NEXT_PUBLIC_STADIA_API_KEY;
 
   return (
     <div className="space-y-4">
@@ -215,19 +245,91 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
         <MapContainer
           center={portugalCenter}
           zoom={defaultZoom}
-          maxZoom={19}
+          maxZoom={20}
           style={{ height: '500px', width: '100%', cursor: snapPreview && isDrawing ? 'crosshair' : 'default' }}
           scrollWheelZoom={true}
           className="rounded-md border border-input"
         >
-          {/* OpenStreetMap tile layer */}
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          {/* Layer Control - positioned in bottom right */}
+          <LayersControl position="bottomright">
+            {/* OpenStreetMap.HOT - Default base layer */}
+            <LayersControl.BaseLayer checked name="OpenStreetMap HOT">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>'
+                url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+                maxZoom={19}
+              />
+            </LayersControl.BaseLayer>
 
-          {/* Phase 5.9.7.1: Map center updater - ensures map centers on drawn coordinates */}
-          <MapCenterUpdater center={portugalCenter} zoom={defaultZoom} />
+            {/* Stadia.StamenTerrain - Requires API key */}
+            {stadiaApiKey && (
+              <LayersControl.BaseLayer name="Stadia Stamen Terrain">
+                <TileLayer
+                  attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://stamen.com">Stamen Design</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+                  url={`https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
+                  maxZoom={18}
+                />
+              </LayersControl.BaseLayer>
+            )}
+
+            {/* Thunderforest.OpenCycleMap - Requires API key */}
+            {thunderforestApiKey && (
+              <LayersControl.BaseLayer name="Thunderforest OpenCycleMap">
+                <TileLayer
+                  attribution='&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url={`https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`}
+                  maxZoom={21}
+                />
+              </LayersControl.BaseLayer>
+            )}
+
+            {/* Thunderforest.Neighbourhood - Requires API key */}
+            {thunderforestApiKey && (
+              <LayersControl.BaseLayer name="Thunderforest Neighbourhood">
+                <TileLayer
+                  attribution='&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url={`https://{s}.tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`}
+                  maxZoom={21}
+                />
+              </LayersControl.BaseLayer>
+            )}
+
+            {/* MtbMap */}
+            <LayersControl.BaseLayer name="MtbMap">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors & <a href="https://www.mtbmap.cz/">MtbMap</a>'
+                url="http://tile.mtbmap.cz/mtbmap_tiles/{z}/{x}/{y}.png"
+                maxZoom={18}
+              />
+            </LayersControl.BaseLayer>
+
+            {/* Stadia.AlidadeSatellite - Requires API key */}
+            {stadiaApiKey && (
+              <LayersControl.BaseLayer name="Stadia Alidade Satellite">
+                <TileLayer
+                  attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+                  url={`https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
+                  maxZoom={20}
+                />
+              </LayersControl.BaseLayer>
+            )}
+
+            {/* OpenStreetMap Standard - Always available as fallback option */}
+            <LayersControl.BaseLayer name="OpenStreetMap Standard">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+              />
+            </LayersControl.BaseLayer>
+          </LayersControl>
+
+          {/* Phase 5.9.7.1: Map center updater - only centers on initial load when initialPath is provided */}
+          <MapCenterUpdater 
+            shouldCenter={initialPath.length > 0 && !hasInitialized} 
+            center={portugalCenter} 
+            zoom={defaultZoom} 
+          />
 
           {/* Handle map clicks with snap-to-mill */}
           <MapClickHandler 

@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { isAdmin } from '@/lib/auth';
-import { getConstructionForReview } from '@/actions/admin';
+import { getConstructionForReview, getWaterLineByIdForEdit } from '@/actions/admin';
 import { PublishButton } from '@/components/features/PublishButton';
 import { getPublicUrl } from '@/lib/storage';
 import Link from 'next/link';
@@ -9,6 +9,23 @@ import { ArrowLeft, Edit } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { db } from '@/lib/db';
+import { constructions } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import dynamic from 'next/dynamic';
+
+// Dynamically import LevadaMap to avoid SSR issues with Leaflet
+const DynamicLevadaMap = dynamic(
+  () => import('@/components/features/LevadaMap').then((mod) => ({ default: mod.LevadaMap })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[400px] bg-gray-100 rounded-md border border-input">
+        <p className="text-gray-600">Loading map...</p>
+      </div>
+    ),
+  }
+);
 
 interface PageProps {
   params: {
@@ -29,6 +46,8 @@ interface PageProps {
  * - Section C: Architecture
  * - Section D: Observations
  * - Section E: Media
+ * 
+ * Phase 5.9.7.1: Now handles both mills and water lines
  */
 export default async function ReviewDetailPage({ params }: PageProps) {
   const t = await getTranslations();
@@ -45,7 +64,139 @@ export default async function ReviewDetailPage({ params }: PageProps) {
     );
   }
 
-  // Fetch construction data
+  // First, check the construction type by slug
+  const constructionType = await db
+    .select({
+      id: constructions.id,
+      typeCategory: constructions.typeCategory,
+    })
+    .from(constructions)
+    .where(eq(constructions.slug, params.slug))
+    .limit(1);
+
+  if (constructionType.length === 0) {
+    notFound();
+  }
+
+  const { id: constructionId, typeCategory } = constructionType[0]!;
+
+  // Handle water lines differently
+  if (typeCategory === 'water_line') {
+    const waterLineResult = await getWaterLineByIdForEdit(constructionId, params.locale);
+    
+    if (!waterLineResult.success) {
+      notFound();
+    }
+
+    const waterLine = waterLineResult.data;
+
+    return (
+      <div className="container mx-auto py-8 max-w-6xl">
+        {/* Header with back button, edit, and publish action */}
+        <div className="mb-6 flex items-center justify-between">
+          <Link href={`/${params.locale}/dashboard/review`}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('review.backToQueue')}
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+            >
+              <Link href={`/${params.locale}/dashboard/edit/${constructionId}`}>
+                <Edit className="mr-2 h-4 w-4" />
+                {t('review.editDraft')}
+              </Link>
+            </Button>
+            <PublishButton
+              constructionId={constructionId}
+              currentStatus={waterLine.status as 'draft' | 'review' | 'published'}
+            />
+          </div>
+        </div>
+
+        <h1 className="text-3xl font-bold mb-2">
+          {waterLine.name || waterLine.slug}
+        </h1>
+        <p className="text-muted-foreground mb-8">
+          {t('review.detail.subtitle')} • {waterLine.status}
+        </p>
+
+        {/* Water Line Review Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Section A: Basic Information */}
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">{t('waterLines.form.name')}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('common.title')}</p>
+                  <p className="font-medium">{waterLine.name || waterLine.slug}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Slug</p>
+                  <p className="font-medium font-mono text-sm">{waterLine.slug}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{t('waterLines.form.color')}</p>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-8 h-8 rounded border border-gray-300"
+                      style={{ backgroundColor: waterLine.color }}
+                    />
+                    <p className="font-medium font-mono text-sm">{waterLine.color}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Section B: Description */}
+            {waterLine.description && (
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold mb-4">{t('waterLines.form.description')}</h2>
+                <p className="text-sm whitespace-pre-wrap">{waterLine.description}</p>
+              </Card>
+            )}
+
+            {/* Section C: Map */}
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">{t('waterLines.form.map')}</h2>
+              <div className="h-[400px] rounded-md overflow-hidden border border-input">
+                <DynamicLevadaMap
+                  mills={[]}
+                  waterLines={[{
+                    id: waterLine.id,
+                    slug: waterLine.slug,
+                    path: waterLine.path.map(([lng, lat]) => [lat, lng] as [number, number]), // Convert to [lat, lng] for Leaflet
+                    color: waterLine.color,
+                    name: waterLine.name,
+                  }]}
+                  locale={params.locale}
+                />
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column - Sidebar */}
+          <div className="space-y-6">
+            {/* Status Info */}
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">{t('common.status')}</h2>
+              <Badge variant={waterLine.status === 'published' ? 'default' : waterLine.status === 'review' ? 'secondary' : 'outline'}>
+                {t(`common.${waterLine.status}`)}
+              </Badge>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle mills (existing logic)
   const result = await getConstructionForReview(params.slug, params.locale);
   
   if (!result.success) {

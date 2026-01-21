@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, LayersControl } from 'react-leaflet';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -58,7 +58,7 @@ function FitBounds({ waterLines, mills }: { waterLines: MapWaterLine[]; mills: P
       const bounds = L.latLngBounds(allCoords);
       map.fitBounds(bounds, {
         padding: [50, 50], // Add padding around the bounds
-        maxZoom: 19, // Maximum zoom level
+        maxZoom: 21, // Maximum zoom level
       });
     }
   }, [map, waterLines, mills]);
@@ -86,19 +86,91 @@ export const LevadaMap = ({ mills, waterLines, locale }: LevadaMapProps) => {
   const portugalCenter: LatLngExpression = [39.5, -8.0];
   const defaultZoom = 7;
 
+  // Get API keys from environment variables
+  const thunderforestApiKey = process.env.NEXT_PUBLIC_THUNDERFOREST_API_KEY;
+  const stadiaApiKey = process.env.NEXT_PUBLIC_STADIA_API_KEY;
+
   return (
     <MapContainer
       center={portugalCenter}
       zoom={defaultZoom}
-      maxZoom={19}
+      maxZoom={21}
       style={{ height: '100%', width: '100%' }}
       scrollWheelZoom={true}
     >
-      {/* OpenStreetMap tile layer */}
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      {/* Layer Control - positioned in bottom right */}
+      <LayersControl position="bottomright">
+        {/* OpenStreetMap.HOT - Default base layer */}
+        <LayersControl.BaseLayer checked name="OpenStreetMap HOT">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>'
+            url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
+        </LayersControl.BaseLayer>
+
+        {/* Stadia.StamenTerrain - Requires API key */}
+        {stadiaApiKey && (
+          <LayersControl.BaseLayer name="Stadia Stamen Terrain">
+            <TileLayer
+              attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://stamen.com">Stamen Design</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+              url={`https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
+              maxZoom={18}
+            />
+          </LayersControl.BaseLayer>
+        )}
+
+        {/* Thunderforest.OpenCycleMap - Requires API key */}
+        {thunderforestApiKey && (
+          <LayersControl.BaseLayer name="Thunderforest OpenCycleMap">
+            <TileLayer
+              attribution='&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url={`https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`}
+              maxZoom={21}
+            />
+          </LayersControl.BaseLayer>
+        )}
+
+        {/* Thunderforest.Neighbourhood - Requires API key */}
+        {thunderforestApiKey && (
+          <LayersControl.BaseLayer name="Thunderforest Neighbourhood">
+            <TileLayer
+              attribution='&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url={`https://{s}.tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`}
+              maxZoom={21}
+            />
+          </LayersControl.BaseLayer>
+        )}
+
+        {/* MtbMap */}
+        <LayersControl.BaseLayer name="MtbMap">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors & <a href="https://www.mtbmap.cz/">MtbMap</a>'
+            url="http://tile.mtbmap.cz/mtbmap_tiles/{z}/{x}/{y}.png"
+            maxZoom={18}
+          />
+        </LayersControl.BaseLayer>
+
+          {/* Stadia.AlidadeSatellite - Requires API key */}
+          {stadiaApiKey && (
+            <LayersControl.BaseLayer name="Stadia Alidade Satellite">
+              <TileLayer
+                attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+                url={`https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
+                maxZoom={20}
+              />
+            </LayersControl.BaseLayer>
+          )}
+
+          {/* OpenStreetMap Standard - Always available as fallback option */}
+          <LayersControl.BaseLayer name="OpenStreetMap Standard">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
+            />
+          </LayersControl.BaseLayer>
+      </LayersControl>
 
       {/* Fit bounds to show all water lines and mills */}
       <FitBounds waterLines={waterLines} mills={mills} />

@@ -101,8 +101,10 @@
 * messages: Translation JSON files (pt.json, en.json)
 
 
-**CURRENT CONTEXT (PHASE 5.9.8: MANUAL SYMBOLOGY CALIBRATION)**
-* **Focus:** Adjusting marker scale for visual clarity.
-* **Dimensions:** Markers are being set to a custom size (e.g., 40x40px).
-* **Anchor Logic:** `iconAnchor` must always be `[width/2, height]` to maintain geographic precision.
-* **Selection:** The CSS filter is used for selection, but the base `iconSize` is defined in `map-icons.ts`.
+**CURRENT CONTEXT (PHASE 5.9.22: ADVANCED CARTOGRAPHY)**
+* **Focus:** Implementing a multi-layer map system with custom providers.
+* **Layers:** Stadia (Stamen Terrain, Alidade Satellite), Thunderforest (OpenCycleMap, Neighbourhood), MtbMap, and OSM HOT.
+* **Constraints:** 1. Strictly enforce `maxZoom` for each specific tile provider.
+    2. Position `L.control.layers` in the 'bottomright' corner.
+    3. Use environment variables for all external API keys (Thunderforest/Stadia).
+* **Tech:** Integration within `src/components/features/MillMap.tsx` and `LevadaMap.tsx`.
