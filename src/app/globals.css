@@ -21,10 +21,10 @@
   border: none !important;
 }
 
-/* Grey out non-selected markers when a marker is selected */
+/* Apply transparency to non-selected markers when a marker is selected */
 .leaflet-marker-icon.mill-marker-greyed-out,
 .leaflet-marker-icon.mill-marker-greyed-out img {
-  filter: grayscale(100%) opacity(0.4) !important;
-  transition: filter 0.3s ease;
+  opacity: 0.7 !important;
+  transition: opacity 1s ease;
 }
 

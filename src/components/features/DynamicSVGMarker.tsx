@@ -53,7 +53,7 @@ export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut,
         if (isSelected) {
           const element = markerRef.current.getElement();
           if (element) {
-            element.style.filter = 'drop-shadow(0 0 5px gold) brightness(1.2)';
+            element.style.filter = 'drop-shadow(0 0 5px white) brightness(1.2)';
           }
         }
       }
@@ -73,7 +73,7 @@ export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut,
       const element = markerRef.current.getElement();
       if (element) {
         if (isSelected) {
-          element.style.filter = 'drop-shadow(0 0 5px gold) brightness(1.2)';
+          element.style.filter = 'drop-shadow(0 0 5px white) brightness(1.2)';
         } else {
           element.style.filter = '';
         }
@@ -96,7 +96,7 @@ export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut,
         if (ref && isSelected) {
           const element = ref.getElement();
           if (element) {
-            element.style.filter = 'drop-shadow(0 0 5px gold) brightness(1.2)';
+            element.style.filter = 'drop-shadow(0 0 5px white) brightness(1.2)';
           }
         }
         // Trigger icon update when marker is mounted (initial load)
@@ -117,7 +117,7 @@ export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut,
                   if (isSelected) {
                     const element = markerRef.current.getElement();
                     if (element) {
-                      element.style.filter = 'drop-shadow(0 0 5px gold) brightness(1.2)';
+                      element.style.filter = 'drop-shadow(0 0 5px white) brightness(1.2)';
                     }
                   }
                 }
