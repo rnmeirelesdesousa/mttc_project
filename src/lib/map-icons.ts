@@ -117,18 +117,177 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
       return null;
     }
 
-    // Target #marker-fill: Update its fill attribute (do NOT change opacity)
+    // Target #marker-fill and #marker-lines
     const markerFill = svgDoc.querySelector('#marker-fill');
+    const markerLines = svgDoc.querySelector('#marker-lines');
+    
+    // CRITICAL: Ensure marker-lines is rendered AFTER marker-fill in the DOM
+    // In SVG, elements that appear later in the DOM are rendered on top
+    // This ensures the lines are visible above the fill
+    if (markerFill && markerLines) {
+      const parent = markerFill.parentNode;
+      if (parent && parent === markerLines.parentNode) {
+        // Check current order
+        let fillIndex = -1;
+        let linesIndex = -1;
+        const children = Array.from(parent.childNodes).filter(
+          (node) => node.nodeType === Node.ELEMENT_NODE
+        ) as Element[];
+        
+        children.forEach((child, index) => {
+          if (child === markerFill) fillIndex = index;
+          if (child === markerLines) linesIndex = index;
+        });
+        
+        // If marker-fill comes after marker-lines (wrong order), reorder them
+        if (fillIndex > linesIndex) {
+          // Remove marker-lines from its current position
+          markerLines.remove();
+          // Insert it after marker-fill
+          if (markerFill.nextSibling) {
+            parent.insertBefore(markerLines, markerFill.nextSibling);
+          } else {
+            parent.appendChild(markerLines);
+          }
+          console.log('[fetchAndTintSVG] Reordered: marker-lines now comes after marker-fill');
+        } else if (fillIndex < linesIndex) {
+          console.log('[fetchAndTintSVG] Order is correct: marker-fill before marker-lines');
+        }
+      }
+    }
+    
+    const markerFillOriginalState: {
+      style: string | null;
+      fill: string | null;
+      fillOpacity: string | null;
+      stroke: string | null;
+      strokeWidth: string | null;
+    } = {
+      style: null,
+      fill: null,
+      fillOpacity: null,
+      stroke: null,
+      strokeWidth: null,
+    };
+    
     if (markerFill) {
-      markerFill.setAttribute('fill', fillColor);
-      // Preserve existing opacity if present, otherwise don't add one
+      // Store ALL original attributes of marker-fill
+      markerFillOriginalState.style = markerFill.getAttribute('style');
+      markerFillOriginalState.fill = markerFill.getAttribute('fill');
+      markerFillOriginalState.fillOpacity = markerFill.getAttribute('fill-opacity');
+      markerFillOriginalState.stroke = markerFill.getAttribute('stroke');
+      markerFillOriginalState.strokeWidth = markerFill.getAttribute('stroke-width');
     }
 
-    // Target #marker-lines: Update its fill and/or stroke attributes
-    const markerLines = svgDoc.querySelector('#marker-lines');
+    // Target #marker-lines: Update its fill and/or stroke attributes to water line color
+    // This is the only layer that should change color based on the connected water line
     if (markerLines) {
-      markerLines.setAttribute('fill', fillColor);
-      markerLines.setAttribute('stroke', fillColor);
+      // Find all child elements (paths, lines, circles, etc.) within the marker-lines group
+      // These child elements may have inline styles that override the group's fill/stroke
+      // IMPORTANT: Exclude marker-fill (it's a sibling, not a child, but be safe)
+      const childElements = Array.from(markerLines.querySelectorAll('path, line, circle, rect, polyline, polygon'))
+        .filter((el) => el.id !== 'marker-fill'); // Explicitly exclude marker-fill
+      
+      // Apply color to each child element (this overrides inline styles)
+      childElements.forEach((child) => {
+        // Get the original style before removing it (to preserve stroke-width and fill-rule)
+        const originalStyle = child.getAttribute('style') || '';
+        
+        // Extract stroke-width from the original style if it exists
+        let strokeWidth: string | null = null;
+        if (originalStyle) {
+          const strokeWidthMatch = originalStyle.match(/stroke-width:\s*([^;]+)/);
+          if (strokeWidthMatch) {
+            strokeWidth = strokeWidthMatch[1].trim();
+          }
+        }
+        
+        // Check if the original style has fill:none (it's a stroke-only line)
+        // or if it has a fill color (it's a filled shape)
+        const hasFillNone = originalStyle.includes('fill:none');
+        const fillMatch = originalStyle.match(/fill:\s*([^;]+)/);
+        const originalFill = fillMatch ? fillMatch[1].trim() : null;
+        
+        // Remove inline style attribute to allow our fill/stroke to take effect
+        child.removeAttribute('style');
+        
+        // If the original had fill:none, it's a stroke-only line - keep fill="none" and change stroke
+        // If the original had a fill color, it's a filled shape - change the fill color
+        if (hasFillNone) {
+          // This is a stroke-only line
+          child.setAttribute('fill', 'none');
+          child.setAttribute('stroke', fillColor);
+          // Preserve stroke-width if it existed in the original style
+          if (strokeWidth) {
+            child.setAttribute('stroke-width', strokeWidth);
+          }
+        } else if (originalFill && originalFill !== 'none') {
+          // This is a filled shape - change the fill color to the water line color
+          child.setAttribute('fill', fillColor);
+          // Preserve fill-rule if it existed
+          const fillRuleMatch = originalStyle.match(/fill-rule:\s*([^;]+)/);
+          if (fillRuleMatch) {
+            child.setAttribute('fill-rule', fillRuleMatch[1].trim());
+          }
+          // If it also has a stroke, change that too
+          if (originalStyle.includes('stroke:')) {
+            child.setAttribute('stroke', fillColor);
+            if (strokeWidth) {
+              child.setAttribute('stroke-width', strokeWidth);
+            }
+          }
+        } else {
+          // Default: set both fill and stroke to the water line color
+          child.setAttribute('fill', fillColor);
+          child.setAttribute('stroke', fillColor);
+          if (strokeWidth) {
+            child.setAttribute('stroke-width', strokeWidth);
+          }
+        }
+      });
+      
+      // Remove style from the group itself, but don't set fill/stroke on the group
+      // because the children have different needs (some are filled, some are stroke-only)
+      // Setting fill/stroke on the group would override the children's attributes
+      markerLines.removeAttribute('style');
+      
+      console.log('[fetchAndTintSVG] Updated marker-lines with color:', fillColor, `(${childElements.length} child elements)`);
+    } else {
+      console.warn('[fetchAndTintSVG] #marker-lines element not found in SVG. Available elements:', 
+        Array.from(svgDoc.querySelectorAll('[id]')).map(el => el.id).join(', '));
+    }
+
+    // Restore marker-fill to its original state
+    // Since marker-lines now uses fill="none", it won't affect marker-fill
+    if (markerFill) {
+      // Remove any attributes that might have been added during processing
+      markerFill.removeAttribute('fill');
+      markerFill.removeAttribute('fill-opacity');
+      markerFill.removeAttribute('stroke');
+      markerFill.removeAttribute('stroke-width');
+      
+      // Restore the original style attribute
+      if (markerFillOriginalState.style !== null) {
+        markerFill.setAttribute('style', markerFillOriginalState.style);
+      } else {
+        markerFill.removeAttribute('style');
+      }
+      
+      // Restore individual attributes if they existed originally
+      if (markerFillOriginalState.fill !== null) {
+        markerFill.setAttribute('fill', markerFillOriginalState.fill);
+      }
+      if (markerFillOriginalState.fillOpacity !== null) {
+        markerFill.setAttribute('fill-opacity', markerFillOriginalState.fillOpacity);
+      }
+      if (markerFillOriginalState.stroke !== null) {
+        markerFill.setAttribute('stroke', markerFillOriginalState.stroke);
+      }
+      if (markerFillOriginalState.strokeWidth !== null) {
+        markerFill.setAttribute('stroke-width', markerFillOriginalState.strokeWidth);
+      }
+      
+      console.log('[fetchAndTintSVG] Restored marker-fill to original state');
     }
 
     // Serialize back to string
@@ -229,14 +388,26 @@ export async function getMarkerIconAsync(
   // Add className for CSS styling when greyed out
   const className = isGreyedOut ? 'mill-marker-greyed-out' : '';
 
-  // Phase 5.9.8: Use neutral color if no water line color is provided
-  const fillColor = waterLineColor || '#4B5563'; // Neutral gray color
+  // Phase 5.9.8: Only tint marker-lines if a water line color is provided
+  // If no color is provided, use null to skip tinting (keep original marker-lines color)
+  const fillColor = waterLineColor || null;
 
-  // Fetch and tint the SVG template
-  const tintedSvgUrl = await fetchAndTintSVG(type, fillColor);
+  // Only fetch and tint if we have a color to apply
+  let tintedSvgUrl: string | null = null;
+  if (fillColor) {
+    tintedSvgUrl = await fetchAndTintSVG(type, fillColor);
+  } else {
+    // If no water line color, fetch the original template without tinting
+    const svgText = await fetchSVGTemplate(type);
+    if (svgText) {
+      const blob = new Blob([svgText], { type: 'image/svg+xml' });
+      tintedSvgUrl = URL.createObjectURL(blob);
+    }
+  }
   
   if (tintedSvgUrl) {
-    console.log('[getMarkerIconAsync] Successfully created icon for', type, 'with color', fillColor);
+    console.log('[getMarkerIconAsync] Successfully created icon for', type, 
+      fillColor ? `with marker-lines color: ${fillColor}` : 'with original colors (no water line)');
     return L.icon({
       iconUrl: tintedSvgUrl,
       iconRetinaUrl: tintedSvgUrl,
@@ -247,8 +418,8 @@ export async function getMarkerIconAsync(
     });
   }
 
-  // Fallback to transparent div icon if tinting fails (no blue pin)
-  console.warn('[getMarkerIconAsync] Tinting failed, using transparent fallback for', type);
+  // Fallback to transparent div icon if loading fails (no blue pin)
+  console.warn('[getMarkerIconAsync] Failed to load SVG, using transparent fallback for', type);
   return L.divIcon({
     className: className || 'bg-transparent',
     html: '<div style="width: 1px; height: 1px; opacity: 0;"></div>',

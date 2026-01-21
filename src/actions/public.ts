@@ -1261,6 +1261,9 @@ export async function getWaterLineBySlug(
           propertyStatus: row.propertyStatus,
           customIconUrl: row.customIconUrl,
           waterLineId: row.waterLineId,
+          // Phase 5.9.8: Include water line color for marker tinting
+          // Use the water line color from the join (row.waterLineColor)
+          waterLineColor: row.waterLineColor,
           title: row.title,
           description: row.description,
         };
