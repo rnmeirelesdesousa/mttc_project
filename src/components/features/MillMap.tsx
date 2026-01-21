@@ -286,6 +286,8 @@ export const MillMap = ({ mills, waterLines, locale, onMillClick, onMapClick, se
       {/* Render markers for each mill with clustering (Phase 5.9.3) */}
       <MarkerClusterGroup
         chunkedLoading
+        disableClusteringAtZoom={18}
+        maxClusterRadius={50}
         iconCreateFunction={(cluster) => {
           const count = cluster.getChildCount();
           return L.divIcon({
