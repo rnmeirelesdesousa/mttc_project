@@ -80,6 +80,15 @@ export interface MillFilters {
   roofShape?: string[];
   access?: string[];
   motiveApparatus?: string[];
+  epoch?: string[];
+  currentUse?: string[];
+  setting?: string[];
+  legalProtection?: string[];
+  propertyStatus?: string[];
+  constructionTechnique?: string[];
+  planShape?: string[];
+  volumetry?: string[];
+  exteriorFinish?: string[];
 }
 
 /**
@@ -137,6 +146,51 @@ export async function getPublishedMills(
     // Apply motive apparatus filter (if provided)
     if (filters?.motiveApparatus && filters.motiveApparatus.length > 0) {
       whereConditions.push(inArray(millsData.motiveApparatus, filters.motiveApparatus));
+    }
+
+    // Apply epoch filter (if provided)
+    if (filters?.epoch && filters.epoch.length > 0) {
+      whereConditions.push(inArray(millsData.epoch, filters.epoch));
+    }
+
+    // Apply current use filter (if provided)
+    if (filters?.currentUse && filters.currentUse.length > 0) {
+      whereConditions.push(inArray(millsData.currentUse, filters.currentUse));
+    }
+
+    // Apply setting filter (if provided)
+    if (filters?.setting && filters.setting.length > 0) {
+      whereConditions.push(inArray(millsData.setting, filters.setting));
+    }
+
+    // Apply legal protection filter (if provided)
+    if (filters?.legalProtection && filters.legalProtection.length > 0) {
+      whereConditions.push(inArray(millsData.legalProtection, filters.legalProtection));
+    }
+
+    // Apply property status filter (if provided)
+    if (filters?.propertyStatus && filters.propertyStatus.length > 0) {
+      whereConditions.push(inArray(millsData.propertyStatus, filters.propertyStatus));
+    }
+
+    // Apply construction technique filter (if provided)
+    if (filters?.constructionTechnique && filters.constructionTechnique.length > 0) {
+      whereConditions.push(inArray(millsData.constructionTechnique, filters.constructionTechnique));
+    }
+
+    // Apply plan shape filter (if provided)
+    if (filters?.planShape && filters.planShape.length > 0) {
+      whereConditions.push(inArray(millsData.planShape, filters.planShape));
+    }
+
+    // Apply volumetry filter (if provided)
+    if (filters?.volumetry && filters.volumetry.length > 0) {
+      whereConditions.push(inArray(millsData.volumetry, filters.volumetry));
+    }
+
+    // Apply exterior finish filter (if provided)
+    if (filters?.exteriorFinish && filters.exteriorFinish.length > 0) {
+      whereConditions.push(inArray(millsData.exteriorFinish, filters.exteriorFinish));
     }
 
     // Query published mills with joins and PostGIS coordinate extraction

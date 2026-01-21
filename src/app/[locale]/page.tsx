@@ -27,6 +27,15 @@ interface RootLocalePageProps {
     roofShape?: string | string[];
     access?: string | string[];
     motiveApparatus?: string | string[];
+    epoch?: string | string[];
+    currentUse?: string | string[];
+    setting?: string | string[];
+    legalProtection?: string | string[];
+    propertyStatus?: string | string[];
+    constructionTechnique?: string | string[];
+    planShape?: string | string[];
+    volumetry?: string | string[];
+    exteriorFinish?: string | string[];
     millId?: string;
   };
 }
@@ -83,6 +92,69 @@ export default async function RootLocalePage({ params, searchParams }: RootLocal
     filters.motiveApparatus = Array.isArray(searchParams.motiveApparatus)
       ? searchParams.motiveApparatus
       : [searchParams.motiveApparatus];
+  }
+
+  // Handle epoch (can be string or string[])
+  if (searchParams.epoch) {
+    filters.epoch = Array.isArray(searchParams.epoch)
+      ? searchParams.epoch
+      : [searchParams.epoch];
+  }
+
+  // Handle current use (can be string or string[])
+  if (searchParams.currentUse) {
+    filters.currentUse = Array.isArray(searchParams.currentUse)
+      ? searchParams.currentUse
+      : [searchParams.currentUse];
+  }
+
+  // Handle setting (can be string or string[])
+  if (searchParams.setting) {
+    filters.setting = Array.isArray(searchParams.setting)
+      ? searchParams.setting
+      : [searchParams.setting];
+  }
+
+  // Handle legal protection (can be string or string[])
+  if (searchParams.legalProtection) {
+    filters.legalProtection = Array.isArray(searchParams.legalProtection)
+      ? searchParams.legalProtection
+      : [searchParams.legalProtection];
+  }
+
+  // Handle property status (can be string or string[])
+  if (searchParams.propertyStatus) {
+    filters.propertyStatus = Array.isArray(searchParams.propertyStatus)
+      ? searchParams.propertyStatus
+      : [searchParams.propertyStatus];
+  }
+
+  // Handle construction technique (can be string or string[])
+  if (searchParams.constructionTechnique) {
+    filters.constructionTechnique = Array.isArray(searchParams.constructionTechnique)
+      ? searchParams.constructionTechnique
+      : [searchParams.constructionTechnique];
+  }
+
+  // Handle plan shape (can be string or string[])
+  if (searchParams.planShape) {
+    filters.planShape = Array.isArray(searchParams.planShape)
+      ? searchParams.planShape
+      : [searchParams.planShape];
+  }
+
+  // Handle volumetry (can be string or string[])
+  if (searchParams.volumetry) {
+    filters.volumetry = Array.isArray(searchParams.volumetry)
+      ? searchParams.volumetry
+      : [searchParams.volumetry];
+  }
+
+  // Handle exterior finish (can be string or string[])
+  if (searchParams.exteriorFinish) {
+    filters.exteriorFinish = Array.isArray(searchParams.exteriorFinish)
+      ? searchParams.exteriorFinish
+      : [searchParams.exteriorFinish];
   }
 
   // Fetch unique districts for the sidebar

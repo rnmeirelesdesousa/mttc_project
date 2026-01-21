@@ -44,7 +44,7 @@ export const MapWithSidebar = ({ mills, pocas = [], waterLines, locale, availabl
   const router = useRouter();
   const pathname = usePathname();
   const [selectedMillId, setSelectedMillId] = useState<string | null>(null);
-  const [filterSidebarOpen, setFilterSidebarOpen] = useState(false);
+  const [filterSidebarOpen, setFilterSidebarOpen] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
