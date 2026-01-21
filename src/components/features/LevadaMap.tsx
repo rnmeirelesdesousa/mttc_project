@@ -100,8 +100,19 @@ export const LevadaMap = ({ mills, waterLines, locale }: LevadaMapProps) => {
     >
       {/* Layer Control - positioned in bottom right */}
       <LayersControl position="bottomright">
-        {/* OpenStreetMap.HOT - Default base layer */}
-        <LayersControl.BaseLayer checked name="OpenStreetMap HOT">
+        {/* Stadia.AlidadeSatellite - Default base layer (Requires API key) */}
+        {stadiaApiKey ? (
+          <LayersControl.BaseLayer checked name="Stadia Alidade Satellite">
+            <TileLayer
+              attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+              url={`https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
+              maxZoom={20}
+            />
+          </LayersControl.BaseLayer>
+        ) : null}
+
+        {/* OpenStreetMap.HOT - Fallback default if Stadia API key not available */}
+        <LayersControl.BaseLayer checked={!stadiaApiKey} name="OpenStreetMap HOT">
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>'
             url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
@@ -151,25 +162,14 @@ export const LevadaMap = ({ mills, waterLines, locale }: LevadaMapProps) => {
           />
         </LayersControl.BaseLayer>
 
-          {/* Stadia.AlidadeSatellite - Requires API key */}
-          {stadiaApiKey && (
-            <LayersControl.BaseLayer name="Stadia Alidade Satellite">
-              <TileLayer
-                attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-                url={`https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
-                maxZoom={20}
-              />
-            </LayersControl.BaseLayer>
-          )}
-
-          {/* OpenStreetMap Standard - Always available as fallback option */}
-          <LayersControl.BaseLayer name="OpenStreetMap Standard">
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maxZoom={19}
-            />
-          </LayersControl.BaseLayer>
+        {/* OpenStreetMap Standard - Always available as fallback option */}
+        <LayersControl.BaseLayer name="OpenStreetMap Standard">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
+        </LayersControl.BaseLayer>
       </LayersControl>
 
       {/* Fit bounds to show all water lines and mills */}

@@ -3,7 +3,7 @@
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap, ZoomControl, LayersControl } from 'react-leaflet';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { LatLngExpression } from 'leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -93,6 +93,219 @@ function MapResizeHandler() {
   return null;
 }
 
+/**
+ * WaterLinesRenderer Component
+ * 
+ * Renders water lines only when zoom level is 15 or higher.
+ * This improves performance and reduces visual clutter at lower zoom levels.
+ */
+function WaterLinesRenderer({ 
+  waterLines, 
+  locale 
+}: { 
+  waterLines: MapWaterLine[]; 
+  locale: string;
+}) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(map.getZoom());
+  const t = useTranslations();
+
+  useEffect(() => {
+    const updateZoom = () => {
+      setZoom(map.getZoom());
+    };
+
+    map.on('zoomend', updateZoom);
+    updateZoom(); // Initial zoom level
+
+    return () => {
+      map.off('zoomend', updateZoom);
+    };
+  }, [map]);
+
+  // Only render water lines at zoom level 15 or higher
+  if (zoom < 15) {
+    return null;
+  }
+
+  return (
+    <>
+      {waterLines.map((waterLine) => {
+        if (!waterLine.path || waterLine.path.length < 2) {
+          return null; // Skip invalid water lines
+        }
+
+        return (
+          <Polyline
+            key={waterLine.id}
+            positions={waterLine.path}
+            pathOptions={{
+              color: waterLine.color,
+              weight: 4,
+              opacity: 0.8,
+            }}
+          >
+            <Popup>
+              <div className="p-2">
+                <h3 className="font-semibold text-sm mb-2">{waterLine.name}</h3>
+                <Link
+                  href={`/${locale}/levada/${waterLine.slug}`}
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  {t('map.viewDetails')}
+                </Link>
+              </div>
+            </Popup>
+          </Polyline>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * SmartFitBounds Component
+ * 
+ * Intelligently fits map bounds to show constructions (mills/pocas) only if they are clustered.
+ * - Starts with Portugal center and default zoom
+ * - Only zooms if constructions are clustered (not spread across all of Portugal)
+ * - Uses gentle zoom with padding to avoid zooming too much
+ */
+function SmartFitBounds({ 
+  mills, 
+  pocas,
+  portugalCenter,
+  defaultZoom 
+}: { 
+  mills: PublishedMill[]; 
+  pocas: PublishedPoca[];
+  portugalCenter: LatLngExpression;
+  defaultZoom: number;
+}) {
+  const map = useMap();
+  const hasFitted = useRef(false);
+
+  useEffect(() => {
+    // Only fit bounds once on initial load
+    if (hasFitted.current) return;
+
+    // Collect all construction coordinates
+    const allCoords: [number, number][] = [];
+
+    // Add mill coordinates
+    mills.forEach((mill) => {
+      if (mill.lat !== null && mill.lng !== null && !isNaN(mill.lat) && !isNaN(mill.lng)) {
+        allCoords.push([mill.lat, mill.lng]);
+      }
+    });
+
+    // Add poca coordinates
+    pocas.forEach((poca) => {
+      if (poca.lat !== null && poca.lng !== null && !isNaN(poca.lat) && !isNaN(poca.lng)) {
+        allCoords.push([poca.lat, poca.lng]);
+      }
+    });
+
+    // Need at least 2 points to calculate meaningful bounds
+    if (allCoords.length < 2) {
+      hasFitted.current = true;
+      return;
+    }
+
+    // Calculate bounds of constructions
+    const bounds = L.latLngBounds(allCoords);
+    const boundsLatSpan = bounds.getNorth() - bounds.getSouth();
+    const boundsLngSpan = bounds.getEast() - bounds.getWest();
+
+    // Portugal's approximate dimensions (in degrees)
+    // North: ~42.2°N, South: ~36.8°N (span ~5.4°)
+    // West: ~9.5°W, East: ~6.2°W (span ~3.3°)
+    const portugalLatSpan = 42.2 - 36.8; // ~5.4 degrees
+    const portugalLngSpan = -6.2 - (-9.5); // ~3.3 degrees
+
+    // Only zoom if constructions are clustered
+    // Consider clustered if both lat and lng spans are less than 60% of Portugal's spans
+    // This prevents zooming when constructions are spread across Portugal
+    const clusteringThreshold = 0.6;
+    const isClustered = 
+      boundsLatSpan < portugalLatSpan * clusteringThreshold &&
+      boundsLngSpan < portugalLngSpan * clusteringThreshold;
+
+    if (isClustered) {
+      // Add a small delay so users can see the map starts centered in Portugal
+      // Then zoom with a slower, smoother animation to make the transition clear
+      setTimeout(() => {
+        // Use flyToBounds for smoother animation - it respects duration better than fitBounds
+        // First expand bounds with padding
+        const paddedBounds = bounds.pad(0.2); // Add 20% padding
+        
+        // Calculate the center and zoom level for the bounds
+        const center = paddedBounds.getCenter();
+        const zoom = map.getBoundsZoom(paddedBounds, false);
+        const targetZoom = Math.min(zoom, 14); // Limit zoom to avoid zooming too close
+        
+        // Use flyTo for smooth, controlled animation with longer duration
+        map.flyTo(center, targetZoom, {
+          animate: true,
+          duration: 4, // Longer duration for very smooth, gradual zoom movement
+        });
+      }, 800); // 800ms delay to show Portugal view first
+    }
+
+    hasFitted.current = true;
+  }, [map, mills, pocas]);
+
+  return null;
+}
+
+/**
+ * ClusterZoomHandler Component
+ * 
+ * Handles cluster click events with slower zoom animation.
+ * Overrides the default fast zoom with a smoother, slower animation.
+ */
+function ClusterZoomHandler({ 
+  clusterGroupRef 
+}: { 
+  clusterGroupRef: React.RefObject<L.MarkerClusterGroup | null>;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const clusterGroup = clusterGroupRef.current;
+    if (!clusterGroup) return;
+
+    const handleClusterClick = (e: L.LeafletEvent & { layer: L.MarkerCluster }) => {
+      const cluster = e.layer;
+      
+      // Get the bounds of all markers in the cluster
+      const bounds = cluster.getBounds();
+      
+      // Add padding to bounds
+      const paddedBounds = bounds.pad(0.1);
+      
+      // Calculate center and zoom for the bounds
+      const center = paddedBounds.getCenter();
+      const zoom = map.getBoundsZoom(paddedBounds, false);
+      const targetZoom = Math.min(zoom, 17); // Don't zoom past clustering disable point
+      
+      // Use flyTo for smooth, slower animation
+      map.flyTo(center, targetZoom, {
+        animate: true,
+        duration: 2.5, // Slower animation for cluster zoom
+      });
+    };
+
+    clusterGroup.on('clusterclick', handleClusterClick as L.LeafletEventHandlerFn);
+
+    return () => {
+      clusterGroup.off('clusterclick', handleClusterClick as L.LeafletEventHandlerFn);
+    };
+  }, [map, clusterGroupRef]);
+
+  return null;
+}
+
 // Fix Leaflet icon issue in Next.js/Webpack
 // Leaflet's default icon paths don't work correctly with Webpack bundling
 // We need to manually set the icon URLs to point to the correct paths
@@ -144,6 +357,9 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
   const thunderforestApiKey = process.env.NEXT_PUBLIC_THUNDERFOREST_API_KEY;
   const stadiaApiKey = process.env.NEXT_PUBLIC_STADIA_API_KEY;
 
+  // Ref for cluster group to attach custom event handlers
+  const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+
   return (
     <div ref={mapContainerRef} className="relative h-full w-full">
       <MapContainer
@@ -159,8 +375,19 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
 
         {/* Layer Control - positioned in bottom right */}
         <LayersControl position="bottomright">
-          {/* OpenStreetMap.HOT - Default base layer */}
-          <LayersControl.BaseLayer checked name="OpenStreetMap HOT">
+          {/* Stadia.AlidadeSatellite - Default base layer (Requires API key) */}
+          {stadiaApiKey ? (
+            <LayersControl.BaseLayer checked name="Stadia Alidade Satellite">
+              <TileLayer
+                attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+                url={`https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
+                maxZoom={20}
+              />
+            </LayersControl.BaseLayer>
+          ) : null}
+
+          {/* OpenStreetMap.HOT - Fallback default if Stadia API key not available */}
+          <LayersControl.BaseLayer checked={!stadiaApiKey} name="OpenStreetMap HOT">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>'
               url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
@@ -210,17 +437,6 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
             />
           </LayersControl.BaseLayer>
 
-          {/* Stadia.AlidadeSatellite - Requires API key */}
-          {stadiaApiKey && (
-            <LayersControl.BaseLayer name="Stadia Alidade Satellite">
-              <TileLayer
-                attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-                url={`https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
-                maxZoom={20}
-              />
-            </LayersControl.BaseLayer>
-          )}
-
           {/* OpenStreetMap Standard - Always available as fallback option */}
           <LayersControl.BaseLayer name="OpenStreetMap Standard">
             <TileLayer
@@ -236,6 +452,14 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
 
         {/* Map resize handler - ensures map resizes when container size changes */}
         <MapResizeHandler />
+
+        {/* Smart fit bounds - zooms to constructions only if they are clustered */}
+        <SmartFitBounds 
+          mills={mills}
+          pocas={pocas}
+          portugalCenter={portugalCenter}
+          defaultZoom={defaultZoom}
+        />
 
         {/* Focus zoom handler - automatically centers and zooms to selected mill at 50% viewport width */}
         {selectedMillCoords && (
@@ -253,42 +477,19 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
           />
         )}
 
-      {/* Render water lines as polylines (Phase 5.9.2.4) */}
-      {waterLines.map((waterLine) => {
-        if (!waterLine.path || waterLine.path.length < 2) {
-          return null; // Skip invalid water lines
-        }
-
-        return (
-          <Polyline
-            key={waterLine.id}
-            positions={waterLine.path}
-            pathOptions={{
-              color: waterLine.color,
-              weight: 4,
-              opacity: 0.8,
-            }}
-          >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold text-sm mb-2">{waterLine.name}</h3>
-                <Link
-                  href={`/${locale}/levada/${waterLine.slug}`}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
-                >
-                  {t('map.viewDetails')}
-                </Link>
-              </div>
-            </Popup>
-          </Polyline>
-        );
-      })}
+      {/* Render water lines as polylines - only visible at zoom 15+ */}
+      <WaterLinesRenderer waterLines={waterLines} locale={locale} />
 
       {/* Render markers for each mill with clustering (Phase 5.9.3) */}
+      <ClusterZoomHandler clusterGroupRef={clusterGroupRef} />
       <MarkerClusterGroup
+        ref={clusterGroupRef}
         chunkedLoading
         disableClusteringAtZoom={17}
         maxClusterRadius={50}
+        zoomToBoundsOnClick={false}
+        spiderfyOnMaxZoom={false}
+        showCoverageOnHover={false}
         iconCreateFunction={(cluster) => {
           const count = cluster.getChildCount();
           return L.divIcon({
