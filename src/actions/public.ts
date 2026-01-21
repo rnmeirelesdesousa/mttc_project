@@ -1588,19 +1588,81 @@ export interface SearchableMill {
   title: string | null; // Title from current locale (fallback)
   titleLangCode: string | null; // Language code of the title (for display)
   slug: string;
+  legacyId: string | null;
   district: string | null;
   municipality: string | null;
   parish: string | null;
   address: string | null;
+  place: string | null;
   typology: string;
   roofMaterial: string | null;
+  roofShape: string | null;
+  access: string | null;
   motiveApparatus: string | null;
+  epoch: string | null;
+  currentUse: string | null;
+  setting: string | null;
+  legalProtection: string | null;
+  propertyStatus: string | null;
+  constructionTechnique: string | null;
+  planShape: string | null;
+  volumetry: string | null;
+  exteriorFinish: string | null;
+  // Hydraulic System
+  captationType: string | null;
+  conductionType: string | null;
+  conductionState: string | null;
+  admissionRodizio: string | null;
+  admissionAzenha: string | null;
+  wheelTypeRodizio: string | null;
+  wheelTypeAzenha: string | null;
+  rodizioQty: number | null;
+  azenhaQty: number | null;
+  // Grinding Mechanism
+  millstoneQuantity: number | null;
+  millstoneDiameter: string | null;
+  millstoneState: string | null;
+  hasTremonha: boolean;
+  hasQuelha: boolean;
+  hasUrreiro: boolean;
+  hasAliviadouro: boolean;
+  hasFarinaleiro: boolean;
+  // Epigraphy
+  epigraphyPresence: boolean;
+  epigraphyLocation: string | null;
+  epigraphyType: string | null;
+  epigraphyDescription: string | null;
+  // Conservation Ratings
+  ratingStructure: string | null;
+  ratingRoof: string | null;
+  ratingHydraulic: string | null;
+  ratingMechanism: string | null;
+  ratingOverall: string | null;
+  // Annexes
+  hasOven: boolean;
+  hasMillerHouse: boolean;
+  hasStable: boolean;
+  hasFullingMill: boolean;
+  // Stone Materials
+  stoneTypeGranite: boolean;
+  stoneTypeSchist: boolean;
+  stoneTypeOther: boolean;
+  stoneMaterialDescription: string | null;
+  // Gable Materials
+  gableMaterialLusa: boolean;
+  gableMaterialMarselha: boolean;
+  gableMaterialMeiaCana: boolean;
+  // Dimensions
+  length: number | null;
+  width: number | null;
+  height: number | null;
   // All translations for cross-language search
   translations: Array<{
     langCode: string;
     title: string;
     description: string | null;
   }>;
+  mainImage: string | null;
   lat: number;
   lng: number;
 }
@@ -1637,13 +1699,75 @@ export async function getSearchableMills(
       .select({
         id: constructions.id,
         slug: constructions.slug,
+        legacyId: constructions.legacyId,
         district: constructions.district,
         municipality: constructions.municipality,
         parish: constructions.parish,
         address: constructions.address,
+        place: constructions.place,
         typology: millsData.typology,
         roofMaterial: millsData.roofMaterial,
+        roofShape: millsData.roofShape,
+        access: millsData.access,
         motiveApparatus: millsData.motiveApparatus,
+        epoch: millsData.epoch,
+        currentUse: millsData.currentUse,
+        setting: millsData.setting,
+        legalProtection: millsData.legalProtection,
+        propertyStatus: millsData.propertyStatus,
+        constructionTechnique: millsData.constructionTechnique,
+        planShape: millsData.planShape,
+        volumetry: millsData.volumetry,
+        exteriorFinish: millsData.exteriorFinish,
+        // Hydraulic System
+        captationType: millsData.captationType,
+        conductionType: millsData.conductionType,
+        conductionState: millsData.conductionState,
+        admissionRodizio: millsData.admissionRodizio,
+        admissionAzenha: millsData.admissionAzenha,
+        wheelTypeRodizio: millsData.wheelTypeRodizio,
+        wheelTypeAzenha: millsData.wheelTypeAzenha,
+        rodizioQty: millsData.rodizioQty,
+        azenhaQty: millsData.azenhaQty,
+        // Grinding Mechanism
+        millstoneQuantity: millsData.millstoneQuantity,
+        millstoneDiameter: millsData.millstoneDiameter,
+        millstoneState: millsData.millstoneState,
+        hasTremonha: millsData.hasTremonha,
+        hasQuelha: millsData.hasQuelha,
+        hasUrreiro: millsData.hasUrreiro,
+        hasAliviadouro: millsData.hasAliviadouro,
+        hasFarinaleiro: millsData.hasFarinaleiro,
+        // Epigraphy
+        epigraphyPresence: millsData.epigraphyPresence,
+        epigraphyLocation: millsData.epigraphyLocation,
+        epigraphyType: millsData.epigraphyType,
+        epigraphyDescription: millsData.epigraphyDescription,
+        // Conservation Ratings
+        ratingStructure: millsData.ratingStructure,
+        ratingRoof: millsData.ratingRoof,
+        ratingHydraulic: millsData.ratingHydraulic,
+        ratingMechanism: millsData.ratingMechanism,
+        ratingOverall: millsData.ratingOverall,
+        // Annexes
+        hasOven: millsData.hasOven,
+        hasMillerHouse: millsData.hasMillerHouse,
+        hasStable: millsData.hasStable,
+        hasFullingMill: millsData.hasFullingMill,
+        // Stone Materials
+        stoneTypeGranite: millsData.stoneTypeGranite,
+        stoneTypeSchist: millsData.stoneTypeSchist,
+        stoneTypeOther: millsData.stoneTypeOther,
+        stoneMaterialDescription: millsData.stoneMaterialDescription,
+        // Gable Materials
+        gableMaterialLusa: millsData.gableMaterialLusa,
+        gableMaterialMarselha: millsData.gableMaterialMarselha,
+        gableMaterialMeiaCana: millsData.gableMaterialMeiaCana,
+        // Dimensions
+        length: millsData.length,
+        width: millsData.width,
+        height: millsData.height,
+        mainImage: constructions.mainImage,
         lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
         lat: sql<number | null>`COALESCE(ST_Y(${constructions.geom}::geometry), NULL)`,
         // Translation fields (will be joined separately for all languages)
@@ -1664,13 +1788,75 @@ export async function getSearchableMills(
     const millsMap = new Map<string, {
       id: string;
       slug: string;
+      legacyId: string | null;
       district: string | null;
       municipality: string | null;
       parish: string | null;
       address: string | null;
+      place: string | null;
       typology: string;
       roofMaterial: string | null;
+      roofShape: string | null;
+      access: string | null;
       motiveApparatus: string | null;
+      epoch: string | null;
+      currentUse: string | null;
+      setting: string | null;
+      legalProtection: string | null;
+      propertyStatus: string | null;
+      constructionTechnique: string | null;
+      planShape: string | null;
+      volumetry: string | null;
+      exteriorFinish: string | null;
+      // Hydraulic System
+      captationType: string | null;
+      conductionType: string | null;
+      conductionState: string | null;
+      admissionRodizio: string | null;
+      admissionAzenha: string | null;
+      wheelTypeRodizio: string | null;
+      wheelTypeAzenha: string | null;
+      rodizioQty: number | null;
+      azenhaQty: number | null;
+      // Grinding Mechanism
+      millstoneQuantity: number | null;
+      millstoneDiameter: string | null;
+      millstoneState: string | null;
+      hasTremonha: boolean;
+      hasQuelha: boolean;
+      hasUrreiro: boolean;
+      hasAliviadouro: boolean;
+      hasFarinaleiro: boolean;
+      // Epigraphy
+      epigraphyPresence: boolean;
+      epigraphyLocation: string | null;
+      epigraphyType: string | null;
+      epigraphyDescription: string | null;
+      // Conservation Ratings
+      ratingStructure: string | null;
+      ratingRoof: string | null;
+      ratingHydraulic: string | null;
+      ratingMechanism: string | null;
+      ratingOverall: string | null;
+      // Annexes
+      hasOven: boolean;
+      hasMillerHouse: boolean;
+      hasStable: boolean;
+      hasFullingMill: boolean;
+      // Stone Materials
+      stoneTypeGranite: boolean;
+      stoneTypeSchist: boolean;
+      stoneTypeOther: boolean;
+      stoneMaterialDescription: string | null;
+      // Gable Materials
+      gableMaterialLusa: boolean;
+      gableMaterialMarselha: boolean;
+      gableMaterialMeiaCana: boolean;
+      // Dimensions
+      length: number | null;
+      width: number | null;
+      height: number | null;
+      mainImage: string | null;
       lat: number | null;
       lng: number | null;
       translations: Array<{
@@ -1693,13 +1879,75 @@ export async function getSearchableMills(
         millsMap.set(row.id, {
           id: row.id,
           slug: row.slug,
+          legacyId: row.legacyId,
           district: row.district,
           municipality: row.municipality,
           parish: row.parish,
           address: row.address,
+          place: row.place,
           typology: row.typology,
           roofMaterial: row.roofMaterial,
+          roofShape: row.roofShape,
+          access: row.access,
           motiveApparatus: row.motiveApparatus,
+          epoch: row.epoch,
+          currentUse: row.currentUse,
+          setting: row.setting,
+          legalProtection: row.legalProtection,
+          propertyStatus: row.propertyStatus,
+          constructionTechnique: row.constructionTechnique,
+          planShape: row.planShape,
+          volumetry: row.volumetry,
+          exteriorFinish: row.exteriorFinish,
+          // Hydraulic System
+          captationType: row.captationType,
+          conductionType: row.conductionType,
+          conductionState: row.conductionState,
+          admissionRodizio: row.admissionRodizio,
+          admissionAzenha: row.admissionAzenha,
+          wheelTypeRodizio: row.wheelTypeRodizio,
+          wheelTypeAzenha: row.wheelTypeAzenha,
+          rodizioQty: row.rodizioQty,
+          azenhaQty: row.azenhaQty,
+          // Grinding Mechanism
+          millstoneQuantity: row.millstoneQuantity,
+          millstoneDiameter: row.millstoneDiameter,
+          millstoneState: row.millstoneState,
+          hasTremonha: row.hasTremonha,
+          hasQuelha: row.hasQuelha,
+          hasUrreiro: row.hasUrreiro,
+          hasAliviadouro: row.hasAliviadouro,
+          hasFarinaleiro: row.hasFarinaleiro,
+          // Epigraphy
+          epigraphyPresence: row.epigraphyPresence,
+          epigraphyLocation: row.epigraphyLocation,
+          epigraphyType: row.epigraphyType,
+          epigraphyDescription: row.epigraphyDescription,
+          // Conservation Ratings
+          ratingStructure: row.ratingStructure,
+          ratingRoof: row.ratingRoof,
+          ratingHydraulic: row.ratingHydraulic,
+          ratingMechanism: row.ratingMechanism,
+          ratingOverall: row.ratingOverall,
+          // Annexes
+          hasOven: row.hasOven,
+          hasMillerHouse: row.hasMillerHouse,
+          hasStable: row.hasStable,
+          hasFullingMill: row.hasFullingMill,
+          // Stone Materials
+          stoneTypeGranite: row.stoneTypeGranite,
+          stoneTypeSchist: row.stoneTypeSchist,
+          stoneTypeOther: row.stoneTypeOther,
+          stoneMaterialDescription: row.stoneMaterialDescription,
+          // Gable Materials
+          gableMaterialLusa: row.gableMaterialLusa,
+          gableMaterialMarselha: row.gableMaterialMarselha,
+          gableMaterialMeiaCana: row.gableMaterialMeiaCana,
+          // Dimensions
+          length: row.length,
+          width: row.width,
+          height: row.height,
+          mainImage: row.mainImage,
           lat,
           lng,
           translations: [],
@@ -1735,16 +1983,78 @@ export async function getSearchableMills(
         return {
           id: mill.id,
           slug: mill.slug,
+          legacyId: mill.legacyId,
           title: currentLocaleTranslation?.title || fallbackTranslation?.title || null,
           titleLangCode: currentLocaleTranslation?.langCode || fallbackTranslation?.langCode || null,
           district: mill.district,
           municipality: mill.municipality,
           parish: mill.parish,
           address: mill.address,
+          place: mill.place,
           typology: mill.typology,
           roofMaterial: mill.roofMaterial,
+          roofShape: mill.roofShape,
+          access: mill.access,
           motiveApparatus: mill.motiveApparatus,
+          epoch: mill.epoch,
+          currentUse: mill.currentUse,
+          setting: mill.setting,
+          legalProtection: mill.legalProtection,
+          propertyStatus: mill.propertyStatus,
+          constructionTechnique: mill.constructionTechnique,
+          planShape: mill.planShape,
+          volumetry: mill.volumetry,
+          exteriorFinish: mill.exteriorFinish,
+          // Hydraulic System
+          captationType: mill.captationType,
+          conductionType: mill.conductionType,
+          conductionState: mill.conductionState,
+          admissionRodizio: mill.admissionRodizio,
+          admissionAzenha: mill.admissionAzenha,
+          wheelTypeRodizio: mill.wheelTypeRodizio,
+          wheelTypeAzenha: mill.wheelTypeAzenha,
+          rodizioQty: mill.rodizioQty,
+          azenhaQty: mill.azenhaQty,
+          // Grinding Mechanism
+          millstoneQuantity: mill.millstoneQuantity,
+          millstoneDiameter: mill.millstoneDiameter,
+          millstoneState: mill.millstoneState,
+          hasTremonha: mill.hasTremonha,
+          hasQuelha: mill.hasQuelha,
+          hasUrreiro: mill.hasUrreiro,
+          hasAliviadouro: mill.hasAliviadouro,
+          hasFarinaleiro: mill.hasFarinaleiro,
+          // Epigraphy
+          epigraphyPresence: mill.epigraphyPresence,
+          epigraphyLocation: mill.epigraphyLocation,
+          epigraphyType: mill.epigraphyType,
+          epigraphyDescription: mill.epigraphyDescription,
+          // Conservation Ratings
+          ratingStructure: mill.ratingStructure,
+          ratingRoof: mill.ratingRoof,
+          ratingHydraulic: mill.ratingHydraulic,
+          ratingMechanism: mill.ratingMechanism,
+          ratingOverall: mill.ratingOverall,
+          // Annexes
+          hasOven: mill.hasOven,
+          hasMillerHouse: mill.hasMillerHouse,
+          hasStable: mill.hasStable,
+          hasFullingMill: mill.hasFullingMill,
+          // Stone Materials
+          stoneTypeGranite: mill.stoneTypeGranite,
+          stoneTypeSchist: mill.stoneTypeSchist,
+          stoneTypeOther: mill.stoneTypeOther,
+          stoneMaterialDescription: mill.stoneMaterialDescription,
+          // Gable Materials
+          gableMaterialLusa: mill.gableMaterialLusa,
+          gableMaterialMarselha: mill.gableMaterialMarselha,
+          gableMaterialMeiaCana: mill.gableMaterialMeiaCana,
+          // Dimensions
+          length: mill.length,
+          width: mill.width,
+          height: mill.height,
           translations: mill.translations,
+          mainImage: mill.mainImage,
           lat: mill.lat!,
           lng: mill.lng!,
         };
@@ -1756,6 +2066,299 @@ export async function getSearchableMills(
     return {
       success: false,
       error: 'An error occurred while fetching searchable mills',
+    };
+  }
+}
+
+/**
+ * Searchable water line data for global search functionality
+ */
+export interface SearchableWaterLine {
+  id: string;
+  slug: string;
+  name: string | null; // Name from current locale (fallback)
+  nameLangCode: string | null; // Language code of the name
+  // All translations for cross-language search
+  translations: Array<{
+    langCode: string;
+    name: string;
+    description: string | null;
+  }>;
+}
+
+/**
+ * Searchable poca data for global search functionality
+ */
+export interface SearchablePoca {
+  id: string;
+  slug: string;
+  title: string | null; // Title from current locale (fallback)
+  titleLangCode: string | null; // Language code of the title
+  waterLineId: string;
+  waterLineName: string | null; // Name of associated water line
+  // All translations for cross-language search
+  translations: Array<{
+    langCode: string;
+    title: string;
+    description: string | null;
+  }>;
+  lat: number;
+  lng: number;
+}
+
+/**
+ * Fetches all published water lines with searchable fields for global search
+ * 
+ * Cross-language search: Fetches all translations for each water line to enable
+ * searching across all languages.
+ * 
+ * @param locale - Language code ('pt' | 'en') - used as fallback for name display
+ * @returns Standardized response with array of searchable water lines
+ */
+export async function getSearchableWaterLines(
+  locale: string
+): Promise<
+  | { success: true; data: SearchableWaterLine[] }
+  | { success: false; error: string }
+> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
+    }
+
+    // Query published water lines with ALL translations
+    const results = await db
+      .select({
+        id: waterLines.id,
+        slug: constructions.slug,
+        translationLangCode: waterLineTranslations.locale,
+        translationName: waterLineTranslations.name,
+        translationDescription: waterLineTranslations.description,
+      })
+      .from(constructions)
+      .innerJoin(
+        waterLines,
+        eq(waterLines.constructionId, constructions.id)
+      )
+      .leftJoin(
+        waterLineTranslations,
+        eq(waterLineTranslations.waterLineId, waterLines.id)
+        // Note: No locale filter - we want ALL translations
+      )
+      .where(
+        and(
+          eq(constructions.typeCategory, 'water_line'),
+          eq(constructions.status, 'published')
+        )
+      );
+
+    // Group results by water line ID and collect all translations
+    const waterLinesMap = new Map<string, {
+      id: string;
+      slug: string;
+      translations: Array<{
+        langCode: string;
+        name: string;
+        description: string | null;
+      }>;
+    }>();
+
+    for (const row of results) {
+      if (!waterLinesMap.has(row.id)) {
+        waterLinesMap.set(row.id, {
+          id: row.id,
+          slug: row.slug,
+          translations: [],
+        });
+      }
+
+      const waterLine = waterLinesMap.get(row.id)!;
+      
+      // Add translation if it exists and hasn't been added yet
+      if (row.translationLangCode && row.translationName) {
+        const existingTranslation = waterLine.translations.find(
+          (t) => t.langCode === row.translationLangCode
+        );
+        if (!existingTranslation) {
+          waterLine.translations.push({
+            langCode: row.translationLangCode,
+            name: row.translationName,
+            description: row.translationDescription,
+          });
+        }
+      }
+    }
+
+    // Transform to SearchableWaterLine format
+    const waterLines: SearchableWaterLine[] = Array.from(waterLinesMap.values())
+      .map((wl) => {
+        // Find name from current locale (fallback), or first available
+        const currentLocaleTranslation = wl.translations.find(
+          (t) => t.langCode === locale
+        );
+        const fallbackTranslation = wl.translations[0] || null;
+
+        return {
+          id: wl.id,
+          slug: wl.slug,
+          name: currentLocaleTranslation?.name || fallbackTranslation?.name || null,
+          nameLangCode: currentLocaleTranslation?.langCode || fallbackTranslation?.langCode || null,
+          translations: wl.translations,
+        };
+      });
+
+    return { success: true, data: waterLines };
+  } catch (error) {
+    console.error('[getSearchableWaterLines]:', error);
+    return {
+      success: false,
+      error: 'An error occurred while fetching searchable water lines',
+    };
+  }
+}
+
+/**
+ * Fetches all published pocas with searchable fields for global search
+ * 
+ * Cross-language search: Fetches all translations for each poca to enable
+ * searching across all languages.
+ * 
+ * @param locale - Language code ('pt' | 'en') - used as fallback for title display
+ * @returns Standardized response with array of searchable pocas
+ */
+export async function getSearchablePocas(
+  locale: string
+): Promise<
+  | { success: true; data: SearchablePoca[] }
+  | { success: false; error: string }
+> {
+  try {
+    // Validate locale
+    if (!locale || (locale !== 'pt' && locale !== 'en')) {
+      return { success: false, error: 'Invalid locale. Must be "pt" or "en"' };
+    }
+
+    // Query published pocas with ALL translations and water line names
+    const results = await db
+      .select({
+        id: constructions.id,
+        slug: constructions.slug,
+        waterLineId: pocasData.waterLineId,
+        waterLineName: waterLineTranslations.name,
+        lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
+        lat: sql<number | null>`COALESCE(ST_Y(${constructions.geom}::geometry), NULL)`,
+        // Translation fields (will be joined separately for all languages)
+        translationLangCode: constructionTranslations.langCode,
+        translationTitle: constructionTranslations.title,
+        translationDescription: constructionTranslations.description,
+      })
+      .from(constructions)
+      .innerJoin(pocasData, eq(pocasData.constructionId, constructions.id))
+      .leftJoin(
+        waterLines,
+        eq(waterLines.id, pocasData.waterLineId)
+      )
+      .leftJoin(
+        waterLineTranslations,
+        and(
+          eq(waterLineTranslations.waterLineId, waterLines.id),
+          eq(waterLineTranslations.locale, locale)
+        )
+      )
+      .leftJoin(
+        constructionTranslations,
+        eq(constructionTranslations.constructionId, constructions.id)
+        // Note: No langCode filter - we want ALL translations
+      )
+      .where(
+        and(
+          eq(constructions.status, 'published'),
+          eq(constructions.typeCategory, 'POCA')
+        )
+      );
+
+    // Group results by construction ID and collect all translations
+    const pocasMap = new Map<string, {
+      id: string;
+      slug: string;
+      waterLineId: string;
+      waterLineName: string | null;
+      lat: number | null;
+      lng: number | null;
+      translations: Array<{
+        langCode: string;
+        title: string;
+        description: string | null;
+      }>;
+    }>();
+
+    for (const row of results) {
+      const lat = row.lat !== null ? Number(row.lat) : null;
+      const lng = row.lng !== null ? Number(row.lng) : null;
+      
+      // Skip pocas with invalid coordinates
+      if (lat === null || lng === null || isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        continue;
+      }
+
+      if (!pocasMap.has(row.id)) {
+        pocasMap.set(row.id, {
+          id: row.id,
+          slug: row.slug,
+          waterLineId: row.waterLineId || '',
+          waterLineName: row.waterLineName,
+          lat,
+          lng,
+          translations: [],
+        });
+      }
+
+      const poca = pocasMap.get(row.id)!;
+      
+      // Add translation if it exists and hasn't been added yet
+      if (row.translationLangCode && row.translationTitle) {
+        const existingTranslation = poca.translations.find(
+          (t) => t.langCode === row.translationLangCode
+        );
+        if (!existingTranslation) {
+          poca.translations.push({
+            langCode: row.translationLangCode,
+            title: row.translationTitle,
+            description: row.translationDescription,
+          });
+        }
+      }
+    }
+
+    // Transform to SearchablePoca format
+    const pocas: SearchablePoca[] = Array.from(pocasMap.values())
+      .map((poca) => {
+        // Find title from current locale (fallback), or first available
+        const currentLocaleTranslation = poca.translations.find(
+          (t) => t.langCode === locale
+        );
+        const fallbackTranslation = poca.translations[0] || null;
+
+        return {
+          id: poca.id,
+          slug: poca.slug,
+          title: currentLocaleTranslation?.title || fallbackTranslation?.title || null,
+          titleLangCode: currentLocaleTranslation?.langCode || fallbackTranslation?.langCode || null,
+          waterLineId: poca.waterLineId,
+          waterLineName: poca.waterLineName,
+          translations: poca.translations,
+          lat: poca.lat!,
+          lng: poca.lng!,
+        };
+      });
+
+    return { success: true, data: pocas };
+  } catch (error) {
+    console.error('[getSearchablePocas]:', error);
+    return {
+      success: false,
+      error: 'An error occurred while fetching searchable pocas',
     };
   }
 }

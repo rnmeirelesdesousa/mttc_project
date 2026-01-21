@@ -605,7 +605,7 @@
     }
   },
   "home": {
-    "title": "Base de Dados de Alvenaria Portuguesa",
+    "title": "Base de Dados de Alvenaria Portuguesa - MTTC",
     "mission": "Documentação científica e preservação do património dos moinhos portugueses",
     "description": "Explore o inventário completo de moinhos de água e vento, levadas e infraestruturas hidráulicas históricas de Portugal.",
     "exploreMap": "Explorar o Mapa",
@@ -619,7 +619,7 @@
     "map": "Mapa"
   },
   "search": {
-    "placeholder": "Pesquisar moinhos por nome, distrito, tipologia, material..."
+    "placeholder": "Pesquisar moinhos, levadas, poças..."
   },
   "pocas": {
     "new": {
