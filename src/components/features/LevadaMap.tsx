@@ -198,7 +198,7 @@ export const LevadaMap = ({ mills, waterLines, locale }: LevadaMapProps) => {
       {/* Render markers for each mill with clustering */}
       <MarkerClusterGroup
         chunkedLoading
-        disableClusteringAtZoom={18}
+        disableClusteringAtZoom={17}
         maxClusterRadius={50}
         iconCreateFunction={(cluster) => {
           const count = cluster.getChildCount();

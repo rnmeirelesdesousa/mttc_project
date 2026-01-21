@@ -201,7 +201,7 @@
       "pedestrian": "Pedonal",
       "car": "Acesso por Carro",
       "difficult_none": "Difícil / Nenhum",
-      "traditional_track": "Caminho Tradicional"
+      "traditional_track": "Caminho Pedonal e Carro de Bois"
     },
     "legalProtection": {
       "inexistent": "Inexistente",
@@ -229,13 +229,13 @@
     "planShape": {
       "circular": "Circular",
       "quadrangular": "Quadrangular",
-      "rectangular": "Rectangular",
+      "rectangular": "Retangular",
       "irregular": "Irregular"
     },
     "volumetry": {
       "cylindrical": "Cilíndrico",
       "conical": "Cónico",
-      "prismatic_sq_rec": "Prismático (Quadrado/Rectangular)"
+      "prismatic_sq_rec": "Prismático (Quadrado/Retangular)"
     },
     "constructionTechnique": {
       "dry_stone": "Pedra Seca",
@@ -340,9 +340,9 @@
       "other": "Outro"
     },
     "gableMaterial": {
-      "lusa": "Lusa",
-      "marselha": "Marselha",
-      "meiaCana": "Meia-cana"
+      "lusa": "Telha Lusa",
+      "marselha": "Telha Marselha",
+      "meiaCana": "Telha de Meia-cana"
     }
   },
   "add": {
@@ -432,9 +432,9 @@
           "roofTypeStone": "Pedra",
           "roofTypeGable": "Duas Águas",
           "gableRoofMaterials": "Materiais da Cobertura de Duas Águas",
-          "gableRoofMaterialLusa": "Lusa",
-          "gableRoofMaterialMarselha": "Marselha",
-          "gableRoofMaterialMeiaCana": "Meia-cana",
+          "gableRoofMaterialLusa": "Telha Lusa",
+          "gableRoofMaterialMarselha": "Telha Marselha",
+          "gableRoofMaterialMeiaCana": "Telha de Meia-cana",
           "roofShape": "Tipo de Cobertura",
           "roofShapePlaceholder": "Selecione a forma",
           "roofMaterial": "Material da Cobertura",
