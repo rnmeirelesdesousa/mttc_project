@@ -33,7 +33,7 @@ function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
  * FocusZoomHandler Component
  * 
  * Handles automatic map zoom and centering when a mill is selected.
- * Centers the marker at 50% of the viewport width.
+ * Centers the marker at 33% of the viewport width (1/3 from the left).
  * Uses a single flyTo animation by calculating the offset coordinates first.
  */
 function FocusZoomHandler({ 
@@ -48,13 +48,36 @@ function FocusZoomHandler({
     if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
       // Use maxZoom of Stadia Alidade Satellite (20)
       const zoomLevel = 20;
-      const targetLatLng: [number, number] = [lat, lng];
+      const targetLatLng = L.latLng(lat, lng);
       
-      // Single smooth animation directly to the marker coordinates
-      // This centers the marker at 50% of viewport width (center of screen)
-      map.flyTo(targetLatLng, zoomLevel, {
+      // Calculate the adjusted center point before animation
+      // We need to offset the center so marker appears at 33% from left instead of 50% (center)
+      const containerWidth = map.getContainer().offsetWidth;
+      const offsetPixels = containerWidth * 0.17; // 17% offset (50% - 33%)
+      
+      // Temporarily set zoom to target level and center at target location (without animation)
+      // to calculate the lat/lng offset at the actual target location
+      const currentZoom = map.getZoom();
+      const currentCenter = map.getCenter();
+      map.setView(targetLatLng, zoomLevel, { animate: false });
+      
+      // At target zoom with center at targetLatLng, calculate the offset
+      // Get center in pixels (should be at 50% of viewport)
+      const centerPixel = map.latLngToContainerPoint(targetLatLng);
+      
+      // Calculate offset center pixel (move right by offsetPixels)
+      const offsetCenterPixel = L.point(centerPixel.x + offsetPixels, centerPixel.y);
+      
+      // Convert offset center pixel back to lat/lng - this is our adjusted center
+      const adjustedCenter = map.containerPointToLatLng(offsetCenterPixel);
+      
+      // Reset zoom and center to current state before animation
+      map.setView(currentCenter, currentZoom, { animate: false });
+      
+      // Now fly directly to the adjusted center
+      map.flyTo(adjustedCenter, zoomLevel, {
         animate: true,
-        duration: 1.5,
+        duration: 3.0,
       });
     }
   }, [map, lat, lng]);
