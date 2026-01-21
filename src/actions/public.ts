@@ -509,6 +509,8 @@ export async function getMillBySlug(
         hasFullingMill: millsData.hasFullingMill,
         // Phase 5.9.2: Water line reference
         waterLineId: millsData.waterLineId,
+        // Phase 5.9.8: Water line color for dynamic SVG marker tinting
+        waterLineColor: waterLines.color,
         // Phase 5.9.4: Stone material boolean flags
         stoneTypeGranite: millsData.stoneTypeGranite,
         stoneTypeSchist: millsData.stoneTypeSchist,
@@ -770,6 +772,8 @@ export async function getMillById(
         hasFullingMill: millsData.hasFullingMill,
         // Phase 5.9.2: Water line reference
         waterLineId: millsData.waterLineId,
+        // Phase 5.9.8: Water line color for dynamic SVG marker tinting
+        waterLineColor: waterLines.color,
         // Phase 5.9.4: Stone material boolean flags
         stoneTypeGranite: millsData.stoneTypeGranite,
         stoneTypeSchist: millsData.stoneTypeSchist,

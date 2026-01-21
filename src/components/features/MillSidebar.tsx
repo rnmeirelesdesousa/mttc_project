@@ -68,6 +68,37 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
     return null;
   }
 
+  // Get border color from mill's water line color, fallback to blue (matching marker default)
+  // Same logic as marker: use waterLineColor if available, otherwise use blue-500 (#3b82f6)
+  const markerColor = mill?.waterLineColor || '#3b82f6'; // blue-500 to match marker default
+
+  // Helper function to convert hex to rgba with opacity
+  const hexToRgba = (hex: string, opacity: number): string => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  // Helper function to darken a hex color (for hover states)
+  // percent: 0-1, where 0.2 means darken by 20% (multiply by 0.8)
+  const darkenHex = (hex: string, percent: number): string => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const factor = 1 - percent;
+    const r = Math.max(0, Math.min(255, Math.floor((num >> 16) * factor)));
+    const g = Math.max(0, Math.min(255, Math.floor(((num >> 8) & 0x00FF) * factor)));
+    const b = Math.max(0, Math.min(255, Math.floor((num & 0x0000FF) * factor)));
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  };
+
+  // Color variations using the marker color
+  const colorBg50 = hexToRgba(markerColor, 0.1); // Very light background (like blue-50)
+  const colorBg100 = hexToRgba(markerColor, 0.2); // Light background (like blue-100)
+  const colorBorder200 = hexToRgba(markerColor, 0.3); // Border color (like blue-200)
+  const colorText600 = markerColor; // Main text color (like blue-600)
+  const colorText800 = darkenHex(markerColor, 0.2); // Darker text for hover (like blue-800)
+  const colorText900 = darkenHex(markerColor, 0.3); // Darkest text (like blue-900)
+
   if (loading) {
     return (
       <div 
@@ -77,7 +108,8 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
         }}
       >
         <Card
-          className="w-full bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 border-b-blue-600"
+          className="w-full bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4"
+          style={{ borderBottomColor: markerColor }}
         >
           <CardContent className="!p-5">
             <p className="text-xs text-gray-600">{t('common.loading')}</p>
@@ -122,7 +154,8 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
       }}
     >
       <Card
-        className="w-full bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 border-b-blue-600 relative"
+        className="w-full bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 relative"
+        style={{ borderBottomColor: markerColor }}
       >
         <CardContent className="!p-5 relative">
           {/* Close button - Professional software suite styling */}
@@ -169,9 +202,18 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
               <h2 className="text-base md:text-lg font-semibold mb-2 truncate">{millTitle}</h2>
               
               {/* Coordinates */}
-              <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+              <div 
+                className="border rounded p-2 mb-2"
+                style={{ 
+                  backgroundColor: colorBg50,
+                  borderColor: colorBorder200
+                }}
+              >
                 <span className="text-[10px] font-semibold text-gray-600 uppercase">{t('mill.sidebar.coordinates')}:</span>
-                <p className="font-mono text-xs md:text-sm font-bold text-blue-900 mt-0.5">
+                <p 
+                  className="font-mono text-xs md:text-sm font-bold mt-0.5"
+                  style={{ color: colorText900 }}
+                >
                   {mill.lat.toFixed(6)}, {mill.lng.toFixed(6)}
                 </p>
               </div>
@@ -359,7 +401,12 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
                 {mill.waterLineName && mill.waterLineSlug ? (
                   <Link
                     href={`/${locale}/levada/${mill.waterLineSlug}`}
-                    className="font-medium text-blue-600 hover:text-blue-800 underline ml-1 text-[10px]"
+                    className="font-medium underline ml-1 text-[10px] transition-colors"
+                    style={{ 
+                      color: colorText600 
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = colorText800}
+                    onMouseLeave={(e) => e.currentTarget.style.color = colorText600}
                   >
                     {mill.waterLineName}
                   </Link>
@@ -375,7 +422,10 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
                       <Link
                         key={connectedMill.id}
                         href={`/${locale}/mill/${connectedMill.slug}`}
-                        className="text-[9px] text-blue-600 hover:text-blue-800 underline"
+                        className="text-[9px] underline transition-colors"
+                        style={{ color: colorText600 }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = colorText800}
+                        onMouseLeave={(e) => e.currentTarget.style.color = colorText600}
                       >
                         {connectedMill.title || connectedMill.slug}
                       </Link>
@@ -395,7 +445,22 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
           <div className="mt-3 flex justify-end">
             <Link
               href={`/${locale}/mill/${mill.slug}`}
-              className="px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-200 transition-colors"
+              className="px-4 py-2 text-xs font-medium rounded-md transition-colors"
+              style={{ 
+                color: colorText600,
+                backgroundColor: colorBg50,
+                borderColor: colorBorder200,
+                borderWidth: '1px',
+                borderStyle: 'solid'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colorBg100;
+                e.currentTarget.style.color = colorText800;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colorBg50;
+                e.currentTarget.style.color = colorText600;
+              }}
             >
               {t('map.viewDetails')}
             </Link>
