@@ -14,7 +14,7 @@ if (!global.dbClient) {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
   }
-  global.dbClient = postgres(process.env.DATABASE_URL);
+  global.dbClient = postgres(process.env.DATABASE_URL, { prepare: false });
 }
 
 if (!global.db) {
