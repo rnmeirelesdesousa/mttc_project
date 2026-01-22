@@ -62,46 +62,46 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
   const exteriorFinishParams = searchParams.getAll('exteriorFinish');
 
   // All enum options from schema
-  const typologyOptions: Array<'azenha' | 'rodizio' | 'mare' | 'torre_fixa' | 'giratorio' | 'velas' | 'armacao'> = 
+  const typologyOptions: Array<'azenha' | 'rodizio' | 'mare' | 'torre_fixa' | 'giratorio' | 'velas' | 'armacao'> =
     ['azenha', 'rodizio', 'mare', 'torre_fixa', 'giratorio', 'velas', 'armacao'];
-  
-  const roofMaterialOptions: Array<'tile' | 'zinc' | 'thatch' | 'slate' | 'stone'> = 
+
+  const roofMaterialOptions: Array<'tile' | 'zinc' | 'thatch' | 'slate' | 'stone'> =
     ['tile', 'zinc', 'thatch', 'slate', 'stone'];
-  
-  const roofShapeOptions: Array<'conical' | 'gable' | 'lean_to' | 'inexistent' | 'false_dome'> = 
+
+  const roofShapeOptions: Array<'conical' | 'gable' | 'lean_to' | 'inexistent' | 'false_dome'> =
     ['conical', 'gable', 'lean_to', 'inexistent', 'false_dome'];
-  
-  const accessOptions: Array<'pedestrian' | 'car' | 'difficult_none' | 'traditional_track'> = 
+
+  const accessOptions: Array<'pedestrian' | 'car' | 'difficult_none' | 'traditional_track'> =
     ['pedestrian', 'car', 'difficult_none', 'traditional_track'];
-  
-  const motiveApparatusOptions: Array<'sails' | 'shells' | 'tail' | 'cap'> = 
+
+  const motiveApparatusOptions: Array<'sails' | 'shells' | 'tail' | 'cap'> =
     ['sails', 'shells', 'tail', 'cap'];
-  
-  const epochOptions: Array<'pre_18th_c' | '18th_c' | '19th_c' | '20th_c'> = 
+
+  const epochOptions: Array<'pre_18th_c' | '18th_c' | '19th_c' | '20th_c'> =
     ['pre_18th_c', '18th_c', '19th_c', '20th_c'];
-  
-  const currentUseOptions: Array<'milling' | 'housing' | 'tourism' | 'ruin' | 'museum'> = 
+
+  const currentUseOptions: Array<'milling' | 'housing' | 'tourism' | 'ruin' | 'museum'> =
     ['milling', 'housing', 'tourism', 'ruin', 'museum'];
-  
-  const settingOptions: Array<'rural' | 'urban' | 'isolated' | 'riverbank'> = 
+
+  const settingOptions: Array<'rural' | 'urban' | 'isolated' | 'riverbank'> =
     ['rural', 'urban', 'isolated', 'riverbank'];
-  
-  const legalProtectionOptions: Array<'inexistent' | 'under_study' | 'classified'> = 
+
+  const legalProtectionOptions: Array<'inexistent' | 'under_study' | 'classified'> =
     ['inexistent', 'under_study', 'classified'];
-  
-  const propertyStatusOptions: Array<'private' | 'public' | 'unknown'> = 
+
+  const propertyStatusOptions: Array<'private' | 'public' | 'unknown'> =
     ['private', 'public', 'unknown'];
-  
-  const constructionTechniqueOptions: Array<'dry_stone' | 'mortared_stone' | 'mixed_other'> = 
+
+  const constructionTechniqueOptions: Array<'dry_stone' | 'mortared_stone' | 'mixed_other'> =
     ['dry_stone', 'mortared_stone', 'mixed_other'];
-  
-  const planShapeOptions: Array<'circular' | 'quadrangular' | 'rectangular' | 'irregular'> = 
+
+  const planShapeOptions: Array<'circular' | 'quadrangular' | 'rectangular' | 'irregular'> =
     ['circular', 'quadrangular', 'rectangular', 'irregular'];
-  
-  const volumetryOptions: Array<'cylindrical' | 'conical' | 'prismatic_sq_rec'> = 
+
+  const volumetryOptions: Array<'cylindrical' | 'conical' | 'prismatic_sq_rec'> =
     ['cylindrical', 'conical', 'prismatic_sq_rec'];
-  
-  const exteriorFinishOptions: Array<'exposed' | 'plastered' | 'whitewashed'> = 
+
+  const exteriorFinishOptions: Array<'exposed' | 'plastered' | 'whitewashed'> =
     ['exposed', 'plastered', 'whitewashed'];
 
   /**
@@ -117,7 +117,7 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
       }
 
       const currentValues = params.getAll(key);
-      
+
       // Check if value already exists in the array
       if (currentValues.includes(value)) {
         // Remove it: delete all occurrences, then re-add the filtered list
@@ -164,7 +164,7 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = 
+  const hasActiveFilters =
     typologyParams.length > 0 ||
     districtParam !== null ||
     roofMaterialParams.length > 0 ||
@@ -201,7 +201,7 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
                 checked={isChecked}
                 onCheckedChange={() => handleArrayFilterToggle(filterKey, option)}
               />
-              <span className="text-sm text-gray-700">{t(`${translationKey}.${option}`)}</span>
+              <span className="text-xs text-gray-700">{t(`${translationKey}.${option}`)}</span>
             </label>
           );
         })}
@@ -218,12 +218,12 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
     const isOpen = openSections.has(sectionKey);
     return (
       <Card className="mb-4">
-        <CardHeader 
+        <CardHeader
           className="pb-3 cursor-pointer hover:bg-gray-50 transition-colors"
           onClick={() => toggleSection(sectionKey)}
         >
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">{title}</CardTitle>
+            <CardTitle className="text-sm font-semibold">{title}</CardTitle>
             {isOpen ? (
               <ChevronUp className="h-4 w-4 text-gray-500" />
             ) : (
@@ -240,13 +240,13 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
     <div className="bg-white p-4 h-full overflow-y-auto">
       {/* Header with Clear Button */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b">
-        <h3 className="text-lg font-semibold text-gray-900">{t('map.filters')}</h3>
+        <h3 className="text-base font-semibold text-gray-900">{t('map.filters')}</h3>
         {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
             onClick={handleClearFilters}
-            className="text-xs h-8 px-2 text-gray-600 hover:text-gray-900"
+            className="text-[10px] h-7 px-2 text-gray-600 hover:text-gray-900"
           >
             <X className="h-3 w-3 mr-1" />
             {t('filter.clearAll')}
@@ -260,14 +260,14 @@ export const MapSidebar = ({ availableDistricts, locale }: MapSidebarProps) => {
         t('mill.sidebar.locationInfo'),
         <div className="space-y-4">
           <div>
-            <Label htmlFor="district-select" className="text-sm font-medium mb-2 block">
+            <Label htmlFor="district-select" className="text-xs font-medium mb-2 block">
               {t('mill.sidebar.district')}
             </Label>
             <select
               id="district-select"
               value={districtParam || ''}
               onChange={(e) => handleDistrictChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
               <option value="">{t('map.allDistricts')}</option>
               {availableDistricts

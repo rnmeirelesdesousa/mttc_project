@@ -113,7 +113,7 @@ export const MapWithSidebar = ({ mills, pocas = [], waterLines, locale, availabl
       {filterSidebarOpen && (
         <div className="w-[300px] lg:w-[360px] bg-white border-r border-gray-200 overflow-y-auto z-[1001] flex-shrink-0">
           <div className="sticky top-0 bg-white border-b border-gray-200 p-4 z-10">
-            <h2 className="text-lg font-semibold">{t('map.filters')}</h2>
+            <h2 className="text-base font-semibold">{t('map.filters')}</h2>
           </div>
           <div className="p-0">
             <MapSidebar availableDistricts={availableDistricts} locale={locale} />
