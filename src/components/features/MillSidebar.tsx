@@ -102,7 +102,7 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
   if (loading) {
     return (
       <div
-        className="fixed left-[75vw] top-[25vh] -translate-x-1/2 -translate-y-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[400px] lg:w-[500px] max-w-[500px] pointer-events-auto"
+        className="absolute bottom-5 left-[75%] -translate-x-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[400px] lg:w-[500px] max-w-[500px] pointer-events-auto"
         style={{
           animation: 'slideInFromMarker 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
         }}
@@ -148,7 +148,7 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
   return (
     <div
       ref={cardRef}
-      className="fixed left-[75vw] top-1/2 -translate-y-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[400px] lg:w-[500px] max-w-[500px] max-h-[90vh] overflow-y-auto pointer-events-auto no-scrollbar"
+      className="absolute bottom-5 left-[75%] -translate-x-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[400px] lg:w-[500px] max-w-[500px] max-h-[90vh] overflow-y-auto pointer-events-auto no-scrollbar"
       style={{
         animation: 'slideInFromMarker 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
       }}
