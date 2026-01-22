@@ -509,7 +509,7 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
           ref={clusterGroupRef}
           chunkedLoading
           disableClusteringAtZoom={17}
-          maxClusterRadius={50}
+          maxClusterRadius={60}
           zoomToBoundsOnClick={false}
           spiderfyOnMaxZoom={false}
           showCoverageOnHover={false}
@@ -542,6 +542,7 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
                 position={position}
                 isSelected={isSelected}
                 isGreyedOut={isGreyedOut}
+                onIconLoaded={(marker) => clusterGroupRef.current?.refreshClusters(marker)}
                 eventHandlers={{
                   click: (e) => {
                     // Prevent map background click from firing
@@ -581,6 +582,7 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
                 position={position}
                 isSelected={isSelected}
                 isGreyedOut={isGreyedOut}
+                onIconLoaded={(marker) => clusterGroupRef.current?.refreshClusters(marker)}
                 eventHandlers={{
                   click: (e) => {
                     // Prevent map background click from firing

@@ -24,12 +24,13 @@ interface DynamicSVGMarkerProps extends Omit<MarkerProps, 'icon'> {
   type?: 'mill' | 'poca'; // Construction type, defaults to 'mill'
   isSelected?: boolean;
   isGreyedOut?: boolean;
+  onIconLoaded?: (marker: L.Marker) => void;
 }
 
-export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut, ...markerProps }: DynamicSVGMarkerProps) {
+export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut, onIconLoaded, ...markerProps }: DynamicSVGMarkerProps) {
   const markerRef = useRef<L.Marker | null>(null);
   const iconUpdateInProgress = useRef(false);
-  
+
   // Extract ref from props if it exists (using type assertion since ref is special)
   const forwardedRef = (markerProps as any).ref;
 
@@ -40,7 +41,7 @@ export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut,
     }
 
     iconUpdateInProgress.current = true;
-    
+
     getMarkerIconAsync(
       type,
       false,
@@ -56,13 +57,17 @@ export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut,
             element.style.filter = 'drop-shadow(0 0 5px white) brightness(1.2)';
           }
         }
+        // Notify parent that icon has been updated (e.g. for cluster refresh)
+        if (onIconLoaded) {
+          onIconLoaded(markerRef.current);
+        }
       }
       iconUpdateInProgress.current = false;
     }).catch((error) => {
       console.error('[DynamicSVGMarker]: Error loading tinted icon:', error);
       iconUpdateInProgress.current = false;
     });
-  }, [type, mill.waterLineColor, isGreyedOut, isSelected, mill.id]);
+  }, [type, mill.waterLineColor, isGreyedOut, isSelected, mill.id, onIconLoaded]);
 
   // Get initial icon (synchronous placeholder) - don't pass isSelected
   const initialIcon = getMarkerIcon(type, false, isGreyedOut);
@@ -119,6 +124,9 @@ export function DynamicSVGMarker({ mill, type = 'mill', isSelected, isGreyedOut,
                     if (element) {
                       element.style.filter = 'drop-shadow(0 0 5px white) brightness(1.2)';
                     }
+                  }
+                  if (onIconLoaded) {
+                    onIconLoaded(markerRef.current);
                   }
                 }
                 iconUpdateInProgress.current = false;
