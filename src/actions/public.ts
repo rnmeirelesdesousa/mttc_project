@@ -26,6 +26,7 @@ export interface PublishedMill {
   drainageBasin: string | null;
   mainImage: string | null;
   galleryImages: string[] | null;
+  documentPaths: string[] | null;
   lat: number;
   lng: number;
   // Mills data
@@ -209,6 +210,7 @@ export async function getPublishedMills(
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
+        documentPaths: constructions.documentPaths,
         // PostGIS coordinate extraction: ST_X returns longitude, ST_Y returns latitude
         // Cast geography to geometry for ST_X/ST_Y functions
         // Wrap in COALESCE to handle null/errors gracefully
@@ -501,6 +503,7 @@ export async function getMillBySlug(
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
+        documentPaths: constructions.documentPaths,
         customIconUrl: constructions.customIconUrl,
         // PostGIS coordinate extraction with error handling
         lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
@@ -640,6 +643,7 @@ export async function getMillBySlug(
       drainageBasin: row.drainageBasin,
       mainImage: row.mainImage,
       galleryImages: row.galleryImages,
+      documentPaths: row.documentPaths,
       lat,
       lng,
       typology: row.typology,
@@ -764,6 +768,7 @@ export async function getMillById(
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
+        documentPaths: constructions.documentPaths,
         customIconUrl: constructions.customIconUrl,
         // PostGIS coordinate extraction with error handling
         lng: sql<number | null>`COALESCE(ST_X(${constructions.geom}::geometry), NULL)`,
@@ -903,6 +908,7 @@ export async function getMillById(
       drainageBasin: row.drainageBasin,
       mainImage: row.mainImage,
       galleryImages: row.galleryImages,
+      documentPaths: row.documentPaths,
       lat,
       lng,
       typology: row.typology,

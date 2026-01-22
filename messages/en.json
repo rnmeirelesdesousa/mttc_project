@@ -135,7 +135,8 @@
       "notAvailable": "Not available",
       "noImage": "No image available",
       "editEntry": "Edit This Entry",
-      "dimensionsTitle": "Dimensions"
+      "dimensionsTitle": "Dimensions",
+      "documents": "Technical Documents"
     },
     "sidebar": {
       "generalInfo": "General Info",

@@ -2,7 +2,7 @@ import { getMillBySlug } from '@/actions/public';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit } from 'lucide-react';
+import { ArrowLeft, Edit, FileText, Download } from 'lucide-react';
 import Image from 'next/image';
 import { getPublicUrl } from '@/lib/storage';
 import { isResearcherOrAdmin } from '@/lib/auth';
@@ -52,9 +52,17 @@ export default async function MillDetailPage({ params }: PageProps) {
     return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   };
 
-  // Get image URLs
+  // Get image and document URLs
   const mainImageUrl = mill.mainImage ? getPublicUrl(mill.mainImage) : null;
   const galleryUrls = mill.galleryImages?.map(img => getPublicUrl(img)).filter((url): url is string => url !== null) || [];
+
+  const documentUrls = mill.documentPaths?.map(path => {
+    const url = getPublicUrl(path);
+    if (!url) return null;
+    // Extract filename from path
+    const name = path.split('/').pop() || 'Document';
+    return { name, url };
+  }).filter((doc): doc is { name: string; url: string } => doc !== null) || [];
 
   return (
     <div className="min-h-screen bg-white">
@@ -762,6 +770,32 @@ export default async function MillDetailPage({ params }: PageProps) {
               </div>
             </section>
           )}
+
+        {/* Technical Documents */}
+        {documentUrls.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-5 border-b border-gray-300 pb-1.5">
+              {t('mill.detail.documents')}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {documentUrls.map((doc, idx) => (
+                <a
+                  key={idx}
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center p-4 border border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-colors group"
+                >
+                  <FileText className="w-5 h-5 text-gray-400 group-hover:text-gray-600 mr-3" />
+                  <span className="text-sm text-gray-700 font-medium truncate flex-1">
+                    {doc.name}
+                  </span>
+                  <Download className="w-4 h-4 text-gray-400 group-hover:text-gray-600 ml-2" />
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Gallery Images - Bottom */}
         {galleryUrls.length > 0 && (
