@@ -11,7 +11,7 @@
 import L from 'leaflet';
 
 // Base marker size in pixels
-const BASE_MARKER_SIZE = 90;
+const BASE_MARKER_SIZE = 70;
 
 // Phase 5.9.8: Cache for raw SVG templates to avoid re-fetching
 const svgTemplateCache = new Map<string, string>();
@@ -55,17 +55,17 @@ async function fetchSVGTemplate(type: 'mill' | 'poca'): Promise<string | null> {
   try {
     const templateUrl = getTemplateUrl(type);
     const response = await fetch(templateUrl);
-    
+
     if (!response.ok) {
       console.error(`[fetchSVGTemplate]: Failed to fetch ${type} template:`, response.statusText);
       return null;
     }
 
     const svgText = await response.text();
-    
+
     // Cache the SVG text
     svgTemplateCache.set(type, svgText);
-    
+
     return svgText;
   } catch (error) {
     console.error(`[fetchSVGTemplate]: Error fetching ${type} template:`, error);
@@ -98,18 +98,18 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
 
     // Fetch the SVG template (from cache if available)
     const svgText = await fetchSVGTemplate(type);
-    
+
     if (!svgText) {
       console.error('[fetchAndTintSVG] Failed to fetch SVG template for', type);
       return null;
     }
-    
+
     console.log('[fetchAndTintSVG] Fetched SVG template for', type, 'length:', svgText.length);
-    
+
     // Parse SVG using DOMParser for surgical tinting
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
-    
+
     // Check for parsing errors
     const parserError = svgDoc.querySelector('parsererror');
     if (parserError) {
@@ -120,7 +120,7 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
     // Target #marker-fill and #marker-lines
     const markerFill = svgDoc.querySelector('#marker-fill');
     const markerLines = svgDoc.querySelector('#marker-lines');
-    
+
     // CRITICAL: Ensure marker-lines is rendered AFTER marker-fill in the DOM
     // In SVG, elements that appear later in the DOM are rendered on top
     // This ensures the lines are visible above the fill
@@ -133,12 +133,12 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
         const children = Array.from(parent.childNodes).filter(
           (node) => node.nodeType === Node.ELEMENT_NODE
         ) as Element[];
-        
+
         children.forEach((child, index) => {
           if (child === markerFill) fillIndex = index;
           if (child === markerLines) linesIndex = index;
         });
-        
+
         // If marker-fill comes after marker-lines (wrong order), reorder them
         if (fillIndex > linesIndex) {
           // Remove marker-lines from its current position
@@ -155,7 +155,7 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
         }
       }
     }
-    
+
     const markerFillOriginalState: {
       style: string | null;
       fill: string | null;
@@ -169,7 +169,7 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
       stroke: null,
       strokeWidth: null,
     };
-    
+
     if (markerFill) {
       // Store ALL original attributes of marker-fill
       markerFillOriginalState.style = markerFill.getAttribute('style');
@@ -187,12 +187,12 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
       // IMPORTANT: Exclude marker-fill (it's a sibling, not a child, but be safe)
       const childElements = Array.from(markerLines.querySelectorAll('path, line, circle, rect, polyline, polygon'))
         .filter((el) => el.id !== 'marker-fill'); // Explicitly exclude marker-fill
-      
+
       // Apply color to each child element (this overrides inline styles)
       childElements.forEach((child) => {
         // Get the original style before removing it (to preserve stroke-width and fill-rule)
         const originalStyle = child.getAttribute('style') || '';
-        
+
         // Extract stroke-width from the original style if it exists
         let strokeWidth: string | null = null;
         if (originalStyle) {
@@ -201,16 +201,16 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
             strokeWidth = strokeWidthMatch[1].trim();
           }
         }
-        
+
         // Check if the original style has fill:none (it's a stroke-only line)
         // or if it has a fill color (it's a filled shape)
         const hasFillNone = originalStyle.includes('fill:none');
         const fillMatch = originalStyle.match(/fill:\s*([^;]+)/);
         const originalFill = fillMatch ? fillMatch[1].trim() : null;
-        
+
         // Remove inline style attribute to allow our fill/stroke to take effect
         child.removeAttribute('style');
-        
+
         // If the original had fill:none, it's a stroke-only line - keep fill="none" and change stroke
         // If the original had a fill color, it's a filled shape - change the fill color
         if (hasFillNone) {
@@ -245,15 +245,15 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
           }
         }
       });
-      
+
       // Remove style from the group itself, but don't set fill/stroke on the group
       // because the children have different needs (some are filled, some are stroke-only)
       // Setting fill/stroke on the group would override the children's attributes
       markerLines.removeAttribute('style');
-      
+
       console.log('[fetchAndTintSVG] Updated marker-lines with color:', fillColor, `(${childElements.length} child elements)`);
     } else {
-      console.warn('[fetchAndTintSVG] #marker-lines element not found in SVG. Available elements:', 
+      console.warn('[fetchAndTintSVG] #marker-lines element not found in SVG. Available elements:',
         Array.from(svgDoc.querySelectorAll('[id]')).map(el => el.id).join(', '));
     }
 
@@ -265,14 +265,14 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
       markerFill.removeAttribute('fill-opacity');
       markerFill.removeAttribute('stroke');
       markerFill.removeAttribute('stroke-width');
-      
+
       // Restore the original style attribute
       if (markerFillOriginalState.style !== null) {
         markerFill.setAttribute('style', markerFillOriginalState.style);
       } else {
         markerFill.removeAttribute('style');
       }
-      
+
       // Restore individual attributes if they existed originally
       if (markerFillOriginalState.fill !== null) {
         markerFill.setAttribute('fill', markerFillOriginalState.fill);
@@ -286,7 +286,7 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
       if (markerFillOriginalState.strokeWidth !== null) {
         markerFill.setAttribute('stroke-width', markerFillOriginalState.strokeWidth);
       }
-      
+
       console.log('[fetchAndTintSVG] Restored marker-fill to original state');
     }
 
@@ -300,7 +300,7 @@ export async function fetchAndTintSVG(type: 'mill' | 'poca', fillColor: string):
     // Convert to data URL
     const blob = new Blob([tintedSVG], { type: 'image/svg+xml' });
     const dataUrl = URL.createObjectURL(blob);
-    
+
     console.log('[fetchAndTintSVG] Created tinted SVG data URL for', cacheKey);
     return dataUrl;
   } catch (error) {
@@ -404,9 +404,9 @@ export async function getMarkerIconAsync(
       tintedSvgUrl = URL.createObjectURL(blob);
     }
   }
-  
+
   if (tintedSvgUrl) {
-    console.log('[getMarkerIconAsync] Successfully created icon for', type, 
+    console.log('[getMarkerIconAsync] Successfully created icon for', type,
       fillColor ? `with marker-lines color: ${fillColor}` : 'with original colors (no water line)');
     return L.icon({
       iconUrl: tintedSvgUrl,

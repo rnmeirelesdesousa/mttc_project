@@ -101,8 +101,8 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
 
   if (loading) {
     return (
-      <div 
-        className="fixed left-[75vw] top-[25vh] -translate-x-1/2 -translate-y-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[600px] lg:w-[800px] max-w-[800px] pointer-events-auto"
+      <div
+        className="fixed left-[75vw] top-[25vh] -translate-x-1/2 -translate-y-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[400px] lg:w-[500px] max-w-[500px] pointer-events-auto"
         style={{
           animation: 'slideInFromMarker 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
         }}
@@ -111,7 +111,7 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
           className="w-full bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4"
           style={{ borderBottomColor: markerColor }}
         >
-          <CardContent className="!p-5">
+          <CardContent className="!p-3">
             <p className="text-xs text-gray-600">{t('common.loading')}</p>
           </CardContent>
         </Card>
@@ -146,9 +146,9 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
   };
 
   return (
-    <div 
-      ref={cardRef} 
-      className="fixed left-[75vw] bottom-[50vh] -translate-x-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[600px] lg:w-[800px] max-w-[800px] pointer-events-auto"
+    <div
+      ref={cardRef}
+      className="fixed left-[75vw] top-1/2 -translate-y-1/2 z-[999] w-[calc(100vw-2rem)] md:w-[400px] lg:w-[500px] max-w-[500px] max-h-[90vh] overflow-y-auto pointer-events-auto no-scrollbar"
       style={{
         animation: 'slideInFromMarker 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
       }}
@@ -157,17 +157,17 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
         className="w-full bg-white/95 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-b-4 relative"
         style={{ borderBottomColor: markerColor }}
       >
-        <CardContent className="!p-5 relative">
+        <CardContent className="!p-3 relative">
           {/* Close button - Professional software suite styling */}
           {onClose && (
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 w-7 h-7 flex items-center justify-center rounded-md bg-white/90 hover:bg-white text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-150 z-10"
+              className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-md bg-white/90 hover:bg-white text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-300 shadow-sm transition-all duration-150 z-10"
               aria-label="Close"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
+                className="h-3.5 w-3.5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -178,9 +178,9 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
             </button>
           )}
           {/* Top Row: Identity Section (Horizontal Layout) */}
-          <div className="flex gap-4 mb-3">
+          <div className="flex gap-2 mb-2">
             {/* Left: Image */}
-            <div className="flex-shrink-0 w-32 h-32 md:w-40 md:h-40">
+            <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24">
               {imageUrl ? (
                 <div className="relative w-full h-full rounded-md overflow-hidden border border-gray-200">
                   <Image
@@ -199,19 +199,19 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
 
             {/* Right: Title, Coordinates, Location */}
             <div className="flex-1 min-w-0">
-              <h2 className="text-base md:text-lg font-semibold mb-2 truncate">{millTitle}</h2>
-              
+              <h2 className="text-sm md:text-base font-semibold mb-1 truncate">{millTitle}</h2>
+
               {/* Coordinates */}
-              <div 
-                className="border rounded p-2 mb-2"
-                style={{ 
+              <div
+                className="border rounded p-1 mb-1"
+                style={{
                   backgroundColor: colorBg50,
                   borderColor: colorBorder200
                 }}
               >
                 <span className="text-[10px] font-semibold text-gray-600 uppercase">{t('mill.sidebar.coordinates')}:</span>
-                <p 
-                  className="font-mono text-xs md:text-sm font-bold mt-0.5"
+                <p
+                  className="font-mono text-[10px] md:text-xs font-bold mt-0"
                   style={{ color: colorText900 }}
                 >
                   {mill.lat.toFixed(6)}, {mill.lng.toFixed(6)}
@@ -219,7 +219,7 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
               </div>
 
               {/* Location Info - All available location fields */}
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
                 {mill.district && (
                   <div>
                     <span className="text-[10px] text-gray-500">{t('mill.sidebar.district')}:</span>
@@ -304,7 +304,7 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
                       {/* Show other technique description if mixed_other */}
                       {mill.constructionTechnique === 'mixed_other' && mill.observationsStructure && (
                         <p className="text-[9px] text-gray-600 mt-0.5 line-clamp-1">
-                          {mill.observationsStructure.startsWith('Construction Technique (Other):') 
+                          {mill.observationsStructure.startsWith('Construction Technique (Other):')
                             ? mill.observationsStructure.replace('Construction Technique (Other):', '').trim()
                             : mill.observationsStructure}
                         </p>
@@ -402,8 +402,8 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
                   <Link
                     href={`/${locale}/levada/${mill.waterLineSlug}`}
                     className="font-medium underline ml-1 text-[10px] transition-colors"
-                    style={{ 
-                      color: colorText600 
+                    style={{
+                      color: colorText600
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.color = colorText800}
                     onMouseLeave={(e) => e.currentTarget.style.color = colorText600}
@@ -446,7 +446,7 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
             <Link
               href={`/${locale}/mill/${mill.slug}`}
               className="px-4 py-2 text-xs font-medium rounded-md transition-colors"
-              style={{ 
+              style={{
                 color: colorText600,
                 backgroundColor: colorBg50,
                 borderColor: colorBorder200,

@@ -36,11 +36,11 @@ function MapClickHandler({ onMapClick }: { onMapClick: () => void }) {
  * Centers the marker at 33% of the viewport width (1/3 from the left).
  * Uses a single flyTo animation by calculating the offset coordinates first.
  */
-function FocusZoomHandler({ 
+function FocusZoomHandler({
   lat, lng
-}: { 
-  lat: number | null; 
-  lng: number | null; 
+}: {
+  lat: number | null;
+  lng: number | null;
 }) {
   const map = useMap();
 
@@ -49,31 +49,31 @@ function FocusZoomHandler({
       // Use maxZoom of Stadia Alidade Satellite (20)
       const zoomLevel = 20;
       const targetLatLng = L.latLng(lat, lng);
-      
+
       // Calculate the adjusted center point before animation
       // We need to offset the center so marker appears at 33% from left instead of 50% (center)
       const containerWidth = map.getContainer().offsetWidth;
       const offsetPixels = containerWidth * 0.17; // 17% offset (50% - 33%)
-      
+
       // Temporarily set zoom to target level and center at target location (without animation)
       // to calculate the lat/lng offset at the actual target location
       const currentZoom = map.getZoom();
       const currentCenter = map.getCenter();
       map.setView(targetLatLng, zoomLevel, { animate: false });
-      
+
       // At target zoom with center at targetLatLng, calculate the offset
       // Get center in pixels (should be at 50% of viewport)
       const centerPixel = map.latLngToContainerPoint(targetLatLng);
-      
+
       // Calculate offset center pixel (move right by offsetPixels)
       const offsetCenterPixel = L.point(centerPixel.x + offsetPixels, centerPixel.y);
-      
+
       // Convert offset center pixel back to lat/lng - this is our adjusted center
       const adjustedCenter = map.containerPointToLatLng(offsetCenterPixel);
-      
+
       // Reset zoom and center to current state before animation
       map.setView(currentCenter, currentZoom, { animate: false });
-      
+
       // Now fly directly to the adjusted center
       map.flyTo(adjustedCenter, zoomLevel, {
         animate: true,
@@ -104,7 +104,7 @@ function MapResizeHandler() {
     };
 
     window.addEventListener('resize', handleResize);
-    
+
     // Also trigger on mount to ensure initial size is correct
     handleResize();
 
@@ -122,11 +122,11 @@ function MapResizeHandler() {
  * Renders water lines only when zoom level is 15 or higher.
  * This improves performance and reduces visual clutter at lower zoom levels.
  */
-function WaterLinesRenderer({ 
-  waterLines, 
-  locale 
-}: { 
-  waterLines: MapWaterLine[]; 
+function WaterLinesRenderer({
+  waterLines,
+  locale
+}: {
+  waterLines: MapWaterLine[];
   locale: string;
 }) {
   const map = useMap();
@@ -194,13 +194,13 @@ function WaterLinesRenderer({
  * - Only zooms if constructions are clustered (not spread across all of Portugal)
  * - Uses gentle zoom with padding to avoid zooming too much
  */
-function SmartFitBounds({ 
-  mills, 
+function SmartFitBounds({
+  mills,
   pocas,
   portugalCenter,
-  defaultZoom 
-}: { 
-  mills: PublishedMill[]; 
+  defaultZoom
+}: {
+  mills: PublishedMill[];
   pocas: PublishedPoca[];
   portugalCenter: LatLngExpression;
   defaultZoom: number;
@@ -250,7 +250,7 @@ function SmartFitBounds({
     // Consider clustered if both lat and lng spans are less than 60% of Portugal's spans
     // This prevents zooming when constructions are spread across Portugal
     const clusteringThreshold = 0.6;
-    const isClustered = 
+    const isClustered =
       boundsLatSpan < portugalLatSpan * clusteringThreshold &&
       boundsLngSpan < portugalLngSpan * clusteringThreshold;
 
@@ -261,12 +261,12 @@ function SmartFitBounds({
         // Use flyToBounds for smoother animation - it respects duration better than fitBounds
         // First expand bounds with padding
         const paddedBounds = bounds.pad(0.2); // Add 20% padding
-        
+
         // Calculate the center and zoom level for the bounds
         const center = paddedBounds.getCenter();
         const zoom = map.getBoundsZoom(paddedBounds, false);
         const targetZoom = Math.min(zoom, 14); // Limit zoom to avoid zooming too close
-        
+
         // Use flyTo for smooth, controlled animation with longer duration
         map.flyTo(center, targetZoom, {
           animate: true,
@@ -287,9 +287,9 @@ function SmartFitBounds({
  * Handles cluster click events with slower zoom animation.
  * Overrides the default fast zoom with a smoother, slower animation.
  */
-function ClusterZoomHandler({ 
-  clusterGroupRef 
-}: { 
+function ClusterZoomHandler({
+  clusterGroupRef
+}: {
   clusterGroupRef: React.RefObject<L.MarkerClusterGroup | null>;
 }) {
   const map = useMap();
@@ -300,18 +300,18 @@ function ClusterZoomHandler({
 
     const handleClusterClick = (e: L.LeafletEvent & { layer: L.MarkerCluster }) => {
       const cluster = e.layer;
-      
+
       // Get the bounds of all markers in the cluster
       const bounds = cluster.getBounds();
-      
+
       // Add padding to bounds
       const paddedBounds = bounds.pad(0.1);
-      
+
       // Calculate center and zoom for the bounds
       const center = paddedBounds.getCenter();
       const zoom = map.getBoundsZoom(paddedBounds, false);
       const targetZoom = Math.min(zoom, 17); // Don't zoom past clustering disable point
-      
+
       // Use flyTo for smooth, slower animation
       map.flyTo(center, targetZoom, {
         animate: true,
@@ -477,7 +477,7 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
         <MapResizeHandler />
 
         {/* Smart fit bounds - zooms to constructions only if they are clustered */}
-        <SmartFitBounds 
+        <SmartFitBounds
           mills={mills}
           pocas={pocas}
           portugalCenter={portugalCenter}
@@ -486,8 +486,8 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
 
         {/* Focus zoom handler - automatically centers and zooms to selected mill at 50% viewport width */}
         {selectedMillCoords && (
-          <FocusZoomHandler 
-            lat={selectedMillCoords.lat} 
+          <FocusZoomHandler
+            lat={selectedMillCoords.lat}
             lng={selectedMillCoords.lng}
           />
         )}
@@ -500,101 +500,101 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
           />
         )}
 
-      {/* Render water lines as polylines - only visible at zoom 15+ */}
-      <WaterLinesRenderer waterLines={waterLines} locale={locale} />
+        {/* Render water lines as polylines - only visible at zoom 15+ */}
+        <WaterLinesRenderer waterLines={waterLines} locale={locale} />
 
-      {/* Render markers for each mill with clustering (Phase 5.9.3) */}
-      <ClusterZoomHandler clusterGroupRef={clusterGroupRef} />
-      <MarkerClusterGroup
-        ref={clusterGroupRef}
-        chunkedLoading
-        disableClusteringAtZoom={17}
-        maxClusterRadius={50}
-        zoomToBoundsOnClick={false}
-        spiderfyOnMaxZoom={false}
-        showCoverageOnHover={false}
-        iconCreateFunction={(cluster) => {
-          const count = cluster.getChildCount();
-          return L.divIcon({
-            html: `<div style="background-color: #3b82f6; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${count}</div>`,
-            className: 'custom-cluster-icon',
-            iconSize: [40, 40],
-          });
-        }}
-      >
-        {mills.map((mill) => {
-          // Skip mills without valid coordinates
-          if (!mill.lat || !mill.lng || isNaN(mill.lat) || isNaN(mill.lng)) {
-            return null;
-          }
+        {/* Render markers for each mill with clustering (Phase 5.9.3) */}
+        <ClusterZoomHandler clusterGroupRef={clusterGroupRef} />
+        <MarkerClusterGroup
+          ref={clusterGroupRef}
+          chunkedLoading
+          disableClusteringAtZoom={17}
+          maxClusterRadius={50}
+          zoomToBoundsOnClick={false}
+          spiderfyOnMaxZoom={false}
+          showCoverageOnHover={false}
+          iconCreateFunction={(cluster) => {
+            const count = cluster.getChildCount();
+            return L.divIcon({
+              html: `<div style="background-color: #3b82f6; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${count}</div>`,
+              className: 'custom-cluster-icon',
+              iconSize: [30, 30],
+            });
+          }}
+        >
+          {mills.map((mill) => {
+            // Skip mills without valid coordinates
+            if (!mill.lat || !mill.lng || isNaN(mill.lat) || isNaN(mill.lng)) {
+              return null;
+            }
 
-          const position: LatLngExpression = [mill.lat, mill.lng];
-          const isSelected = selectedMillId === mill.id;
-          const isGreyedOut = selectedMillId !== null && !isSelected;
-          
-          // Phase 5.9.8: Use DynamicSVGMarker for async SVG tinting with Levada colors
-          // Uses global template (mill.svg) and tints it with the associated Levada's color
-          return (
-            <DynamicSVGMarker
-              key={mill.id}
-              mill={mill}
-              type="mill"
-              position={position}
-              isSelected={isSelected}
-              isGreyedOut={isGreyedOut}
-              eventHandlers={{
-                click: (e) => {
-                  // Prevent map background click from firing
-                  e.originalEvent.stopPropagation();
-                  // Call onMillClick callback if provided
-                  if (onMillClick) {
-                    onMillClick(mill.id);
-                  }
-                },
-              }}
-            />
-          );
-        })}
-        {pocas.map((poca: PublishedPoca) => {
-          // Skip pocas without valid coordinates
-          if (!poca.lat || !poca.lng || isNaN(poca.lat) || isNaN(poca.lng)) {
-            return null;
-          }
+            const position: LatLngExpression = [mill.lat, mill.lng];
+            const isSelected = selectedMillId === mill.id;
+            const isGreyedOut = selectedMillId !== null && !isSelected;
 
-          const position: LatLngExpression = [poca.lat, poca.lng];
-          const isSelected = selectedMillId === poca.id;
-          const isGreyedOut = selectedMillId !== null && !isSelected;
-          
-          // Phase 5.9.8: Use DynamicSVGMarker for async SVG tinting with Levada colors
-          // Uses global template (poca.svg) and tints it with the associated Levada's color
-          // Convert poca to mill-like object for DynamicSVGMarker compatibility
-          const pocaAsMill = {
-            ...poca,
-            waterLineColor: poca.waterLineColor,
-          } as PublishedMill;
-          
-          return (
-            <DynamicSVGMarker
-              key={poca.id}
-              mill={pocaAsMill}
-              type="poca"
-              position={position}
-              isSelected={isSelected}
-              isGreyedOut={isGreyedOut}
-              eventHandlers={{
-                click: (e) => {
-                  // Prevent map background click from firing
-                  e.originalEvent.stopPropagation();
-                  // Call onMillClick callback if provided (pocas can use the same handler)
-                  if (onMillClick) {
-                    onMillClick(poca.id);
-                  }
-                },
-              }}
-            />
-          );
-        })}
-      </MarkerClusterGroup>
+            // Phase 5.9.8: Use DynamicSVGMarker for async SVG tinting with Levada colors
+            // Uses global template (mill.svg) and tints it with the associated Levada's color
+            return (
+              <DynamicSVGMarker
+                key={mill.id}
+                mill={mill}
+                type="mill"
+                position={position}
+                isSelected={isSelected}
+                isGreyedOut={isGreyedOut}
+                eventHandlers={{
+                  click: (e) => {
+                    // Prevent map background click from firing
+                    e.originalEvent.stopPropagation();
+                    // Call onMillClick callback if provided
+                    if (onMillClick) {
+                      onMillClick(mill.id);
+                    }
+                  },
+                }}
+              />
+            );
+          })}
+          {pocas.map((poca: PublishedPoca) => {
+            // Skip pocas without valid coordinates
+            if (!poca.lat || !poca.lng || isNaN(poca.lat) || isNaN(poca.lng)) {
+              return null;
+            }
+
+            const position: LatLngExpression = [poca.lat, poca.lng];
+            const isSelected = selectedMillId === poca.id;
+            const isGreyedOut = selectedMillId !== null && !isSelected;
+
+            // Phase 5.9.8: Use DynamicSVGMarker for async SVG tinting with Levada colors
+            // Uses global template (poca.svg) and tints it with the associated Levada's color
+            // Convert poca to mill-like object for DynamicSVGMarker compatibility
+            const pocaAsMill = {
+              ...poca,
+              waterLineColor: poca.waterLineColor,
+            } as PublishedMill;
+
+            return (
+              <DynamicSVGMarker
+                key={poca.id}
+                mill={pocaAsMill}
+                type="poca"
+                position={position}
+                isSelected={isSelected}
+                isGreyedOut={isGreyedOut}
+                eventHandlers={{
+                  click: (e) => {
+                    // Prevent map background click from firing
+                    e.originalEvent.stopPropagation();
+                    // Call onMillClick callback if provided (pocas can use the same handler)
+                    if (onMillClick) {
+                      onMillClick(poca.id);
+                    }
+                  },
+                }}
+              />
+            );
+          })}
+        </MarkerClusterGroup>
       </MapContainer>
     </div>
   );

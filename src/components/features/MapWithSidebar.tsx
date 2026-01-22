@@ -111,7 +111,7 @@ export const MapWithSidebar = ({ mills, pocas = [], waterLines, locale, availabl
     <div className="relative h-full w-full overflow-hidden flex">
       {/* Filter Sidebar - Persistent, non-blocking */}
       {filterSidebarOpen && (
-        <div className="w-[400px] bg-white border-r border-gray-200 overflow-y-auto z-[1001] flex-shrink-0">
+        <div className="w-[300px] lg:w-[360px] bg-white border-r border-gray-200 overflow-y-auto z-[1001] flex-shrink-0">
           <div className="sticky top-0 bg-white border-b border-gray-200 p-4 z-10">
             <h2 className="text-lg font-semibold">{t('map.filters')}</h2>
           </div>
