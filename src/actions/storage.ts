@@ -9,21 +9,21 @@ import { createClient } from '@/lib/supabase';
  * Files are organized by folder: mills/{slug}/...
  */
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
 const ALLOWED_SVG_TYPES = ['image/svg+xml', 'image/svg'];
 const MAX_SVG_SIZE = 1 * 1024 * 1024; // 1MB for SVG files
 
 /**
- * Validates an image file
+ * Validates a file (image or PDF)
  * 
  * @param file - File object to validate
  * @returns Error message if invalid, null if valid
  */
-function validateImageFile(file: File): string | null {
+function validateFile(file: File): string | null {
   // Check file type
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return 'Invalid file type. Only JPEG and PNG images are allowed.';
+    return 'Invalid file type. Only JPEG, PNG images and PDF documents are allowed.';
   }
 
   // Check file size
@@ -48,30 +48,30 @@ function generateFilePath(
   prefix?: string
 ): string {
   // Extract extension from original filename
-  const extension = originalName.split('.').pop()?.toLowerCase() || 'jpg';
-  
+  const extension = originalName.split('.').pop()?.toLowerCase() || 'bin';
+
   // Generate timestamp
   const timestamp = Date.now();
-  
+
   // Sanitize slug (remove any invalid characters)
   const sanitizedSlug = slug.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
-  
+
   // Build filename
-  const filename = prefix 
+  const filename = prefix
     ? `${prefix}-${timestamp}.${extension}`
     : `${timestamp}.${extension}`;
-  
+
   // Return relative path: mills/{slug}/{filename}
   return `mills/${sanitizedSlug}/${filename}`;
 }
 
 /**
- * Uploads a construction image to Supabase Storage
+ * Uploads a construction image or document to Supabase Storage
  * 
  * @param formData - FormData containing the file and metadata
- * @param formData.file - The image file to upload
+ * @param formData.file - The file to upload (image or PDF)
  * @param formData.slug - Construction slug for folder organization
- * @param formData.prefix - Optional prefix for filename (e.g., 'main' for main image)
+ * @param formData.prefix - Optional prefix for filename
  * @returns Standardized response: { success: true, data?: { path: string } } or { success: false, error: string }
  */
 export async function uploadStoneworkImage(
@@ -96,7 +96,7 @@ export async function uploadStoneworkImage(
     const prefix = formData.get('prefix') as string | null;
 
     // Validate file
-    const validationError = validateImageFile(file);
+    const validationError = validateFile(file);
     if (validationError) {
       return { success: false, error: validationError };
     }
@@ -121,9 +121,9 @@ export async function uploadStoneworkImage(
 
     if (uploadError) {
       console.error('[uploadStoneworkImage]: Upload error:', uploadError);
-      return { 
-        success: false, 
-        error: `Failed to upload image: ${uploadError.message}` 
+      return {
+        success: false,
+        error: `Failed to upload file: ${uploadError.message}`
       };
     }
 
@@ -131,9 +131,9 @@ export async function uploadStoneworkImage(
     return { success: true, data: { path: filePath } };
   } catch (error) {
     console.error('[uploadStoneworkImage]:', error);
-    return { 
-      success: false, 
-      error: 'An unexpected error occurred while uploading the image' 
+    return {
+      success: false,
+      error: 'An unexpected error occurred while uploading the file'
     };
   }
 }
@@ -171,16 +171,16 @@ function generateMapAssetFilePath(
 ): string {
   // Extract extension from original filename
   const extension = originalName.split('.').pop()?.toLowerCase() || 'svg';
-  
+
   // Generate timestamp
   const timestamp = Date.now();
-  
+
   // Sanitize slug (remove any invalid characters)
   const sanitizedSlug = slug.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
-  
+
   // Build filename
   const filename = `icon-${timestamp}.${extension}`;
-  
+
   // Return relative path: markers/{slug}/{filename}
   return `markers/${sanitizedSlug}/${filename}`;
 }
@@ -241,9 +241,9 @@ export async function uploadMapAsset(
 
     if (uploadError) {
       console.error('[uploadMapAsset]: Upload error:', uploadError);
-      return { 
-        success: false, 
-        error: `Failed to upload map asset: ${uploadError.message}` 
+      return {
+        success: false,
+        error: `Failed to upload map asset: ${uploadError.message}`
       };
     }
 
@@ -253,9 +253,9 @@ export async function uploadMapAsset(
       .getPublicUrl(filePath);
 
     if (!urlData?.publicUrl) {
-      return { 
-        success: false, 
-        error: 'Failed to generate public URL for uploaded file' 
+      return {
+        success: false,
+        error: 'Failed to generate public URL for uploaded file'
       };
     }
 
@@ -263,9 +263,9 @@ export async function uploadMapAsset(
     return { success: true, data: { url: urlData.publicUrl } };
   } catch (error) {
     console.error('[uploadMapAsset]:', error);
-    return { 
-      success: false, 
-      error: 'An unexpected error occurred while uploading the map asset' 
+    return {
+      success: false,
+      error: 'An unexpected error occurred while uploading the map asset'
     };
   }
 }

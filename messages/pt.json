@@ -520,11 +520,14 @@
       },
       "images": {
         "mainImage": "Imagem Principal",
-        "mainImageDescription": "Selecione uma imagem principal para o moinho (JPEG ou PNG, máx. 5MB)",
+        "mainImageDescription": "Selecione uma imagem principal para o moinho (JPEG ou PNG, máx. 20MB)",
         "gallery": "Galeria de Imagens",
-        "galleryDescription": "Adicione múltiplas imagens à galeria (JPEG ou PNG, máx. 5MB cada)",
+        "galleryDescription": "Adicione múltiplas imagens à galeria (JPEG ou PNG, máx. 20MB cada)",
+        "documents": "Documentos",
+        "documentsDescription": "Carregar documentos PDF relevantes para a construção (ex: desenhos, plantas).",
         "selectMainImage": "Clique para selecionar a imagem principal",
         "selectGalleryImages": "Clique para selecionar imagens da galeria",
+        "selectDocuments": "Selecionar Documentos PDF",
         "uploading": "A carregar..."
       },
       "submit": "Criar Moinho",

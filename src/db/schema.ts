@@ -173,7 +173,7 @@ export const userRoleEnum = pgEnum('user_role', ['public', 'researcher', 'admin'
 // Reference to Supabase Auth schema (for foreign keys)
 const authSchema = pgSchema('auth');
 const users = authSchema.table('users', {
-	id: uuid('id').primaryKey(),
+  id: uuid('id').primaryKey(),
 });
 
 // ============================================================================
@@ -200,7 +200,7 @@ const geographyPoint = customType<{ data: [number, number]; driverData: string }
       return [parseFloat(match[1]), parseFloat(match[2])];
     }
     // Fallback/Safety
-    return [0,0];
+    return [0, 0];
   },
 });
 
@@ -236,14 +236,14 @@ const geometryLineString = customType<{ data: [number, number][]; driverData: st
 // ============================================================================
 
 export const profiles = pgTable('profiles', {
-	id: uuid('id')
-		.primaryKey()
-		.references(() => users.id, { onDelete: 'cascade' }),
-	role: userRoleEnum('role').default('public').notNull(),
-	fullName: varchar('full_name', { length: 255 }),
-	academicAffiliation: varchar('academic_affiliation', { length: 255 }),
-	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  id: uuid('id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  role: userRoleEnum('role').default('public').notNull(),
+  fullName: varchar('full_name', { length: 255 }),
+  academicAffiliation: varchar('academic_affiliation', { length: 255 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ============================================================================
@@ -268,6 +268,8 @@ export const constructions = pgTable(
     galleryImages: text('gallery_images').array(),
     // Phase 5.9.2: Custom icon URL for map markers (stored in Supabase Storage bucket 'map-assets')
     customIconUrl: text('custom_icon_url'),
+    // Phase 6: PDF Documents support
+    documentPaths: text('document_paths').array(),
     status: statusEnum('status').notNull().default('draft'),
     // Phase 3: Academic Shield - Audit trail
     createdBy: uuid('created_by').references(() => profiles.id),

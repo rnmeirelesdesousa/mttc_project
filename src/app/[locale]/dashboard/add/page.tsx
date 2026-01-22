@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { createMillConstruction, updateMillConstruction, getConstructionByIdForEdit, updateConstructionStatus, getCurrentUserInfo } from '@/actions/admin';
 import { uploadStoneworkImage } from '@/actions/storage';
 import { getWaterLinesList, getMapData, type WaterLineListItem } from '@/actions/public';
-import { Upload, X, Image as ImageIcon, GripVertical } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, GripVertical, FileText } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import {
   DndContext,
@@ -197,11 +197,11 @@ function AddMillPageContent() {
   const [rodizioQty, setRodizioQty] = useState<string>('');
   const [azenhaQty, setAzenhaQty] = useState<string>('');
   const [waterLineId, setWaterLineId] = useState<string>('');
-  
+
   // Water lines list for selector
   const [waterLines, setWaterLines] = useState<WaterLineListItem[]>([]);
   const [loadingWaterLines, setLoadingWaterLines] = useState(true);
-  
+
   // Phase 5.9.3: Map data for contextual creation layer
   const [mapData, setMapData] = useState<{ mills: any[]; waterLines: any[] } | null>(null);
   const [loadingMapData, setLoadingMapData] = useState(true);
@@ -248,6 +248,8 @@ function AddMillPageContent() {
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [uploadingMain, setUploadingMain] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [documents, setDocuments] = useState<string[]>([]);
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
 
   // Fetch user info for admin check
   useEffect(() => {
@@ -312,17 +314,17 @@ function AddMillPageContent() {
 
       try {
         const result = await getConstructionByIdForEdit(editId, locale);
-        
+
         if (result.success) {
           const data = result.data;
           setConstructionId(data.id);
           setInitialStatus(data.status as 'draft' | 'review' | 'published');
-          
+
           // Populate all form fields
           setTitle(data.title || '');
           setDescription(data.description || '');
           setLegacyId(data.legacyId || '');
-          
+
           // Location
           setLatitude(data.lat.toString());
           setLongitude(data.lng.toString());
@@ -332,7 +334,7 @@ function AddMillPageContent() {
           setAddress(data.address || '');
           setPlace(data.place || ''); // Phase 5.9.20.10: Lugar field
           setDrainageBasin(data.drainageBasin || '');
-          
+
           // Technical Specs
           setTypology(data.typology);
           setAccess(data.access || '');
@@ -341,7 +343,7 @@ function AddMillPageContent() {
           setEpoch(data.epoch || '');
           setSetting(data.setting || '');
           setCurrentUse(data.currentUse || '');
-          
+
           // Architecture
           setPlanShape(data.planShape || '');
           setVolumetry(data.volumetry || '');
@@ -349,22 +351,22 @@ function AddMillPageContent() {
           setExteriorFinish(data.exteriorFinish || '');
           setRoofShape(data.roofShape || '');
           setRoofMaterial(data.roofMaterial || '');
-          
+
           // Physical Dimensions (Phase 5.9.3.10)
           setLength(data.length?.toString() || '');
           setWidth(data.width?.toString() || '');
           setHeight(data.height?.toString() || '');
-          
+
           // Stone Material (Phase 5.9.20.6: Persistence Fix)
           setStoneTypeGranite(data.stoneTypeGranite ?? false);
           setStoneTypeSchist(data.stoneTypeSchist ?? false);
           setStoneTypeOther(data.stoneTypeOther ?? false);
-          
+
           // Gable Roof Materials (Phase 5.9.20.6: Persistence Fix)
           setGableRoofMaterialLusa(data.gableMaterialLusa ?? false);
           setGableRoofMaterialMarselha(data.gableMaterialMarselha ?? false);
           setGableRoofMaterialMeiaCana(data.gableMaterialMeiaCana ?? false);
-          
+
           // Mechanism - Hydraulic
           setCaptationType(data.captationType || '');
           setConductionType(data.conductionType || '');
@@ -376,10 +378,10 @@ function AddMillPageContent() {
           setRodizioQty(data.rodizioQty?.toString() || '');
           setAzenhaQty(data.azenhaQty?.toString() || '');
           setWaterLineId(data.waterLineId || '');
-          
+
           // Mechanism - Wind
           setMotiveApparatus(data.motiveApparatus || '');
-          
+
           // Mechanism - Grinding
           setMillstoneQuantity(data.millstoneQuantity?.toString() || '');
           setMillstoneDiameter(data.millstoneDiameter || '');
@@ -389,13 +391,13 @@ function AddMillPageContent() {
           setHasUrreiro(data.hasUrreiro);
           setHasAliviadouro(data.hasAliviadouro);
           setHasFarinaleiro(data.hasFarinaleiro);
-          
+
           // Epigraphy
           setEpigraphyPresence(data.epigraphyPresence);
           setEpigraphyLocation(data.epigraphyLocation || '');
           setEpigraphyType(data.epigraphyType || '');
           setEpigraphyDescription(data.epigraphyDescription || '');
-          
+
           // Conservation
           setRatingStructure(data.ratingStructure || '');
           setRatingRoof(data.ratingRoof || '');
@@ -407,17 +409,18 @@ function AddMillPageContent() {
           setObservationsHydraulic(data.observationsHydraulic || '');
           setObservationsMechanism(data.observationsMechanism || '');
           setObservationsGeneral(data.observationsGeneral || '');
-          
+
           // Annexes
           setHasOven(data.hasOven);
           setHasMillerHouse(data.hasMillerHouse);
           setHasStable(data.hasStable);
           setHasFullingMill(data.hasFullingMill);
-          
-          // Images
+
+          // Images & Documents
           setMainImage(data.mainImage);
           setGalleryImages(data.galleryImages || []);
-          
+          setDocuments(data.documents || []);
+
           // Determine roof type from roofShape and roofMaterial
           if (data.roofShape === 'false_dome') {
             setRoofType('fake_dome');
@@ -518,6 +521,40 @@ function AddMillPageContent() {
     setGalleryImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingDocuments(true);
+    try {
+      const slug = getSlugForImages();
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('slug', slug);
+
+        const result = await uploadStoneworkImage(formData);
+        if (result.success) {
+          return result.data.path;
+        }
+        return null;
+      });
+
+      const paths = await Promise.all(uploadPromises);
+      const validPaths = paths.filter((path): path is string => path !== null);
+      setDocuments((prev) => [...prev, ...validPaths]);
+    } catch (err) {
+      console.error('[handleDocumentUpload]:', err);
+      setError('Failed to upload documents');
+    } finally {
+      setUploadingDocuments(false);
+    }
+  };
+
+  const removeDocument = (index: number) => {
+    setDocuments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   // Drag-and-drop sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -601,6 +638,7 @@ function AddMillPageContent() {
         locale,
         mainImage: mainImage || undefined,
         galleryImages: galleryImages.length > 0 ? galleryImages : undefined,
+        documents: documents.length > 0 ? documents : undefined,
         latitude: latNum,
         longitude: lngNum,
         district: district.trim() || undefined,
@@ -676,9 +714,9 @@ function AddMillPageContent() {
         observationsStructure: (() => {
           // Include construction technique "other" description if provided
           const techniqueNote = constructionTechnique === 'mixed_other' && otherTechniqueDescription.trim()
-            ? `Construction Technique (Other): ${otherTechniqueDescription.trim()}. ` 
+            ? `Construction Technique (Other): ${otherTechniqueDescription.trim()}. `
             : '';
-          
+
           const existingObs = observationsStructure.trim();
           const combined = (techniqueNote + existingObs).trim();
           return combined || undefined;
@@ -702,9 +740,9 @@ function AddMillPageContent() {
       // Call appropriate server action (create or update)
       const result = isEditMode && constructionId
         ? await updateMillConstruction({
-            ...formData,
-            id: constructionId,
-          })
+          ...formData,
+          id: constructionId,
+        })
         : await createMillConstruction(formData);
 
       if (result.success) {
@@ -1018,7 +1056,7 @@ function AddMillPageContent() {
 
             <div className="pt-4 border-t space-y-4">
               <h3 className="text-lg font-semibold">{t('add.form.technical.architecture.title')}</h3>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="planShape">{t('add.form.technical.architecture.planShape')}</Label>
@@ -1193,7 +1231,7 @@ function AddMillPageContent() {
                         </Label>
                       </div>
                     </div>
-                    
+
                     {/* Material Description - Conditional on "Other" */}
                     {stoneTypeOther && (
                       <div className="mt-3 space-y-2">
@@ -1364,7 +1402,7 @@ function AddMillPageContent() {
 
             <div className="pt-4 border-t space-y-4">
               <h3 className="text-lg font-semibold">{t('add.form.technical.epigraphy.title')}</h3>
-              
+
               <div className="space-y-2">
                 <label className="flex items-center space-x-2">
                   <input
@@ -1435,195 +1473,195 @@ function AddMillPageContent() {
             {['azenha', 'rodizio', 'mare'].includes(typology) && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">{t('add.form.mechanism.hydraulic.title')}</h3>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="captationType">{t('add.form.mechanism.hydraulic.captationType')}</Label>
-                <select
-                  id="captationType"
-                  value={captationType}
-                  onChange={(e) => setCaptationType(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">{t('add.form.mechanism.hydraulic.captationTypePlaceholder')}</option>
-                  <option value="weir">{t('taxonomy.captationType.weir')}</option>
-                  <option value="pool">{t('taxonomy.captationType.pool')}</option>
-                  <option value="direct">{t('taxonomy.captationType.direct')}</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="conductionType">{t('add.form.mechanism.hydraulic.conductionType')}</Label>
-                <select
-                  id="conductionType"
-                  value={conductionType}
-                  onChange={(e) => setConductionType(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">{t('add.form.mechanism.hydraulic.conductionTypePlaceholder')}</option>
-                  <option value="levada">{t('taxonomy.conductionType.levada')}</option>
-                  <option value="modern_pipe">{t('taxonomy.conductionType.modern_pipe')}</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="conductionState">{t('add.form.mechanism.hydraulic.conductionState')}</Label>
-                <select
-                  id="conductionState"
-                  value={conductionState}
-                  onChange={(e) => setConductionState(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">{t('add.form.mechanism.hydraulic.conductionStatePlaceholder')}</option>
-                  <option value="operational_clean">{t('taxonomy.conductionState.operational_clean')}</option>
-                  <option value="clogged">{t('taxonomy.conductionState.clogged')}</option>
-                  <option value="damaged_broken">{t('taxonomy.conductionState.damaged_broken')}</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="admissionRodizio">{t('add.form.mechanism.hydraulic.admissionRodizio')}</Label>
                   <select
-                    id="admissionRodizio"
-                    value={admissionRodizio}
-                    onChange={(e) => setAdmissionRodizio(e.target.value)}
+                    id="captationType"
+                    value={captationType}
+                    onChange={(e) => setCaptationType(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="">{t('add.form.mechanism.hydraulic.admissionRodizioPlaceholder')}</option>
-                    <option value="cubo">{t('taxonomy.admissionRodizio.cubo')}</option>
-                    <option value="calha">{t('taxonomy.admissionRodizio.calha')}</option>
+                    <option value="">{t('add.form.mechanism.hydraulic.captationTypePlaceholder')}</option>
+                    <option value="weir">{t('taxonomy.captationType.weir')}</option>
+                    <option value="pool">{t('taxonomy.captationType.pool')}</option>
+                    <option value="direct">{t('taxonomy.captationType.direct')}</option>
                   </select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="admissionAzenha">{t('add.form.mechanism.hydraulic.admissionAzenha')}</Label>
+                  <Label htmlFor="conductionType">{t('add.form.mechanism.hydraulic.conductionType')}</Label>
                   <select
-                    id="admissionAzenha"
-                    value={admissionAzenha}
-                    onChange={(e) => setAdmissionAzenha(e.target.value)}
+                    id="conductionType"
+                    value={conductionType}
+                    onChange={(e) => setConductionType(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="">{t('add.form.mechanism.hydraulic.admissionAzenhaPlaceholder')}</option>
-                    <option value="calha_superior">{t('taxonomy.admissionAzenha.calha_superior')}</option>
-                    <option value="canal_inferior">{t('taxonomy.admissionAzenha.canal_inferior')}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="wheelTypeRodizio">{t('add.form.mechanism.hydraulic.wheelTypeRodizio')}</Label>
-                  <select
-                    id="wheelTypeRodizio"
-                    value={wheelTypeRodizio}
-                    onChange={(e) => setWheelTypeRodizio(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">{t('add.form.mechanism.hydraulic.wheelTypeRodizioPlaceholder')}</option>
-                    <option value="penas">{t('taxonomy.wheelTypeRodizio.penas')}</option>
-                    <option value="colheres">{t('taxonomy.wheelTypeRodizio.colheres')}</option>
+                    <option value="">{t('add.form.mechanism.hydraulic.conductionTypePlaceholder')}</option>
+                    <option value="levada">{t('taxonomy.conductionType.levada')}</option>
+                    <option value="modern_pipe">{t('taxonomy.conductionType.modern_pipe')}</option>
                   </select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="wheelTypeAzenha">{t('add.form.mechanism.hydraulic.wheelTypeAzenha')}</Label>
+                  <Label htmlFor="conductionState">{t('add.form.mechanism.hydraulic.conductionState')}</Label>
                   <select
-                    id="wheelTypeAzenha"
-                    value={wheelTypeAzenha}
-                    onChange={(e) => setWheelTypeAzenha(e.target.value)}
+                    id="conductionState"
+                    value={conductionState}
+                    onChange={(e) => setConductionState(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="">{t('add.form.mechanism.hydraulic.wheelTypeAzenhaPlaceholder')}</option>
-                    <option value="copeira">{t('taxonomy.wheelTypeAzenha.copeira')}</option>
-                    <option value="dezio_palas">{t('taxonomy.wheelTypeAzenha.dezio_palas')}</option>
+                    <option value="">{t('add.form.mechanism.hydraulic.conductionStatePlaceholder')}</option>
+                    <option value="operational_clean">{t('taxonomy.conductionState.operational_clean')}</option>
+                    <option value="clogged">{t('taxonomy.conductionState.clogged')}</option>
+                    <option value="damaged_broken">{t('taxonomy.conductionState.damaged_broken')}</option>
                   </select>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rodizioQty">{t('add.form.mechanism.hydraulic.rodizioQty')}</Label>
-                  <Input
-                    id="rodizioQty"
-                    type="number"
-                    min="0"
-                    value={rodizioQty}
-                    onChange={(e) => setRodizioQty(e.target.value)}
-                    placeholder={t('add.form.mechanism.hydraulic.rodizioQtyPlaceholder')}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="admissionRodizio">{t('add.form.mechanism.hydraulic.admissionRodizio')}</Label>
+                    <select
+                      id="admissionRodizio"
+                      value={admissionRodizio}
+                      onChange={(e) => setAdmissionRodizio(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">{t('add.form.mechanism.hydraulic.admissionRodizioPlaceholder')}</option>
+                      <option value="cubo">{t('taxonomy.admissionRodizio.cubo')}</option>
+                      <option value="calha">{t('taxonomy.admissionRodizio.calha')}</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="admissionAzenha">{t('add.form.mechanism.hydraulic.admissionAzenha')}</Label>
+                    <select
+                      id="admissionAzenha"
+                      value={admissionAzenha}
+                      onChange={(e) => setAdmissionAzenha(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">{t('add.form.mechanism.hydraulic.admissionAzenhaPlaceholder')}</option>
+                      <option value="calha_superior">{t('taxonomy.admissionAzenha.calha_superior')}</option>
+                      <option value="canal_inferior">{t('taxonomy.admissionAzenha.canal_inferior')}</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="azenhaQty">{t('add.form.mechanism.hydraulic.azenhaQty')}</Label>
-                  <Input
-                    id="azenhaQty"
-                    type="number"
-                    min="0"
-                    value={azenhaQty}
-                    onChange={(e) => setAzenhaQty(e.target.value)}
-                    placeholder={t('add.form.mechanism.hydraulic.azenhaQtyPlaceholder')}
-                  />
-                </div>
-              </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="wheelTypeRodizio">{t('add.form.mechanism.hydraulic.wheelTypeRodizio')}</Label>
+                    <select
+                      id="wheelTypeRodizio"
+                      value={wheelTypeRodizio}
+                      onChange={(e) => setWheelTypeRodizio(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">{t('add.form.mechanism.hydraulic.wheelTypeRodizioPlaceholder')}</option>
+                      <option value="penas">{t('taxonomy.wheelTypeRodizio.penas')}</option>
+                      <option value="colheres">{t('taxonomy.wheelTypeRodizio.colheres')}</option>
+                    </select>
+                  </div>
 
-              {/* Hydraulic Infrastructure Section (Phase 5.9.2.3) */}
-              <div className="pt-4 border-t space-y-4">
-                <h3 className="text-lg font-semibold">{t('add.form.mechanism.hydraulic.infrastructure.title')}</h3>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="waterLineId">{t('add.form.mechanism.hydraulic.infrastructure.waterLine')}</Label>
-                  <select
-                    id="waterLineId"
-                    value={waterLineId}
-                    onChange={(e) => setWaterLineId(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={loadingWaterLines}
-                  >
-                    <option value="">{t('add.form.mechanism.hydraulic.infrastructure.selectWaterLine')}</option>
-                    {waterLines.map((waterLine) => (
-                      <option key={waterLine.id} value={waterLine.id}>
-                        {waterLine.name}
-                      </option>
-                    ))}
-                  </select>
-                  {loadingWaterLines && (
-                    <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
-                  )}
-                  {!loadingWaterLines && waterLines.length === 0 && (
-                    <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.infrastructure.noWaterLine')}</p>
-                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="wheelTypeAzenha">{t('add.form.mechanism.hydraulic.wheelTypeAzenha')}</Label>
+                    <select
+                      id="wheelTypeAzenha"
+                      value={wheelTypeAzenha}
+                      onChange={(e) => setWheelTypeAzenha(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">{t('add.form.mechanism.hydraulic.wheelTypeAzenhaPlaceholder')}</option>
+                      <option value="copeira">{t('taxonomy.wheelTypeAzenha.copeira')}</option>
+                      <option value="dezio_palas">{t('taxonomy.wheelTypeAzenha.dezio_palas')}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rodizioQty">{t('add.form.mechanism.hydraulic.rodizioQty')}</Label>
+                    <Input
+                      id="rodizioQty"
+                      type="number"
+                      min="0"
+                      value={rodizioQty}
+                      onChange={(e) => setRodizioQty(e.target.value)}
+                      placeholder={t('add.form.mechanism.hydraulic.rodizioQtyPlaceholder')}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="azenhaQty">{t('add.form.mechanism.hydraulic.azenhaQty')}</Label>
+                    <Input
+                      id="azenhaQty"
+                      type="number"
+                      min="0"
+                      value={azenhaQty}
+                      onChange={(e) => setAzenhaQty(e.target.value)}
+                      placeholder={t('add.form.mechanism.hydraulic.azenhaQtyPlaceholder')}
+                    />
+                  </div>
+                </div>
+
+                {/* Hydraulic Infrastructure Section (Phase 5.9.2.3) */}
+                <div className="pt-4 border-t space-y-4">
+                  <h3 className="text-lg font-semibold">{t('add.form.mechanism.hydraulic.infrastructure.title')}</h3>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="waterLineId">{t('add.form.mechanism.hydraulic.infrastructure.waterLine')}</Label>
+                    <select
+                      id="waterLineId"
+                      value={waterLineId}
+                      onChange={(e) => setWaterLineId(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={loadingWaterLines}
+                    >
+                      <option value="">{t('add.form.mechanism.hydraulic.infrastructure.selectWaterLine')}</option>
+                      {waterLines.map((waterLine) => (
+                        <option key={waterLine.id} value={waterLine.id}>
+                          {waterLine.name}
+                        </option>
+                      ))}
+                    </select>
+                    {loadingWaterLines && (
+                      <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+                    )}
+                    {!loadingWaterLines && waterLines.length === 0 && (
+                      <p className="text-sm text-muted-foreground">{t('add.form.mechanism.hydraulic.infrastructure.noWaterLine')}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
             )}
 
             {/* Wind fields - only show for wind typologies */}
             {['torre_fixa', 'giratorio', 'velas', 'armacao'].includes(typology) && (
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="text-lg font-semibold">{t('add.form.mechanism.wind.title')}</h3>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="motiveApparatus">{t('add.form.mechanism.wind.motiveApparatus')}</Label>
-                <select
-                  id="motiveApparatus"
-                  value={motiveApparatus}
-                  onChange={(e) => setMotiveApparatus(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">{t('add.form.mechanism.wind.motiveApparatusPlaceholder')}</option>
-                  <option value="sails">{t('taxonomy.motiveApparatus.sails')}</option>
-                  <option value="shells">{t('taxonomy.motiveApparatus.shells')}</option>
-                  <option value="tail">{t('taxonomy.motiveApparatus.tail')}</option>
-                  <option value="cap">{t('taxonomy.motiveApparatus.cap')}</option>
-                </select>
+                  <select
+                    id="motiveApparatus"
+                    value={motiveApparatus}
+                    onChange={(e) => setMotiveApparatus(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">{t('add.form.mechanism.wind.motiveApparatusPlaceholder')}</option>
+                    <option value="sails">{t('taxonomy.motiveApparatus.sails')}</option>
+                    <option value="shells">{t('taxonomy.motiveApparatus.shells')}</option>
+                    <option value="tail">{t('taxonomy.motiveApparatus.tail')}</option>
+                    <option value="cap">{t('taxonomy.motiveApparatus.cap')}</option>
+                  </select>
+                </div>
               </div>
-            </div>
             )}
 
             {/* Grinding Mechanism - shown for all typologies */}
             <div className="space-y-4 pt-4 border-t">
               <h3 className="text-lg font-semibold">{t('add.form.mechanism.grinding.title')}</h3>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="millstoneQuantity">{t('add.form.mechanism.grinding.millstoneQuantity')}</Label>
@@ -1722,7 +1760,7 @@ function AddMillPageContent() {
           <TabsContent value="conservation" className="space-y-6 mt-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">{t('add.form.conservation.title')}</h3>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="ratingStructure">{t('add.form.conservation.ratingStructure')}</Label>
@@ -1988,6 +2026,72 @@ function AddMillPageContent() {
                   </label>
                 </div>
               </div>
+
+              {/* Documents Upload (Phase 6) */}
+              <div className="space-y-4 pt-6 border-t">
+                <div>
+                  <Label>{t('add.form.images.documents')}</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t('add.form.images.documentsDescription') || "Upload PDF documents relevant to the construction (e.g., drawings, plans)."}
+                  </p>
+                </div>
+
+                {/* Documents List */}
+                {documents.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {documents.map((path, index) => {
+                      const fileName = path.split('/').pop() || `Document ${index + 1}`;
+                      return (
+                        <div key={`doc-${index}`} className="flex items-center justify-between p-3 border rounded-md bg-white">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <FileText className="h-8 w-8 text-primary flex-shrink-0" />
+                            <a
+                              href={getImageUrl(path)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm font-medium hover:underline truncate"
+                            >
+                              {fileName}
+                            </a>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeDocument(index)}
+                            className="p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 flex-shrink-0 ml-2"
+                            aria-label="Remove document"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Document Upload Button */}
+                <div className="border-2 border-dashed border-input rounded-lg p-6 text-center">
+                  <Input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleDocumentUpload}
+                    disabled={uploadingDocuments}
+                    multiple
+                    className="hidden"
+                    id="document-upload"
+                  />
+                  <label
+                    htmlFor="document-upload"
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    <FileText className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      {uploadingDocuments
+                        ? t('add.form.images.uploading')
+                        : t('add.form.images.selectDocuments') || "Select PDF Documents"}
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
@@ -1995,22 +2099,22 @@ function AddMillPageContent() {
         <div className="mt-8 flex justify-end gap-4">
           {!isEditMode && (
             <>
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="outline"
-                onClick={(e) => handleSubmit(e, 'draft')} 
+                onClick={(e) => handleSubmit(e, 'draft')}
                 disabled={isSubmitting || isLoadingData}
               >
-                {isSubmitting 
+                {isSubmitting
                   ? t('add.form.savingDraft')
                   : t('add.form.saveAsDraft')}
               </Button>
-              <Button 
+              <Button
                 type="button"
-                onClick={(e) => handleSubmit(e, 'review')} 
+                onClick={(e) => handleSubmit(e, 'review')}
                 disabled={isSubmitting || isLoadingData}
               >
-                {isSubmitting 
+                {isSubmitting
                   ? t('add.form.submittingForReview')
                   : t('add.form.submitForReview')}
               </Button>
@@ -2018,22 +2122,22 @@ function AddMillPageContent() {
           )}
           {isEditMode && initialStatus === 'draft' && (
             <>
-              <Button 
+              <Button
                 type="button"
                 variant="outline"
-                onClick={(e) => handleSubmit(e, 'draft')} 
+                onClick={(e) => handleSubmit(e, 'draft')}
                 disabled={isSubmitting || isLoadingData}
               >
-                {isSubmitting 
+                {isSubmitting
                   ? t('add.form.updating')
                   : t('add.form.updateDraft')}
               </Button>
-              <Button 
+              <Button
                 type="button"
-                onClick={(e) => handleSubmit(e, 'review')} 
+                onClick={(e) => handleSubmit(e, 'review')}
                 disabled={isSubmitting || isLoadingData}
               >
-                {isSubmitting 
+                {isSubmitting
                   ? t('add.form.submittingForReview')
                   : t('add.form.submitForReview')}
               </Button>
@@ -2041,18 +2145,18 @@ function AddMillPageContent() {
           )}
           {isEditMode && initialStatus === 'review' && (
             <>
-              <Button 
+              <Button
                 type="button"
                 variant="outline"
-                onClick={(e) => handleSubmit(e, 'review')} 
+                onClick={(e) => handleSubmit(e, 'review')}
                 disabled={isSubmitting || isLoadingData}
               >
-                {isSubmitting 
+                {isSubmitting
                   ? t('add.form.updating')
                   : t('add.form.updateReview')}
               </Button>
               {isAdmin && constructionId && (
-                <Button 
+                <Button
                   type="button"
                   onClick={async () => {
                     if (!constructionId) return;
@@ -2075,7 +2179,7 @@ function AddMillPageContent() {
                   }}
                   disabled={isSubmitting || isLoadingData}
                 >
-                  {isSubmitting 
+                  {isSubmitting
                     ? t('common.loading')
                     : t('common.publish')}
                 </Button>
@@ -2083,13 +2187,13 @@ function AddMillPageContent() {
             </>
           )}
           {isEditMode && initialStatus === 'published' && (
-            <Button 
+            <Button
               type="button"
               variant="outline"
-              onClick={(e) => handleSubmit(e)} 
+              onClick={(e) => handleSubmit(e)}
               disabled={isSubmitting || isLoadingData}
             >
-              {isSubmitting 
+              {isSubmitting
                 ? t('add.form.updating')
                 : t('add.form.update')}
             </Button>

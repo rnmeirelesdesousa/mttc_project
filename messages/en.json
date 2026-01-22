@@ -520,11 +520,14 @@
       },
       "images": {
         "mainImage": "Main Image",
-        "mainImageDescription": "Select a main image for the mill (JPEG or PNG, max. 5MB)",
+        "mainImageDescription": "Select a main image for the mill (JPEG or PNG, max. 20MB)",
         "gallery": "Image Gallery",
-        "galleryDescription": "Add multiple images to the gallery (JPEG or PNG, max. 5MB each)",
+        "galleryDescription": "Add multiple images to the gallery (JPEG or PNG, max. 20MB each)",
+        "documents": "Documents",
+        "documentsDescription": "Upload PDF documents relevant to the construction (e.g., drawings, plans).",
         "selectMainImage": "Click to select main image",
         "selectGalleryImages": "Click to select gallery images",
+        "selectDocuments": "Select PDF Documents",
         "uploading": "Uploading..."
       },
       "submit": "Create Mill",

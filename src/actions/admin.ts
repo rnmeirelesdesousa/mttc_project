@@ -579,6 +579,7 @@ export async function getConstructionForReview(
       drainageBasin: string | null;
       mainImage: string | null;
       galleryImages: string[] | null;
+      documents: string[] | null;
       lat: number;
       lng: number;
       title: string | null;
@@ -679,6 +680,7 @@ export async function getConstructionForReview(
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
+        documentPaths: constructions.documentPaths,
         // PostGIS coordinate extraction
         lng: sql<number>`ST_X(${constructions.geom}::geometry)`,
         lat: sql<number>`ST_Y(${constructions.geom}::geometry)`,
@@ -780,6 +782,7 @@ export async function getConstructionForReview(
         drainageBasin: row.drainageBasin,
         mainImage: row.mainImage,
         galleryImages: row.galleryImages,
+        documents: row.documentPaths,
         lat: Number(row.lat),
         lng: Number(row.lng),
         title: row.title,
@@ -1051,6 +1054,7 @@ const createMillConstructionSchema = z.object({
   // Images
   mainImage: z.string().optional(),
   galleryImages: z.array(z.string()).optional(),
+  documents: z.array(z.string()).optional(),
 
   // Phase 5.9.7.1: Status for workflow
   status: z.enum(['draft', 'review']).optional(),
@@ -1129,6 +1133,9 @@ export async function createMillConstruction(
         mainImage: validated.mainImage || null,
         galleryImages: validated.galleryImages && validated.galleryImages.length > 0
           ? validated.galleryImages
+          : null,
+        documentPaths: validated.documents && validated.documents.length > 0
+          ? validated.documents
           : null,
         status: (validated.status || 'draft') as 'draft' | 'review', // Phase 5.9.7.1: Use provided status or default to draft
         createdBy: userId,
@@ -1893,6 +1900,7 @@ export async function getConstructionByIdForEdit(
       drainageBasin: string | null;
       mainImage: string | null;
       galleryImages: string[] | null;
+      documents: string[] | null;
       lat: number;
       lng: number;
       title: string | null;
@@ -2002,6 +2010,7 @@ export async function getConstructionByIdForEdit(
         drainageBasin: constructions.drainageBasin,
         mainImage: constructions.mainImage,
         galleryImages: constructions.galleryImages,
+        documentPaths: constructions.documentPaths,
         createdBy: constructions.createdBy,
         // PostGIS coordinate extraction
         lng: sql<number>`ST_X(${constructions.geom}::geometry)`,
@@ -2109,6 +2118,7 @@ export async function getConstructionByIdForEdit(
         drainageBasin: row.drainageBasin,
         mainImage: row.mainImage,
         galleryImages: row.galleryImages || [],
+        documents: row.documentPaths || [],
         lat: Number(row.lat),
         lng: Number(row.lng),
         title: row.title,
@@ -2508,6 +2518,7 @@ export async function updateMillConstruction(
         drainageBasin: string | null;
         mainImage: string | null;
         galleryImages: string[] | null;
+        documentPaths: string[] | null;
         updatedAt: Date;
         status?: 'draft' | 'review';
       } = {
@@ -2522,6 +2533,9 @@ export async function updateMillConstruction(
         mainImage: validated.mainImage || null,
         galleryImages: validated.galleryImages && validated.galleryImages.length > 0
           ? validated.galleryImages
+          : null,
+        documentPaths: validated.documents && validated.documents.length > 0
+          ? validated.documents
           : null,
         updatedAt: new Date(),
       };

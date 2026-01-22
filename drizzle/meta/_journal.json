@@ -50,6 +50,13 @@
       "when": 1768931862299,
       "tag": "0006_bizarre_kingpin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1769120784242,
+      "tag": "0007_keen_night_nurse",
+      "breakpoints": true
     }
   ]
 }
