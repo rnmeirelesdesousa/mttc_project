@@ -214,7 +214,7 @@
       "unknown": "Desconhecido"
     },
     "epoch": {
-      "pre_18th_c": "Pré-Século XVIII",
+      "pre_18th_c": "Desconhecida",
       "18th_c": "Século XVIII",
       "19th_c": "Século XIX",
       "20th_c": "Século XX"
@@ -223,7 +223,7 @@
       "milling": "Moagem",
       "housing": "Habitação",
       "tourism": "Turismo",
-      "ruin": "Ruína",
+      "ruin": "Desativado",
       "museum": "Museu"
     },
     "planShape": {
@@ -251,7 +251,7 @@
       "conical": "Cónico",
       "gable": "Duas Águas",
       "lean_to": "Uma Água",
-      "inexistent": "Inexistente (Caída)",
+      "inexistent": "Inexistente",
       "false_dome": "Falsa Cúpula"
     },
     "roofMaterial": {
@@ -279,11 +279,13 @@
     "conductionState": {
       "operational_clean": "Limpa/Operacional",
       "clogged": "Obstruída (Mato/Terra)",
-      "damaged_broken": "Destruída/Rompida"
+      "damaged_broken": "Destruída/Rompida",
+      "unknown": "Desconhecido"
     },
     "admissionRodizio": {
       "cubo": "Cubo (Torre de Pedra Fechada - Pressão)",
-      "calha": "Calha/Caleira (Canal Aberto Inclinado - Queda)"
+      "calha": "Calha/Caleira (Canal Aberto Inclinado - Queda)",
+      "unknown": "Desconhecido"
     },
     "admissionAzenha": {
       "calha_superior": "Calha Superior (Leva Água ao Topo da Roda)",
@@ -291,7 +293,7 @@
     },
     "wheelTypeRodizio": {
       "penas": "Penas (Madeira)",
-      "colheres": "Colheres (Metal/Madeira)"
+      "colheres": "Desconhecido"
     },
     "wheelTypeAzenha": {
       "copeira": "Copeira (Por Cima)",

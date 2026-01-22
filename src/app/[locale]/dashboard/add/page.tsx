@@ -1515,6 +1515,7 @@ function AddMillPageContent() {
                     <option value="operational_clean">{t('taxonomy.conductionState.operational_clean')}</option>
                     <option value="clogged">{t('taxonomy.conductionState.clogged')}</option>
                     <option value="damaged_broken">{t('taxonomy.conductionState.damaged_broken')}</option>
+                    <option value="unknown">{t('taxonomy.conductionState.unknown')}</option>
                   </select>
                 </div>
 
@@ -1530,6 +1531,7 @@ function AddMillPageContent() {
                       <option value="">{t('add.form.mechanism.hydraulic.admissionRodizioPlaceholder')}</option>
                       <option value="cubo">{t('taxonomy.admissionRodizio.cubo')}</option>
                       <option value="calha">{t('taxonomy.admissionRodizio.calha')}</option>
+                      <option value="unknown">{t('taxonomy.admissionRodizio.unknown')}</option>
                     </select>
                   </div>
 

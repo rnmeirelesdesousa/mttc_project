@@ -1003,8 +1003,8 @@ const createMillConstructionSchema = z.object({
   // Motive Systems - Hydraulic (Section IV)
   captationType: z.enum(['weir', 'pool', 'direct']).optional(),
   conductionType: z.enum(['levada', 'modern_pipe']).optional(),
-  conductionState: z.enum(['operational_clean', 'clogged', 'damaged_broken']).optional(),
-  admissionRodizio: z.enum(['cubo', 'calha']).optional(),
+  conductionState: z.enum(['operational_clean', 'clogged', 'damaged_broken', 'unknown']).optional(),
+  admissionRodizio: z.enum(['cubo', 'calha', 'unknown']).optional(),
   admissionAzenha: z.enum(['calha_superior', 'canal_inferior']).optional(),
   wheelTypeRodizio: z.enum(['penas', 'colheres']).optional(),
   wheelTypeAzenha: z.enum(['copeira', 'dezio_palas']).optional(),

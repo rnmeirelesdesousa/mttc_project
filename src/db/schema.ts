@@ -113,11 +113,13 @@ export const conductionStateEnum = pgEnum('conduction_state', [
   'operational_clean',
   'clogged',
   'damaged_broken',
+  'unknown',
 ]);
 
 export const admissionRodizioEnum = pgEnum('admission_rodizio', [
   'cubo',
   'calha',
+  'unknown',
 ]);
 
 export const admissionAzenhaEnum = pgEnum('admission_azenha', [

@@ -280,11 +280,13 @@
     "conductionState": {
       "operational_clean": "Operational/Clean",
       "clogged": "Clogged (Vegetation/Earth)",
-      "damaged_broken": "Damaged/Broken"
+      "damaged_broken": "Damaged/Broken",
+      "unknown": "Unknown"
     },
     "admissionRodizio": {
       "cubo": "Cubo (Closed Stone Tower - Pressure)",
-      "calha": "Calha (Open Inclined Channel - Fall)"
+      "calha": "Calha (Open Inclined Channel - Fall)",
+      "unknown": "Unknown"
     },
     "admissionAzenha": {
       "calha_superior": "Upper Channel (Carries Water to Top of Wheel)",
