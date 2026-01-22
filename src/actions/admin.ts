@@ -1124,6 +1124,7 @@ export async function createMillConstruction(
         municipality: validated.municipality || null,
         parish: validated.parish || null,
         address: validated.address || null,
+        place: validated.place || null, // Phase 5.9.20.10: Lugar field
         drainageBasin: validated.drainageBasin || null,
         mainImage: validated.mainImage || null,
         galleryImages: validated.galleryImages && validated.galleryImages.length > 0
