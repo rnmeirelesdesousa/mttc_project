@@ -91,13 +91,17 @@ export default async function MillDetailPage({ params }: PageProps) {
       </div>
 
       <div className="container mx-auto max-w-7xl px-8 py-10">
-        {/* Header Section */}
-        <div className="mb-10">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <h1 className="text-3xl font-normal text-gray-900 mb-2 tracking-tight">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-12">
+          {/* Left Column: Header & Description */}
+          <div className="lg:col-span-7 flex flex-col justify-center">
+            {/* Header Section */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-normal text-gray-900 mb-1 tracking-tight">
                 {mill.title || mill.slug}
               </h1>
+              <p className="text-xs text-gray-400 font-mono uppercase mb-3">
+                {t('common.published')}
+              </p>
               {mill.legacyId && (
                 <p className="text-xs font-mono text-gray-400 mb-1.5">
                   {t('add.form.general.legacyId')}: {mill.legacyId}
@@ -120,39 +124,36 @@ export default async function MillDetailPage({ params }: PageProps) {
                 {formatCoordinates(mill.lat, mill.lng)}
               </p>
             </div>
-            <span className="text-xs text-gray-400 font-mono uppercase">
-              {t('common.published')}
-            </span>
+
+            {/* Description */}
+            {mill.description && (
+              <div>
+                <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
+                  {t('mill.detail.description')}
+                </h2>
+                <p className="text-sm text-gray-600 leading-relaxed font-normal whitespace-pre-wrap">
+                  {mill.description}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Main Image */}
+          <div className="lg:col-span-5">
+            {mainImageUrl && (
+              <div className="relative w-full aspect-[4/3] bg-gray-200 overflow-hidden border border-gray-300">
+                <Image
+                  src={mainImageUrl}
+                  alt={mill.title || mill.slug}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                />
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Main Image - Full Width */}
-        {mainImageUrl && (
-          <div className="mb-12">
-            <div className="relative w-full aspect-[16/10] bg-gray-200 overflow-hidden border border-gray-300">
-              <Image
-                src={mainImageUrl}
-                alt={mill.title || mill.slug}
-                fill
-                className="object-cover"
-                priority
-                sizes="100vw"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Description */}
-        {mill.description && (
-          <div className="mb-12 max-w-4xl">
-            <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
-              {t('mill.detail.description')}
-            </h2>
-            <p className="text-sm text-gray-600 leading-relaxed font-normal whitespace-pre-wrap">
-              {mill.description}
-            </p>
-          </div>
-        )}
 
         {/* Technical Data - Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
