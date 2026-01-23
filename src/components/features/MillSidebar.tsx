@@ -282,20 +282,20 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
                                             {/* Show stone materials if dry_stone or mortared_stone */}
                                             {(mill.constructionTechnique === 'dry_stone' || mill.constructionTechnique === 'mortared_stone') && (
                                                 (mill.stoneTypeGranite || mill.stoneTypeSchist || mill.stoneTypeOther) && (
-                                                    <div className="flex flex-wrap gap-0.5 mt-0.5">
+                                                    <div className="flex flex-col mt-0.5">
                                                         {mill.stoneTypeGranite && (
-                                                            <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
-                                                                {t('taxonomy.stoneType.granite')}
+                                                            <span className="font-medium text-gray-900">
+                                                                - {t('taxonomy.stoneType.granite')}
                                                             </span>
                                                         )}
                                                         {mill.stoneTypeSchist && (
-                                                            <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
-                                                                {t('taxonomy.stoneType.schist')}
+                                                            <span className="font-medium text-gray-900">
+                                                                - {t('taxonomy.stoneType.schist')}
                                                             </span>
                                                         )}
                                                         {mill.stoneTypeOther && (
-                                                            <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
-                                                                {t('taxonomy.stoneType.other')}
+                                                            <span className="font-medium text-gray-900">
+                                                                - {t('taxonomy.stoneType.other')}
                                                             </span>
                                                         )}
                                                     </div>
@@ -328,20 +328,20 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
                                         <>
                                             <p className="font-medium">{t('taxonomy.roofShape.gable')}</p>
                                             {(mill.gableMaterialLusa || mill.gableMaterialMarselha || mill.gableMaterialMeiaCana) && (
-                                                <div className="flex flex-wrap gap-0.5 mt-0.5">
+                                                <div className="flex flex-col mt-0.5">
                                                     {mill.gableMaterialLusa && (
-                                                        <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
-                                                            {t('taxonomy.gableMaterial.lusa')}
+                                                        <span className="font-medium text-gray-900">
+                                                            - {t('taxonomy.gableMaterial.lusa')}
                                                         </span>
                                                     )}
                                                     {mill.gableMaterialMarselha && (
-                                                        <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
-                                                            {t('taxonomy.gableMaterial.marselha')}
+                                                        <span className="font-medium text-gray-900">
+                                                            - {t('taxonomy.gableMaterial.marselha')}
                                                         </span>
                                                     )}
                                                     {mill.gableMaterialMeiaCana && (
-                                                        <span className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">
-                                                            {t('taxonomy.gableMaterial.meiaCana')}
+                                                        <span className="font-medium text-gray-900">
+                                                            - {t('taxonomy.gableMaterial.meiaCana')}
                                                         </span>
                                                     )}
                                                 </div>
