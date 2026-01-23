@@ -180,7 +180,7 @@ export const MillSidebar = ({ millId, locale, onClose, sidebarRef: externalRef }
                     {/* Top Row: Identity Section (Horizontal Layout) */}
                     <div className="flex gap-2 mb-2">
                         {/* Left: Image */}
-                        <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24">
+                        <div className="flex-shrink-0 w-32 h-32 md:w-40 md:h-40">
                             {imageUrl ? (
                                 <div className="relative w-full h-full rounded-md overflow-hidden border border-gray-200">
                                     <Image
