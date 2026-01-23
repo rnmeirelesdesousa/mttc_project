@@ -299,22 +299,18 @@ export default async function MillDetailPage({ params }: PageProps) {
                   </div>
                 )}
                 <div>
-                  <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-1.5">
+                  <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
                     {t('add.form.technical.architecture.stoneType')}
                   </dt>
-                  <dd className="flex flex-wrap gap-1.5">
-                    <span className={`text-xs px-1.5 py-0.5 border ${mill.stoneTypeGranite ? 'border-gray-400 bg-gray-50' : 'border-gray-300 text-gray-400'}`}>
-                      {t('taxonomy.stoneType.granite')}
-                    </span>
-                    <span className={`text-xs px-1.5 py-0.5 border ${mill.stoneTypeSchist ? 'border-gray-400 bg-gray-50' : 'border-gray-300 text-gray-400'}`}>
-                      {t('taxonomy.stoneType.schist')}
-                    </span>
-                    <span className={`text-xs px-1.5 py-0.5 border ${mill.stoneTypeOther ? 'border-gray-400 bg-gray-50' : 'border-gray-300 text-gray-400'}`}>
-                      {t('taxonomy.stoneType.other')}
-                    </span>
+                  <dd className="text-xs text-gray-700 font-normal">
+                    {[
+                      mill.stoneTypeGranite && t('taxonomy.stoneType.granite'),
+                      mill.stoneTypeSchist && t('taxonomy.stoneType.schist'),
+                      mill.stoneTypeOther && t('taxonomy.stoneType.other')
+                    ].filter(Boolean).join(', ')}
                   </dd>
                   {mill.stoneTypeOther && mill.stoneMaterialDescription && (
-                    <dd className="text-xs text-gray-500 mt-1.5">
+                    <dd className="text-xs text-gray-500 mt-1">
                       {mill.stoneMaterialDescription}
                     </dd>
                   )}
@@ -339,31 +335,18 @@ export default async function MillDetailPage({ params }: PageProps) {
                     </dd>
                   </div>
                 )}
-                {mill.roofMaterial && (
-                  <div>
-                    <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
-                      {t('mill.detail.roofMaterial')}
-                    </dt>
-                    <dd className="text-xs text-gray-700 font-normal">
-                      {getTranslatedValue('roofMaterial', mill.roofMaterial)}
-                    </dd>
-                  </div>
-                )}
+
                 {mill.roofShape === 'gable' && (
                   <div>
-                    <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-1.5">
+                    <dt className="text-xs font-normal text-gray-400 uppercase tracking-wide mb-0.5">
                       {t('add.form.technical.architecture.gableRoofMaterials')}
                     </dt>
-                    <dd className="flex flex-wrap gap-1.5">
-                      <span className={`text-xs px-1.5 py-0.5 border ${mill.gableMaterialLusa ? 'border-gray-400 bg-gray-50' : 'border-gray-300 text-gray-400'}`}>
-                        {t('taxonomy.gableMaterial.lusa')}
-                      </span>
-                      <span className={`text-xs px-1.5 py-0.5 border ${mill.gableMaterialMarselha ? 'border-gray-400 bg-gray-50' : 'border-gray-300 text-gray-400'}`}>
-                        {t('taxonomy.gableMaterial.marselha')}
-                      </span>
-                      <span className={`text-xs px-1.5 py-0.5 border ${mill.gableMaterialMeiaCana ? 'border-gray-400 bg-gray-50' : 'border-gray-300 text-gray-400'}`}>
-                        {t('taxonomy.gableMaterial.meiaCana')}
-                      </span>
+                    <dd className="text-xs text-gray-700 font-normal">
+                      {[
+                        mill.gableMaterialLusa && t('taxonomy.gableMaterial.lusa'),
+                        mill.gableMaterialMarselha && t('taxonomy.gableMaterial.marselha'),
+                        mill.gableMaterialMeiaCana && t('taxonomy.gableMaterial.meiaCana')
+                      ].filter(Boolean).join(', ')}
                     </dd>
                   </div>
                 )}
