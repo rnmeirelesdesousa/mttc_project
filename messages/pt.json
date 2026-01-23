@@ -224,7 +224,7 @@
       "housing": "Habitação",
       "tourism": "Turismo",
       "ruin": "Desativado",
-      "museum": "Museu"
+      "museum": "Desconhecido"
     },
     "planShape": {
       "circular": "Circular",
@@ -343,7 +343,7 @@
     },
     "gableMaterial": {
       "lusa": "Telha Lusa",
-      "marselha": "Telha Marselha",
+      "marselha": "Inexistente",
       "meiaCana": "Telha de Meia-cana"
     }
   },
@@ -431,11 +431,11 @@
           "roof": "Cobertura",
           "roofType": "Tipo de Cobertura",
           "roofTypeFakeDome": "Falsa Cúpula",
-          "roofTypeStone": "Pedra",
+          "roofTypeStone": "Lajes de Pedra",
           "roofTypeGable": "Duas Águas",
           "gableRoofMaterials": "Materiais da Cobertura de Duas Águas",
           "gableRoofMaterialLusa": "Telha Lusa",
-          "gableRoofMaterialMarselha": "Telha Marselha",
+          "gableRoofMaterialMarselha": "Inexistente",
           "gableRoofMaterialMeiaCana": "Telha de Meia-cana",
           "roofShape": "Tipo de Cobertura",
           "roofShapePlaceholder": "Selecione a forma",
