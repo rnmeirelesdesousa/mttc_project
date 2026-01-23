@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import { MillMap } from './MillMap';
 import { MillSidebar } from './MillSidebar';
+
 import { MapSidebar } from './MapSidebar';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,6 @@ export const MapWithSidebar = ({ mills, pocas = [], waterLines, locale, availabl
   const [selectedMillId, setSelectedMillId] = useState<string | null>(null);
   const [filterSidebarOpen, setFilterSidebarOpen] = useState(true);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Sync selectedMillId with URL param
   useEffect(() => {
@@ -80,14 +80,7 @@ export const MapWithSidebar = ({ mills, pocas = [], waterLines, locale, availabl
     router.push(newUrl, { scroll: false });
   };
 
-  const handleCloseSidebar = () => {
-    setSelectedMillId(null);
-    // Remove millId from URL
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('millId');
-    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
-    router.push(newUrl, { scroll: false });
-  };
+
 
   // Find the selected mill's coordinates for focus zoom
   const selectedMill = mills.find((mill) => mill.id === selectedMillId);
@@ -130,13 +123,13 @@ export const MapWithSidebar = ({ mills, pocas = [], waterLines, locale, availabl
           selectedMillCoords={selectedMillCoords}
           mapContainerRef={mapContainerRef}
           selectedMillId={selectedMillId}
-          sidebarRef={sidebarRef}
         />
+
+        {/* Mill Details Sidebar - ID Card Style */}
         <MillSidebar
           millId={selectedMillId}
           locale={locale}
-          onClose={handleCloseSidebar}
-          sidebarRef={sidebarRef}
+          onClose={() => setSelectedMillId(null)}
         />
 
         {/* Filter Menu Icon - Fixed position on left side */}
