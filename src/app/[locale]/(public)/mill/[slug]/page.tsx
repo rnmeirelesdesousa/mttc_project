@@ -9,6 +9,7 @@ import { isResearcherOrAdmin } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MillImageProvider, MillMainImage, MillGalleryGrid } from '@/components/features/MillImageGroup';
+import { MillPdfButton } from '@/components/features/MillPdfButton';
 
 interface PageProps {
   params: {
@@ -72,9 +73,9 @@ export default async function MillDetailPage({ params }: PageProps) {
 
   return (
     <MillImageProvider images={images}>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white pt-20">
         {/* Navigation Bar */}
-        <div className="border-b border-gray-300 bg-white sticky top-0 z-10">
+        <div className="border-b border-gray-300 bg-white sticky top-20 z-10">
           <div className="container mx-auto max-w-7xl px-8 py-3">
             <div className="flex items-center justify-between">
               <Link
@@ -85,14 +86,17 @@ export default async function MillDetailPage({ params }: PageProps) {
                 {t('map.backToMap')}
               </Link>
 
-              {canEdit && (
-                <Button asChild variant="ghost" size="sm" className="text-xs h-7">
-                  <Link href={`/${params.locale}/dashboard/edit/${mill.id}`}>
-                    <Edit className="mr-1.5 h-3 w-3" />
-                    {t('mill.detail.editEntry')}
-                  </Link>
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {canEdit && (
+                  <Button asChild variant="ghost" size="sm" className="text-xs h-7">
+                    <Link href={`/${params.locale}/dashboard/edit/${mill.id}`}>
+                      <Edit className="mr-1.5 h-3 w-3" />
+                      {t('mill.detail.editEntry')}
+                    </Link>
+                  </Button>
+                )}
+                <MillPdfButton mill={mill} />
+              </div>
             </div>
           </div>
         </div>

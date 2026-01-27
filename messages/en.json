@@ -15,7 +15,8 @@
     "noItems": "No items found",
     "delete": "Delete",
     "confirmDelete": "Are you sure you want to delete this item? This action cannot be undone.",
-    "deleteError": "Failed to delete item"
+    "deleteError": "Failed to delete item",
+    "download": "Download"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -136,7 +137,10 @@
       "noImage": "No image available",
       "editEntry": "Edit This Entry",
       "dimensionsTitle": "Dimensions",
-      "documents": "Technical Documents"
+      "documents": "Technical Sheet",
+      "photographicRecord": "Photographic Record",
+      "mainImage": "Main Image",
+      "gallery": "Gallery"
     },
     "sidebar": {
       "generalInfo": "General Info",
