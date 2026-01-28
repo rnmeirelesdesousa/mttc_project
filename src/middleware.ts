@@ -24,27 +24,27 @@ const intlMiddleware = createMiddleware(routing);
 export async function middleware(request: NextRequest) {
   // First, let next-intl handle locale detection and redirection
   const response = intlMiddleware(request);
-  
+
   // If next-intl returned a redirect, handle it first
   if (response.status === 307 || response.status === 308) {
     // Let the locale redirect complete, then apply security on the next request
     return response;
   }
-  
+
   // Extract pathname (after locale processing)
   const pathname = request.nextUrl.pathname;
 
   // Allow public routes and login page to pass through
   const isLoginRoute = /^\/[a-z]{2}\/login/.test(pathname) || pathname === '/login';
   const isRootRoute = /^\/[a-z]{2}$/.test(pathname) || pathname === '/';
-  
+
   if (isLoginRoute || isRootRoute) {
     return response;
   }
 
   // Check if accessing dashboard routes (with locale prefix)
   const isDashboardRoute = /^\/[a-z]{2}\/dashboard/.test(pathname);
-  
+
   if (isDashboardRoute) {
     // Create Supabase client to check session
     const supabase = createServerClient(
@@ -81,7 +81,7 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
-    
+
     // Session exists - allow through (return the intl response)
     // RBAC (admin check for /dashboard/review) is handled in Server Components
     return response;
@@ -102,7 +102,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (public folder)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ttf|woff|woff2)$).*)',
   ],
 };
 
