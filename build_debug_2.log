@@ -1,0 +1,64 @@
+
+> mttc-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./src/app/[locale]/dashboard/add/page.tsx
+83:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+1932:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/[locale]/dashboard/review/[slug]/page.tsx
+714:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+729:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/features/GlobalSearch.tsx
+543:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/features/MillImageGroup.tsx
+193:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/4) ...
+   Generating static pages (1/4) 
+   Generating static pages (2/4) 
+   Generating static pages (3/4) 
+ ✓ Generating static pages (4/4)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    147 B          88.3 kB
+├ ○ /_not-found                          876 B            89 kB
+├ ƒ /[locale]                            10.1 kB         190 kB
+├ ƒ /[locale]/bibliography               180 B            97 kB
+├ ƒ /[locale]/dashboard                  180 B            97 kB
+├ ƒ /[locale]/dashboard/add              32 kB           141 kB
+├ ƒ /[locale]/dashboard/bibliography     3.96 kB         107 kB
+├ ƒ /[locale]/dashboard/edit/[id]        147 B          88.3 kB
+├ ƒ /[locale]/dashboard/inventory        6.31 kB         118 kB
+├ ƒ /[locale]/dashboard/pocas/new        5.4 kB          108 kB
+├ ƒ /[locale]/dashboard/review           3.79 kB         115 kB
+├ ƒ /[locale]/dashboard/review/[slug]    5.61 kB         180 kB
+├ ƒ /[locale]/dashboard/water-lines/new  5.54 kB         108 kB
+├ ƒ /[locale]/levada/[slug]              2.24 kB         176 kB
+├ ƒ /[locale]/login                      2.44 kB         160 kB
+├ ƒ /[locale]/map                        147 B          88.3 kB
+└ ƒ /[locale]/mill/[slug]                144 kB          261 kB
++ First Load JS shared by all            88.1 kB
+  ├ chunks/117-b5826a61f216f0c7.js       31.9 kB
+  ├ chunks/fd9d1056-642fdd7324f9ec99.js  53.6 kB
+  └ other shared chunks (total)          2.58 kB
+
+
+ƒ Middleware                             84.2 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
