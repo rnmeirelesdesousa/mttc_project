@@ -660,5 +660,40 @@
       "submittingForReview": "A submeter...",
       "error": "Ocorreu um erro ao criar a poça"
     }
+  },
+  "sidebar": {
+    "bibliography": "Bibliografia"
+  },
+  "bibliography": {
+    "title": "Bibliografia",
+    "description": "Referências e recursos sobre os moinhos.",
+    "management": "Gestão de Bibliografia",
+    "addNew": "Adicionar Nova Entrada",
+    "currentEntries": "Entradas Atuais",
+    "noEntries": "Nenhuma entrada bibliográfica encontrada.",
+    "noEntriesPublic": "Nenhuma entrada bibliográfica disponível ainda.",
+    "viewResource": "Ver Recurso",
+    "form": {
+      "title": "Título",
+      "author": "Autor",
+      "year": "Ano",
+      "publisher": "Editora",
+      "url": "URL (Opcional)",
+      "submit": "Adicionar Entrada",
+      "placeholders": {
+        "title": "Ex: Moinhos de Portugal",
+        "author": "Ex: Silva, João",
+        "year": "2024",
+        "publisher": "Edições X",
+        "url": "https://..."
+      }
+    },
+    "alerts": {
+      "added": "Entrada adicionada com sucesso",
+      "addFailed": "Falha ao adicionar entrada",
+      "confirmDelete": "Tem a certeza que deseja eliminar esta entrada?",
+      "deleted": "Entrada eliminada",
+      "deleteFailed": "Falha ao eliminar entrada"
+    }
   }
 }

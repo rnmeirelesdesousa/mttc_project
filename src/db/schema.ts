@@ -469,6 +469,21 @@ export const pocasData = pgTable('pocas_data', {
 });
 
 // ============================================================================
+// STEP 5.8: Table `bibliography` (Project Bibliography)
+// ============================================================================
+
+export const bibliography = pgTable('bibliography', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  author: text('author').notNull(),
+  year: integer('year'),
+  publisher: text('publisher'),
+  url: text('url'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ============================================================================
 // STEP 6: Define Relations
 // ============================================================================
 
@@ -580,6 +595,9 @@ export type NewWaterLineTranslation = InferInsertModel<typeof waterLineTranslati
 export type PocasData = InferSelectModel<typeof pocasData>;
 export type NewPocasData = InferInsertModel<typeof pocasData>;
 
+export type BibliographyEntry = InferSelectModel<typeof bibliography>;
+export type NewBibliographyEntry = InferInsertModel<typeof bibliography>;
+
 export const schema = {
   constructions,
   millsData,
@@ -588,4 +606,5 @@ export const schema = {
   waterLines,
   waterLineTranslations,
   pocasData,
+  bibliography,
 };

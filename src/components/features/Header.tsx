@@ -173,10 +173,10 @@ export const Header = ({ locale }: HeaderProps) => {
           </Link>
         </div>
 
-        {/* Center: Global Search Bar - Hidden on small screens, shown on md+, and hidden on Dashboard routes */}
         <div className="hidden md:flex items-center justify-center">
           {!isDashboardRoute && <GlobalSearch locale={locale} />}
         </div>
+
         <div className="md:hidden" /> {/* Spacer for mobile to maintain grid */}
 
         {/* Right: Auth Actions */}
@@ -240,7 +240,7 @@ export const Header = ({ locale }: HeaderProps) => {
                 <GlobalSearch locale={locale} />
               </div>
             )}
-            
+
             {/* Mobile Auth Actions */}
             <nav className="space-y-3">
               {loading ? (

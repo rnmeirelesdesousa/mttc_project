@@ -4,16 +4,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
-import { 
-  Package, 
-  Plus, 
-  FileText, 
+import {
+  Package,
+  Plus,
+  FileText,
   Home,
   ChevronRight,
   ChevronDown,
   Factory,
   Droplets,
-  CircleDot
+  CircleDot,
+  Book
 } from 'lucide-react';
 
 // Utility function to merge class names
@@ -67,6 +68,11 @@ export function DashboardSidebar({ locale, isAdmin = false }: DashboardSidebarPr
       label: t('dashboard.nav.newEntrySubmenu.poca'),
       icon: CircleDot,
     },
+    {
+      href: `/${locale}/dashboard/bibliography`,
+      label: t('sidebar.bibliography') || "Bibliography",
+      icon: Book,
+    },
   ];
 
   const isActive = (href: string, exact?: boolean) => {
@@ -92,7 +98,7 @@ export function DashboardSidebar({ locale, isAdmin = false }: DashboardSidebarPr
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href, item.exact);
-          
+
           return (
             <Link
               key={item.href}
@@ -137,7 +143,7 @@ export function DashboardSidebar({ locale, isAdmin = false }: DashboardSidebarPr
               {newEntrySubmenu.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
-                
+
                 return (
                   <Link
                     key={item.href}
