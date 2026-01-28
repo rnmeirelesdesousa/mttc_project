@@ -37,6 +37,8 @@ export const Header = ({ locale }: HeaderProps) => {
 
   // Detect if we're on a Dashboard route
   const isDashboardRoute = pathname?.startsWith(`/${locale}/dashboard`) ?? false;
+  // Detect if we're on the Bibliography route
+  const isBibliographyRoute = pathname?.startsWith(`/${locale}/bibliography`) ?? false;
 
   // Keep locale ref up to date
   useEffect(() => {
@@ -180,7 +182,22 @@ export const Header = ({ locale }: HeaderProps) => {
         <div className="md:hidden" /> {/* Spacer for mobile to maintain grid */}
 
         {/* Right: Auth Actions */}
-        <div className="flex items-center justify-end space-x-2 md:space-x-3 pr-4">
+        <div className="flex items-center justify-end gap-4 pr-4">
+          {isBibliographyRoute ? (
+            <Link
+              href={homePath}
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              {t('header.map')}
+            </Link>
+          ) : (
+            <Link
+              href={`/${locale}/bibliography`}
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              {t('bibliography.title')}
+            </Link>
+          )}
           {loading ? (
             // Neutral placeholder to prevent hydration flicker
             <div className="h-9 w-20 bg-transparent" />
@@ -243,6 +260,23 @@ export const Header = ({ locale }: HeaderProps) => {
 
             {/* Mobile Auth Actions */}
             <nav className="space-y-3">
+              {isBibliographyRoute ? (
+                <Link
+                  href={homePath}
+                  className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="flex-1">{t('header.map')}</span>
+                </Link>
+              ) : (
+                <Link
+                  href={`/${locale}/bibliography`}
+                  className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="flex-1">{t('bibliography.title')}</span>
+                </Link>
+              )}
               {loading ? (
                 // Neutral placeholder to prevent hydration flicker
                 <div className="h-9 w-full bg-transparent" />
