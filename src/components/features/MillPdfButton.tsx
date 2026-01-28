@@ -184,6 +184,47 @@ export function MillPdfButton({ mill }: MillPdfProps) {
             const margin = 15;
             const contentWidth = pageWidth - (margin * 2);
 
+            // --- Load Custom Font (Segoe UI) ---
+            let fontName = 'helvetica'; // Default fallback
+            try {
+                const loadFontFile = async (filename: string, style: string) => {
+                    const response = await fetch(`/fonts/${filename}`);
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const reader = new FileReader();
+                        return new Promise<string | null>((resolve) => {
+                            reader.onloadend = () => {
+                                const result = reader.result as string;
+                                const base64 = result.split(',')[1];
+                                resolve(base64 || null);
+                            };
+                            reader.onerror = () => resolve(null);
+                            reader.readAsDataURL(blob);
+                        });
+                    }
+                    return null;
+                };
+
+                const base64Normal = await loadFontFile('SegoeUI.ttf', 'normal');
+                const base64Bold = await loadFontFile('SegoeUI-Bold.ttf', 'bold');
+
+                if (base64Normal) {
+                    doc.addFileToVFS('SegoeUI.ttf', base64Normal);
+                    doc.addFont('SegoeUI.ttf', 'Segoe UI', 'normal');
+                    fontName = 'Segoe UI';
+
+                    if (base64Bold) {
+                        doc.addFileToVFS('SegoeUI-Bold.ttf', base64Bold);
+                        doc.addFont('SegoeUI-Bold.ttf', 'Segoe UI', 'bold');
+                    } else {
+                        // Fallback: Use normal font for bold if bold file missing (prevents errors)
+                        doc.addFont('SegoeUI.ttf', 'Segoe UI', 'bold');
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not load custom font, falling back to Helvetica', e);
+            }
+
             // Document Metadata
             doc.setProperties({
                 title: `Ficha Técnica - ${mill.title || mill.slug}`,
@@ -194,12 +235,12 @@ export function MillPdfButton({ mill }: MillPdfProps) {
 
             // --- 3. Header Function ---
             const drawHeader = (pageNo: number) => {
-                doc.setFont('helvetica', 'bold');
+                doc.setFont(fontName, 'bold'); // Use dynamic font
                 doc.setFontSize(10);
                 doc.setTextColor(60, 60, 60);
                 doc.text('MOINHOS EM PEDRA SECA', margin, 15);
 
-                doc.setFont('helvetica', 'normal');
+                doc.setFont(fontName, 'normal');
                 doc.setFontSize(8);
                 doc.text('Inventário e Documentação', margin, 19);
 
@@ -214,6 +255,7 @@ export function MillPdfButton({ mill }: MillPdfProps) {
                 doc.setDrawColor(200, 200, 200);
                 doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
 
+                doc.setFont(fontName, 'normal'); // Set font for footer
                 doc.setFontSize(8);
                 doc.setTextColor(150);
                 doc.text(`ID: ${mill.id}`, margin, footerY);
@@ -228,7 +270,7 @@ export function MillPdfButton({ mill }: MillPdfProps) {
             let yPos = 35;
 
             // --- Title Section ---
-            doc.setFont('helvetica', 'bold');
+            doc.setFont(fontName, 'bold');
             doc.setFontSize(22);
             doc.setTextColor(30, 30, 30);
 
@@ -238,7 +280,7 @@ export function MillPdfButton({ mill }: MillPdfProps) {
             yPos += (titleLines.length * 8) + 5;
 
             // Location Subtitle
-            doc.setFont('helvetica', 'normal');
+            doc.setFont(fontName, 'normal');
             doc.setFontSize(11);
             doc.setTextColor(80, 80, 80);
 
@@ -265,7 +307,13 @@ export function MillPdfButton({ mill }: MillPdfProps) {
             // We use 'plain' theme to remove table look, acting more like a clean list
             const sectionStyles = {
                 theme: 'plain' as const,
-                styles: { fontSize: 10, cellPadding: 1.5, overflow: 'linebreak' as const, valign: 'top' as const },
+                styles: {
+                    font: fontName, // Use dynamic font
+                    fontSize: 10,
+                    cellPadding: 1.5,
+                    overflow: 'linebreak' as const,
+                    valign: 'top' as const
+                },
                 columnStyles: {
                     0: { fontStyle: 'bold' as const, textColor: [100, 100, 100] as [number, number, number], cellWidth: 55 }, // Label: Gray & Bold
                     1: { textColor: [20, 20, 20] as [number, number, number] } // Value: Dark
@@ -274,7 +322,7 @@ export function MillPdfButton({ mill }: MillPdfProps) {
 
             const drawSectionTitle = (title: string, y: number) => {
                 doc.setFontSize(12);
-                doc.setFont('helvetica', 'bold');
+                doc.setFont(fontName, 'bold');
                 doc.setTextColor(0); // Black
                 doc.text(title.toUpperCase(), margin, y);
                 // Underline
@@ -420,14 +468,14 @@ export function MillPdfButton({ mill }: MillPdfProps) {
                     // Title
                     if (yPos > pageHeight - 40) { doc.addPage(); drawHeader((doc as any).internal.getNumberOfPages()); yPos = 35; }
                     doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
+                    doc.setFont(fontName, 'bold');
                     doc.setTextColor(50);
                     doc.text(obs.title, margin, yPos);
                     yPos += 5;
 
                     // Text
                     doc.setFontSize(10);
-                    doc.setFont('helvetica', 'normal');
+                    doc.setFont(fontName, 'normal');
                     doc.setTextColor(20);
                     const splitText = doc.splitTextToSize(obs.text, contentWidth);
 
@@ -438,11 +486,11 @@ export function MillPdfButton({ mill }: MillPdfProps) {
                         yPos = 35;
                         // Reprint title
                         doc.setFontSize(10);
-                        doc.setFont('helvetica', 'bold');
+                        doc.setFont(fontName, 'bold');
                         doc.text(obs.title + ' (cont.)', margin, yPos);
                         yPos += 5;
                         doc.setFontSize(10);
-                        doc.setFont('helvetica', 'normal');
+                        doc.setFont(fontName, 'normal');
                     }
 
                     doc.text(splitText, margin, yPos);
@@ -458,7 +506,7 @@ export function MillPdfButton({ mill }: MillPdfProps) {
 
                 // Title
                 doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
+                doc.setFont(fontName, 'bold');
                 doc.setTextColor(0);
                 doc.text(t('mill.detail.photographicRecord') || "Registo Fotográfico", margin, yPos);
                 yPos += 15;
@@ -492,7 +540,7 @@ export function MillPdfButton({ mill }: MillPdfProps) {
                     }
 
                     doc.setFontSize(11);
-                    doc.setFont('helvetica', 'bold');
+                    doc.setFont(fontName, 'bold');
                     doc.setTextColor(0);
                     doc.text(t('mill.detail.gallery') || "Galeria", margin, yPos);
                     yPos += 10;
