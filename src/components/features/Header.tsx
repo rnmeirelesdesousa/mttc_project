@@ -213,6 +213,12 @@ export const Header = ({ locale }: HeaderProps) => {
                   </DropdownMenuItem>
                 )}
 
+                <DropdownMenuItem asChild>
+                  <Link href={`/${locale}/glossary`}>
+                    {t('glossary.title')}
+                  </Link>
+                </DropdownMenuItem>
+
                 {loading ? (
                   <DropdownMenuItem disabled>
                     Loading...

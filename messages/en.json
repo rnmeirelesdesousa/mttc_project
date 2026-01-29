@@ -695,5 +695,9 @@
       "deleted": "Entry deleted",
       "deleteFailed": "Failed to delete entry"
     }
+  },
+  "glossary": {
+    "title": "Glossary",
+    "underConstruction": "Under Construction"
   }
 }

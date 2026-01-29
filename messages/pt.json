@@ -692,8 +692,11 @@
       "added": "Entrada adicionada com sucesso",
       "addFailed": "Falha ao adicionar entrada",
       "confirmDelete": "Tem a certeza que deseja eliminar esta entrada?",
-      "deleted": "Entrada eliminada",
-      "deleteFailed": "Falha ao eliminar entrada"
+      "deleted": "Entrada eliminada"
     }
+  },
+  "glossary": {
+    "title": "Glossário",
+    "underConstruction": "Em Construção"
   }
 }
