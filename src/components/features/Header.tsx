@@ -198,6 +198,21 @@ export const Header = ({ locale }: HeaderProps) => {
               {t('bibliography.title')}
             </Link>
           )}
+          {pathname?.startsWith(`/${locale}/glossary`) ? (
+            <Link
+              href={homePath}
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              {t('header.map')}
+            </Link>
+          ) : (
+            <Link
+              href={`/${locale}/glossary`}
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              {t('glossary.title')}
+            </Link>
+          )}
           {loading ? (
             // Neutral placeholder to prevent hydration flicker
             <div className="h-9 w-20 bg-transparent" />
@@ -275,6 +290,23 @@ export const Header = ({ locale }: HeaderProps) => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span className="flex-1">{t('bibliography.title')}</span>
+                </Link>
+              )}
+              {pathname?.startsWith(`/${locale}/glossary`) ? (
+                <Link
+                  href={homePath}
+                  className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="flex-1">{t('header.map')}</span>
+                </Link>
+              ) : (
+                <Link
+                  href={`/${locale}/glossary`}
+                  className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="flex-1">{t('glossary.title')}</span>
                 </Link>
               )}
               {loading ? (

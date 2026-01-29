@@ -662,7 +662,8 @@
     }
   },
   "sidebar": {
-    "bibliography": "Bibliography"
+    "bibliography": "Bibliography",
+    "glossary": "Glossary"
   },
   "bibliography": {
     "title": "Bibliography",
@@ -695,5 +696,10 @@
       "deleted": "Entry deleted",
       "deleteFailed": "Failed to delete entry"
     }
+  },
+  "glossary": {
+    "title": "Glossary",
+    "description": "Definition of terms related to mills.",
+    "underConstruction": "This page is under construction."
   }
 }

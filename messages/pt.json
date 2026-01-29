@@ -662,7 +662,8 @@
     }
   },
   "sidebar": {
-    "bibliography": "Bibliografia"
+    "bibliography": "Bibliografia",
+    "glossary": "Glossário"
   },
   "bibliography": {
     "title": "Bibliografia",
@@ -695,5 +696,10 @@
       "deleted": "Entrada eliminada",
       "deleteFailed": "Falha ao eliminar entrada"
     }
+  },
+  "glossary": {
+    "title": "Glossário",
+    "description": "Definição de termos relacionados com os moinhos.",
+    "underConstruction": "Esta página está em construção."
   }
 }
