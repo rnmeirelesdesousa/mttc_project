@@ -190,82 +190,69 @@ export const Header = ({ locale }: HeaderProps) => {
 
         {/* Right: Auth Actions */}
         <div className="flex items-center justify-end gap-4 pr-4">
-          <div className="hidden md:flex items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Open user menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white z-[1200]">
-                {isBibliographyRoute ? (
-                  <DropdownMenuItem asChild>
-                    <Link href={homePath} className="flex items-center w-full">
-                      <Map className="mr-2 h-4 w-4" />
-                      {t('header.map')}
-                    </Link>
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem asChild>
-                    <Link href={`/${locale}/bibliography`} className="flex items-center w-full">
-                      <Book className="mr-2 h-4 w-4" />
-                      {t('bibliography.title')}
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem asChild>
-                  <Link href={`/${locale}/glossary`} className="flex items-center w-full">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    {t('glossary.title')}
-                  </Link>
-                </DropdownMenuItem>
-
-                {loading ? (
-                  <DropdownMenuItem disabled>
-                    Loading...
-                  </DropdownMenuItem>
-                ) : isAuthenticated ? (
-                  <>
-                    <DropdownMenuSeparator />
-                    {isDashboardRoute ? (
-                      <DropdownMenuItem asChild>
-                        <Link href={homePath} className="flex items-center w-full">
-                          <Map className="mr-2 h-4 w-4" />
-                          {t('header.map')}
-                        </Link>
-                      </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem asChild>
-                        <Link href={dashboardPath} className="flex items-center w-full">
-                          <User className="mr-2 h-4 w-4" />
-                          {t('header.dashboard')}
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogoutClick} className="cursor-pointer">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      {t('header.logout')}
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href={loginPath} className="flex items-center w-full">
-                        <LogIn className="mr-2 h-4 w-4" />
-                        {t('header.login')}
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {isBibliographyRoute ? (
+            <Link
+              href={homePath}
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              {t('header.map')}
+            </Link>
+          ) : (
+            <Link
+              href={`/${locale}/bibliography`}
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              {t('bibliography.title')}
+            </Link>
+          )}
+          {pathname?.startsWith(`/${locale}/glossary`) ? (
+            <Link
+              href={homePath}
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              {t('header.map')}
+            </Link>
+          ) : (
+            <Link
+              href={`/${locale}/glossary`}
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-primary transition-colors"
+            >
+              {t('glossary.title')}
+            </Link>
+          )}
+          {loading ? (
+            // Neutral placeholder to prevent hydration flicker
+            <div className="h-9 w-20 bg-transparent" />
+          ) : isAuthenticated ? (
+            <>
+              {isDashboardRoute ? (
+                <Link href={homePath}>
+                  <Button variant="ghost" size="sm" className="font-medium hidden sm:inline-flex">
+                    <span className="hidden lg:inline">{t('header.map')}</span>
+                    <span className="lg:hidden">{t('header.map')}</span>
+                  </Button>
+                </Link>
+              ) : (
+                <Link href={dashboardPath}>
+                  <Button variant="ghost" size="sm" className="font-medium hidden sm:inline-flex">
+                    <User className="mr-2 h-4 w-4" />
+                    <span className="hidden lg:inline">{t('header.dashboard')}</span>
+                  </Button>
+                </Link>
+              )}
+              <Button variant="outline" size="sm" onClick={handleLogoutClick} className="font-medium">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">{t('header.logout')}</span>
+              </Button>
+            </>
+          ) : (
+            <Link href={loginPath}>
+              <Button size="sm" className="font-medium">
+                <span className="hidden sm:inline">{t('header.login')}</span>
+                <span className="sm:hidden">{t('header.login').charAt(0)}</span>
+              </Button>
+            </Link>
+          )}
 
           {/* Mobile Menu Button - Shows search icon on small screens when search is hidden */}
           <button
@@ -312,14 +299,23 @@ export const Header = ({ locale }: HeaderProps) => {
                   <span className="flex-1">{t('bibliography.title')}</span>
                 </Link>
               )}
-              <Link
-                href={`/${locale}/glossary`}
-                className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <BookOpen className="h-4 w-4" />
-                <span className="flex-1">{t('glossary.title')}</span>
-              </Link>
+              {pathname?.startsWith(`/${locale}/glossary`) ? (
+                <Link
+                  href={homePath}
+                  className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="flex-1">{t('header.map')}</span>
+                </Link>
+              ) : (
+                <Link
+                  href={`/${locale}/glossary`}
+                  className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="flex-1">{t('glossary.title')}</span>
+                </Link>
+              )}
               {loading ? (
                 // Neutral placeholder to prevent hydration flicker
                 <div className="h-9 w-full bg-transparent" />

@@ -15,6 +15,9 @@ export default async function GlossaryPage() {
                         <h1 className="text-3xl font-bold text-gray-900">
                             {t('glossary.title')}
                         </h1>
+                        <p className="text-gray-600 mt-1">
+                            {t('glossary.description')}
+                        </p>
                     </div>
                 </div>
 

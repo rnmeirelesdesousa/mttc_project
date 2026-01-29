@@ -662,7 +662,8 @@
     }
   },
   "sidebar": {
-    "bibliography": "Bibliography"
+    "bibliography": "Bibliography",
+    "glossary": "Glossary"
   },
   "bibliography": {
     "title": "Bibliography",
@@ -698,6 +699,7 @@
   },
   "glossary": {
     "title": "Glossary",
-    "underConstruction": "Under Construction"
+    "description": "Definition of terms related to mills.",
+    "underConstruction": "This page is under construction."
   }
 }
