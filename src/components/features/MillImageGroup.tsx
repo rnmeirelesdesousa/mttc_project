@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 // --- Types ---
 type ImageItem = {
     src: string;
+    thumbnailSrc?: string;
     alt: string;
 };
 
@@ -237,7 +238,7 @@ export function MillMainImage({ className }: TriggerProps) {
                 <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
             </div>
             <Image
-                src={mainImage.src}
+                src={mainImage.thumbnailSrc ?? mainImage.src}
                 alt={mainImage.alt}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -272,7 +273,7 @@ export function MillGalleryGrid() {
                             <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md h-5 w-5" />
                         </div>
                         <Image
-                            src={img.src}
+                            src={img.thumbnailSrc ?? img.src}
                             alt={img.alt}
                             fill
                             className="object-cover transition-transform duration-500 group-hover:scale-110"

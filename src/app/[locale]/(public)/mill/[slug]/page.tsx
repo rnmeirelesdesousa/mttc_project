@@ -26,18 +26,17 @@ interface PageProps {
  * Security: Only displays published mills. Returns 404 if mill doesn't exist or is not published.
  */
 export default async function MillDetailPage({ params }: PageProps) {
-  const t = await getTranslations();
-
-  // Fetch mill data by slug
-  const mill = await getMillBySlug(params.slug, params.locale);
+  // Fetch data in parallel
+  const [t, mill, canEdit] = await Promise.all([
+    getTranslations(),
+    getMillBySlug(params.slug, params.locale),
+    isResearcherOrAdmin()
+  ]);
 
   // Return 404 if mill doesn't exist or is not published
   if (!mill) {
     notFound();
   }
-
-  // Check if user can edit (researcher or admin)
-  const canEdit = await isResearcherOrAdmin();
 
   // Helper function to get translated enum value
   const getTranslatedValue = (category: string, key: string | null | undefined): string => {
@@ -55,8 +54,21 @@ export default async function MillDetailPage({ params }: PageProps) {
   };
 
   // Get image and document URLs
-  const mainImageUrl = mill.mainImage ? getPublicUrl(mill.mainImage) : null;
-  const galleryUrls = mill.galleryImages?.map(img => getPublicUrl(img)).filter((url): url is string => url !== null) || [];
+  const mainImage = mill.mainImage ? {
+    src: getPublicUrl(mill.mainImage)!,
+    thumbnailSrc: getPublicUrl(mill.mainImage, { width: 1200, quality: 80 })!,
+    alt: mill.title || mill.slug
+  } : null;
+
+  const galleryImages = mill.galleryImages?.map((path, idx) => {
+    const url = getPublicUrl(path);
+    if (!url) return null;
+    return {
+      src: url,
+      thumbnailSrc: getPublicUrl(path, { width: 600, height: 600, resize: 'cover', quality: 70 })!,
+      alt: `${mill.title} - ${idx + 1}`
+    };
+  }).filter((img): img is { src: string; thumbnailSrc: string; alt: string } => img !== null) || [];
 
   const documentUrls = mill.documentPaths?.map(path => {
     const url = getPublicUrl(path);
@@ -66,10 +78,11 @@ export default async function MillDetailPage({ params }: PageProps) {
     return { name, url };
   }).filter((doc): doc is { name: string; url: string } => doc !== null) || [];
 
+  // Create images array for context
   const images = [
-    mainImageUrl ? { src: mainImageUrl, alt: mill.title || mill.slug } : null,
-    ...galleryUrls.map((url, idx) => ({ src: url, alt: `${mill.title} - ${idx + 1}` }))
-  ].filter((img): img is { src: string; alt: string } => img !== null);
+    mainImage,
+    ...galleryImages
+  ].filter((img): img is { src: string; thumbnailSrc?: string; alt: string } => img !== null);
 
   return (
     <MillImageProvider images={images}>
@@ -781,8 +794,9 @@ export default async function MillDetailPage({ params }: PageProps) {
             </section>
           )}
 
+
           {/* Gallery Images - Bottom */}
-          {galleryUrls.length > 0 && (
+          {galleryImages.length > 0 && (
             <section className="mb-12">
               <h2 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-5 border-b border-gray-300 pb-1.5">
                 Additional Documentation
