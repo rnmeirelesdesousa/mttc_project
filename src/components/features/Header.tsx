@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { LogOut, User, Menu, X } from 'lucide-react';
+import { LogOut, User, Menu, X, Map, Book, BookOpen, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import { handleLogout } from '@/actions/auth';
@@ -201,20 +201,25 @@ export const Header = ({ locale }: HeaderProps) => {
               <DropdownMenuContent align="end" className="bg-white z-[1200]">
                 {isBibliographyRoute ? (
                   <DropdownMenuItem asChild>
-                    <Link href={homePath}>
+                    <Link href={homePath} className="flex items-center w-full">
+                      <Map className="mr-2 h-4 w-4" />
                       {t('header.map')}
                     </Link>
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem asChild>
-                    <Link href={`/${locale}/bibliography`}>
+                    <Link href={`/${locale}/bibliography`} className="flex items-center w-full">
+                      <Book className="mr-2 h-4 w-4" />
                       {t('bibliography.title')}
                     </Link>
                   </DropdownMenuItem>
                 )}
 
+                <DropdownMenuSeparator />
+
                 <DropdownMenuItem asChild>
-                  <Link href={`/${locale}/glossary`}>
+                  <Link href={`/${locale}/glossary`} className="flex items-center w-full">
+                    <BookOpen className="mr-2 h-4 w-4" />
                     {t('glossary.title')}
                   </Link>
                 </DropdownMenuItem>
@@ -228,19 +233,21 @@ export const Header = ({ locale }: HeaderProps) => {
                     <DropdownMenuSeparator />
                     {isDashboardRoute ? (
                       <DropdownMenuItem asChild>
-                        <Link href={homePath}>
+                        <Link href={homePath} className="flex items-center w-full">
+                          <Map className="mr-2 h-4 w-4" />
                           {t('header.map')}
                         </Link>
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem asChild>
-                        <Link href={dashboardPath}>
+                        <Link href={dashboardPath} className="flex items-center w-full">
+                          <User className="mr-2 h-4 w-4" />
                           {t('header.dashboard')}
                         </Link>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogoutClick}>
+                    <DropdownMenuItem onClick={handleLogoutClick} className="cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
                       {t('header.logout')}
                     </DropdownMenuItem>
@@ -249,7 +256,8 @@ export const Header = ({ locale }: HeaderProps) => {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href={loginPath}>
+                      <Link href={loginPath} className="flex items-center w-full">
+                        <LogIn className="mr-2 h-4 w-4" />
                         {t('header.login')}
                       </Link>
                     </DropdownMenuItem>
@@ -304,6 +312,14 @@ export const Header = ({ locale }: HeaderProps) => {
                   <span className="flex-1">{t('bibliography.title')}</span>
                 </Link>
               )}
+              <Link
+                href={`/${locale}/glossary`}
+                className="flex items-center space-x-2 text-sm font-medium hover:text-primary transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <BookOpen className="h-4 w-4" />
+                <span className="flex-1">{t('glossary.title')}</span>
+              </Link>
               {loading ? (
                 // Neutral placeholder to prevent hydration flicker
                 <div className="h-9 w-full bg-transparent" />
