@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { FileText, Loader2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslations, useLocale } from 'next-intl';
@@ -151,6 +149,10 @@ export function MillPdfButton({ mill }: MillPdfProps) {
     const generatePdf = async () => {
         try {
             setIsGenerating(true);
+
+            // Dynamic imports to reduce initial bundle size
+            const jsPDF = (await import('jspdf')).default;
+            const autoTable = (await import('jspdf-autotable')).default;
 
             // --- 1. Prepare Data & Images ---
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
