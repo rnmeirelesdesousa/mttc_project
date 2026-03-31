@@ -47,7 +47,7 @@ function FocusZoomHandler({
   useEffect(() => {
     if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
       // Use maxZoom of Stadia Alidade Satellite (20)
-      const zoomLevel = 20;
+      const zoomLevel = 18;
       const targetLatLng = L.latLng(lat, lng);
 
       // Calculate the adjusted center point before animation
@@ -388,7 +388,7 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
       <MapContainer
         center={portugalCenter}
         zoom={defaultZoom}
-        maxZoom={20}
+        maxZoom={18}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
         zoomControl={false}
@@ -398,9 +398,18 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
 
         {/* Layer Control - positioned in bottom right */}
         <LayersControl position="bottomright">
-          {/* Stadia.AlidadeSatellite - Default base layer (Requires API key) */}
+          {/* Esri World Imagery - High quality free satellite map */}
+          <LayersControl.BaseLayer checked name="Esri World Imagery">
+            <TileLayer
+              attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={18}
+            />
+          </LayersControl.BaseLayer>
+
+          {/* Stadia.AlidadeSatellite - Default base layer (Requires API key) 
           {stadiaApiKey ? (
-            <LayersControl.BaseLayer checked name="Stadia Alidade Satellite">
+            <LayersControl.BaseLayer name="Stadia Alidade Satellite">
               <TileLayer
                 attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
                 url={`https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`}
@@ -408,13 +417,14 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
               />
             </LayersControl.BaseLayer>
           ) : null}
+          */}
 
           {/* OpenStreetMap.HOT - Fallback default if Stadia API key not available */}
-          <LayersControl.BaseLayer checked={!stadiaApiKey} name="OpenStreetMap HOT">
+          <LayersControl.BaseLayer name="OpenStreetMap HOT">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>'
               url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-              maxZoom={19}
+              maxZoom={18}
             />
           </LayersControl.BaseLayer>
 
@@ -435,7 +445,7 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
               <TileLayer
                 attribution='&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url={`https://{s}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`}
-                maxZoom={21}
+                maxZoom={18}
               />
             </LayersControl.BaseLayer>
           )}
@@ -446,7 +456,7 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
               <TileLayer
                 attribution='&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url={`https://{s}.tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=${thunderforestApiKey}`}
-                maxZoom={21}
+                maxZoom={18}
               />
             </LayersControl.BaseLayer>
           )}
@@ -465,7 +475,7 @@ export const MillMap = ({ mills, pocas = [], waterLines, locale, onMillClick, on
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maxZoom={19}
+              maxZoom={18}
             />
           </LayersControl.BaseLayer>
         </LayersControl>

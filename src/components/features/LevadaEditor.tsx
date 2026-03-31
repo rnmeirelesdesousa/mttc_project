@@ -218,8 +218,17 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
         >
           {/* Layer Control - positioned in bottom right */}
           <LayersControl position="bottomright">
+            {/* Esri World Imagery - High quality free satellite map */}
+            <LayersControl.BaseLayer checked name="Esri World Imagery">
+              <TileLayer
+                attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            </LayersControl.BaseLayer>
+
             {/* OpenStreetMap.HOT - Default base layer */}
-            <LayersControl.BaseLayer checked name="OpenStreetMap HOT">
+            <LayersControl.BaseLayer name="OpenStreetMap HOT">
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>'
                 url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
@@ -269,7 +278,7 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
               />
             </LayersControl.BaseLayer>
 
-            {/* Stadia.AlidadeSatellite - Requires API key */}
+            {/* Stadia.AlidadeSatellite - Requires API key 
             {stadiaApiKey && (
               <LayersControl.BaseLayer name="Stadia Alidade Satellite">
                 <TileLayer
@@ -279,6 +288,7 @@ export const LevadaEditor = ({ color, onPathChange, existingMills = [], existing
                 />
               </LayersControl.BaseLayer>
             )}
+            */}
 
             {/* OpenStreetMap Standard - Always available as fallback option */}
             <LayersControl.BaseLayer name="OpenStreetMap Standard">
