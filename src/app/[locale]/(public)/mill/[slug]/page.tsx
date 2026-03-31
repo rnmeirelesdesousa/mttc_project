@@ -82,7 +82,7 @@ export default async function MillDetailPage({ params }: PageProps) {
   const images = [
     mainImage,
     ...galleryImages
-  ].filter((img): img is { src: string; thumbnailSrc?: string; alt: string } => img !== null);
+  ].filter((img): img is { src: string; thumbnailSrc: string; alt: string } => img !== null);
 
   return (
     <MillImageProvider images={images}>
